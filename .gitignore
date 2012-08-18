@@ -1,0 +1,4 @@
+.project
+.cproject
+*.o
+src/mcpp-server
