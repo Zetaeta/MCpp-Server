@@ -1,4 +1,5 @@
 .project
 .cproject
 *.o
+*.swp
 src/mcpp-server
