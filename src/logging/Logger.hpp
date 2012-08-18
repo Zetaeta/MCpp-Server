@@ -4,26 +4,18 @@
 
 #include <string>
 
+#include "Level.hpp"
+
 namespace MCServer {
 namespace Logging {
 
-
-enum Level {
-    FINEST,
-    FINE,
-    INFO,
-    WARNING,
-    SEVERE
-}
-
 struct LoggerData;
+class Handler;
 
 class Logger {
 public:
     void log(Level level, std::string message);
-    inline void log(std::string message) {
-        log(defaultLevel, message);
-    }
+    void log(std::string message);
     inline void finest(std::string message) {
         log(FINEST, message);
     }
@@ -42,6 +34,9 @@ public:
     inline void destroy() {
         destroyLogger(*this);
     }
+    void addHandler(Handler *);
+    void setDefaultLevel(Level level);
+    ~Logger();
 
     static Logger & getLogger(std::string name);
     static void destroyLogger(Logger &logger);

@@ -10,6 +10,7 @@ namespace Logging {
 class ConsoleHandler : public Handler {
 public:
     virtual void handle(Level level, std::string message);
+    virtual Handler * clone();
 private:
     static std::string levelName(Level level);
     static std::string timeString();

@@ -22,6 +22,8 @@ public:
     void run();
 //    void acceptClient(boost::asio::ip::tcp::socket *socket);
 protected:
+    void init();
+
     NetworkServerData *m;
 };
 

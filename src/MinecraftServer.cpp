@@ -11,6 +11,7 @@
 
 #include "MinecraftServer.hpp"
 #include "network/NetworkServer.hpp"
+#include "logging/Logger.hpp"
 
 namespace MCServer {
 
@@ -21,17 +22,18 @@ using std::endl;
 using std::string;
 
 using Network::NetworkServer;
+using Logging::Logger;
 
 struct MinecraftServerData {
     bool shutdown;
     NetworkServer *networkServer;
-//    boost::asio::io_service ioService;
+    Logger *logger;
 };
 
 MinecraftServer::MinecraftServer()
     :m(new MinecraftServerData())
 {
-
+    m->logger = &Logger::getLogger("Minecraft");
 }
 
 MinecraftServer::~MinecraftServer() {
@@ -74,53 +76,12 @@ void MinecraftServer::run() {
         exit(1);
     }
     
-/*    catch (char c) {
-        cerr << "Unhandled (char) exception in server: " << str << endl;
-        ++failureCount;
-        goto finish;
-    }
-    catch (short s) {
-        cerr << "Unhandled (short) exception in server: " << s << endl;
-        ++failureCount;
-        goto finish;
-    }
-    catch (int i) {
-        cerr << "Unhandled (int) exception in server: " << i << endl;
-        ++failureCount;
-        goto finish
-    }
-    catch (long long ll) {
-        cerr << "Unhandled (really long) exception in server: " << ll << endl;
-        ++failureCount;
-        goto finish;
-    }
-    catch (float f) {
-        cerr << "Unhandled (float) exception in server: " << f << endl;
-        ++failureCount;
-        goto finish;
-    }
-    catch (double d) {
-        cerr << "Unhandled (double) exception in server: " << f << endl;
-        ++failureCount;
-        goto finish;
-    }
-    catch (bool b) {
-        cerr << "Unhandled (bool) exception in server: " << b << '\n';
-        ++failureCount;
-        cerr << "Who the fuck thought it would be a good idea to throw a bool? ¬_¬" << endl;;
-        goto finish;
-    }
-    catch (...) {
-        cerr << "Unhandled exception of unknown type in server.\n";
-        ++failureCount;
-        goto finish;
-    } */
     
 }
 
 void MinecraftServer::init() {
-    cout << "Starting MC++-Server...\n";
-    cout << "Server version: " << getVersion() << '\n';
+    m->logger->info("Starting MC++-Server...");
+    m->logger->info("Server version: " + getVersion());
     m->networkServer = new NetworkServer(this);
     
 }
@@ -135,6 +96,14 @@ void MinecraftServer::shutdown() {
 
 string MinecraftServer::getVersion() {
     return "0.1";
+}
+
+NetworkServer & MinecraftServer::getNetworkServer() {
+    return *m->networkServer;
+}
+
+Logger & MinecraftServer::getLogger() {
+    return *m->logger;
 }
 
 //boost::asio::io_service & MinecraftServer::getIoService() {

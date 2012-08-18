@@ -13,6 +13,14 @@
 
 namespace MCServer {
 
+namespace Logging {
+class Logger;
+}
+
+namespace Network {
+class NetworkServer;
+}
+
 struct MinecraftServerData;
 
 class MinecraftServer {
@@ -24,7 +32,8 @@ public:
     void tick();
     void shutdown();
     std::string getVersion();
-//    boost::asio::io_service & getIoService();
+    Logging::Logger & getLogger();
+    Network::NetworkServer & getNetworkServer();
 protected:
     MinecraftServerData *m; // PIMPL
 };

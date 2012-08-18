@@ -4,12 +4,15 @@
 
 #include <string>
 
+#include "Logger.hpp"
+
 namespace MCServer {
 namespace Logging {
 
 class Handler {
 public:
     virtual void handle(Level level, std::string message) = 0;
+    virtual Handler * clone() = 0;
     virtual ~Handler() {}
 };
 

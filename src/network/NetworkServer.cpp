@@ -73,7 +73,7 @@ void NetworkServer::run() {
 //}
 
 void NetworkServer::init() {
-    cout << "Setting up network... "
+    cout << "Setting up network... \n";
 }
 
 } /* namespace Network */
