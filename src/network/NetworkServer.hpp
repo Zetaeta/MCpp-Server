@@ -8,6 +8,8 @@
 #ifndef NETWORKSERVER_HPP_
 #define NETWORKSERVER_HPP_
 
+struct sockaddr_in;
+
 #include "../MinecraftServer.hpp"
 
 namespace MCServer {
@@ -23,6 +25,7 @@ public:
 //    void acceptClient(boost::asio::ip::tcp::socket *socket);
 protected:
     void init();
+    void handleAccept(int, sockaddr_in);
 
     NetworkServerData *m;
 };

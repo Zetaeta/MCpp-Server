@@ -3,13 +3,24 @@
 #include <iostream>
 
 #include "ConsoleHandler.hpp"
+#include "../MinecraftServer.hpp"
+#include "../ConsoleReader.hpp"
 
 namespace MCServer {
 namespace Logging {
 
+struct ConsoleHandlerData {
+    MinecraftServer *server;
+};
+
+ConsoleHandler::ConsoleHandler(MinecraftServer *server)
+ :m(new ConsoleHandlerData()) {
+    m->server = server;
+}
+
 void ConsoleHandler::handle(Level level, std::string message) {
     
-    std::cout << timeString() << " [" << levelName(level) << "] " << message << '\n';
+    m->server->getConsoleReader().println(timeString() + " [" + levelName(level) + "] " + message);
 }
 
 Handler * ConsoleHandler::clone() {

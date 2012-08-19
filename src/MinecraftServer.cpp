@@ -9,9 +9,12 @@
 #include <exception>
 #include <cstdlib>
 
+#include <unistd.h>
+
 #include "MinecraftServer.hpp"
 #include "network/NetworkServer.hpp"
 #include "logging/Logger.hpp"
+#include "ConsoleReader.hpp"
 
 namespace MCServer {
 
@@ -28,12 +31,18 @@ struct MinecraftServerData {
     bool shutdown;
     NetworkServer *networkServer;
     Logger *logger;
+    ConsoleReader *consoleReader;
+
+    static MinecraftServer *server;
 };
+MinecraftServer * MinecraftServerData::server;
 
 MinecraftServer::MinecraftServer()
     :m(new MinecraftServerData())
 {
+    MinecraftServerData::server = this;
     m->logger = &Logger::getLogger("Minecraft");
+    m->consoleReader = new ConsoleReader(this);
 }
 
 MinecraftServer::~MinecraftServer() {
@@ -83,15 +92,19 @@ void MinecraftServer::init() {
     m->logger->info("Starting MC++-Server...");
     m->logger->info("Server version: " + getVersion());
     m->networkServer = new NetworkServer(this);
-    
 }
 
 void MinecraftServer::tick() {
-
+    sleep(5);
+    m->consoleReader->println("Meow");
 }
 
 void MinecraftServer::shutdown() {
     
+}
+
+void MinecraftServer::dispatchConsoleCommand(string command) {
+    m->logger->info("Dispatching command " + command);
 }
 
 string MinecraftServer::getVersion() {
@@ -106,8 +119,13 @@ Logger & MinecraftServer::getLogger() {
     return *m->logger;
 }
 
-//boost::asio::io_service & MinecraftServer::getIoService() {
-//    return m->ioService;
-//}
+ConsoleReader & MinecraftServer::getConsoleReader() {
+    return *m->consoleReader;
+}
+
+
+MinecraftServer & MinecraftServer::getServer() {
+    return *MinecraftServerData::server;
+}
 
 } /* namespace MCServer */

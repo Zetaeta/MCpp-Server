@@ -7,10 +7,16 @@
 
 #include <string>
 #include <iostream>
+#include <string.h>
+#include <sstream>
 
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #include "NetworkServer.hpp"
+#include "../logging/Logger.hpp"
 
 namespace MCServer {
 namespace Network {
@@ -31,15 +37,11 @@ using std::cout;
 
 
 struct NetworkServerData {
-//    thread *thread;
     pthread_t thread;
-//    tcp::acceptor acceptor;
-    MinecraftServer *minecraftServer;
-
-//    NetworkServerData(MinecraftServer *minecraftServer)
-//        :socket(minecraftServer.getIoService(), tcp::endpoint(tcp::v4(), 25565)) {
-//        
-//    }
+    MinecraftServer *server;
+    int sockfd;
+    sockaddr_in serverAddress;
+    int portNum;
 };
 
 NetworkServer::NetworkServer(MinecraftServer *minecraftServer)
@@ -50,8 +52,6 @@ NetworkServer::NetworkServer(MinecraftServer *minecraftServer)
     
     
 
-    // Start the server thread.
-    //m->thread = new thread(&NetworkServer::run, this);
     pthread_create(&m->thread, NULL, &startNetworkServer, this);
 }
 
@@ -61,19 +61,36 @@ NetworkServer::~NetworkServer() {
 
 void NetworkServer::run() {
     init();
-//    while (true) {
-//        tcp::socket *socket = new tcp::socket(ioService);
-//        m->acceptor.accept(*socket);
-//        acceptClient(socket);
-//    }
+    while (true) {
+        sockaddr_in clientAddress;
+        int clientSockfd;
+        socklen_t clientLength = sizeof(clientAddress);
+        clientSockfd = accept(m->sockfd, reinterpret_cast<sockaddr *>(&clientAddress), &clientLength);
+        handleAccept(clientSockfd, clientAddress);
+    }
 }
 
-//void NetworkServer::acceptClient(tcp::socket *socket) {
-    
-//}
 
 void NetworkServer::init() {
     cout << "Setting up network... \n";
+    //              not local, stream (TCP), default protocol (TCP)
+    m->portNum = 25565;
+    m->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&m->serverAddress, 0, sizeof(m->serverAddress));
+    m->serverAddress.sin_family = AF_INET;
+    m->serverAddress.sin_port = htons(m->portNum);
+    // Port number (INADDR_ANY = this machine's IP)
+    m->serverAddress.sin_addr.s_addr = INADDR_ANY;
+
+    bind(m->sockfd, reinterpret_cast<sockaddr *>(&m->serverAddress), sizeof(m->serverAddress));
+    //            Size of connection queue (number of connections that can be waiting while server is handling one.
+    listen(m->sockfd, 5);
+}
+
+void NetworkServer::handleAccept(int clientSockfd, sockaddr_in clientAddress) {
+    std::ostringstream oss;
+    oss << "Accepted client, socketfd = " << clientSockfd;
+    m->server->getLogger().info(oss.str());
 }
 
 } /* namespace Network */

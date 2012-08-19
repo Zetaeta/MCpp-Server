@@ -5,6 +5,7 @@
 #include "Logger.hpp"
 #include "Handler.hpp"
 #include "ConsoleHandler.hpp"
+#include "../MinecraftServer.hpp"
 
 namespace MCServer {
 namespace Logging {
@@ -47,7 +48,7 @@ void Logger::addHandler(Handler *handler) {
 Logger & Logger::getLogger(string name) {
     Logger *log = new Logger(name);
     LoggerData::loggers[name] = log;
-    log->addHandler(new ConsoleHandler());
+    log->addHandler(new ConsoleHandler(&MinecraftServer::getServer()));
     return *log;
 }
 

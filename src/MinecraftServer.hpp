@@ -21,6 +21,8 @@ namespace Network {
 class NetworkServer;
 }
 
+class ConsoleReader;
+
 struct MinecraftServerData;
 
 class MinecraftServer {
@@ -34,6 +36,10 @@ public:
     std::string getVersion();
     Logging::Logger & getLogger();
     Network::NetworkServer & getNetworkServer();
+    ConsoleReader & getConsoleReader();
+    void dispatchConsoleCommand(std::string command);
+    
+    static MinecraftServer & getServer();
 protected:
     MinecraftServerData *m; // PIMPL
 };
