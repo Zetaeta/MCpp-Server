@@ -10,12 +10,14 @@
 #include <string.h>
 #include <sstream>
 
+#include <unistd.h>
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
 #include "NetworkServer.hpp"
+#include "SocketOutputStream.hpp"
 #include "../logging/Logger.hpp"
 
 namespace MCServer {
@@ -35,6 +37,10 @@ void * startNetworkServer(void *serverPtr) {
 using std::string;
 using std::cout;
 
+struct ClientConnection {
+    int socketfd;
+    sockaddr_in address;
+};
 
 struct NetworkServerData {
     pthread_t thread;
@@ -44,12 +50,12 @@ struct NetworkServerData {
     int portNum;
 };
 
-NetworkServer::NetworkServer(MinecraftServer *minecraftServer)
+NetworkServer::NetworkServer(MinecraftServer *server)
     :m(new NetworkServerData()) {
     /*
     * Member initialisation here
     */
-    
+    m->server = server;
     
 
     pthread_create(&m->thread, NULL, &startNetworkServer, this);
@@ -66,7 +72,8 @@ void NetworkServer::run() {
         int clientSockfd;
         socklen_t clientLength = sizeof(clientAddress);
         clientSockfd = accept(m->sockfd, reinterpret_cast<sockaddr *>(&clientAddress), &clientLength);
-        handleAccept(clientSockfd, clientAddress);
+        ClientConnection cc = {clientSockfd, clientAddress};
+        handleAccept(cc);
     }
 }
 
@@ -87,10 +94,43 @@ void NetworkServer::init() {
     listen(m->sockfd, 5);
 }
 
-void NetworkServer::handleAccept(int clientSockfd, sockaddr_in clientAddress) {
+void NetworkServer::handleAccept(const ClientConnection &connection) {
     std::ostringstream oss;
-    oss << "Accepted client, socketfd = " << clientSockfd;
+    oss << "Accepted client, socketfd = " << connection.socketfd;
     m->server->getLogger().info(oss.str());
+    
+    unsigned char packetId;
+    if (recv(connection.socketfd, &packetId, 1, MSG_PEEK) < 0) {
+        m->server->getLogger().info(string("Error reading packet ID: ") + strerror(errno));
+    }
+    
+    std::ostringstream oss2;
+    oss2 << "Packet ID: " << static_cast<int>(packetId);
+    m->server->getLogger().info(oss2.str());
+    if (packetId == 0xFE) {
+        serverListPing(connection);
+    }
+}
+
+void NetworkServer::serverListPing(const ClientConnection &connection) {
+    string hello = "Hello World§64§32";
+    Logging::Logger &logger = m->server->getLogger();
+    logger.info("serverListPing()");
+    SocketOutputStream out(connection.socketfd);
+//    unsigned char packetHeader = 0xFF;
+    out << static_cast<uint8_t>(0xFF);
+    out << hello;
+/*    if (write(connection.socketfd, &packetHeader, 1) < 0) {
+        logger.warning("Failed to write packet header!");
+    }
+    unsigned short temp = hello.length();
+    if (write(connection.socketfd, &temp, 2) < 0) {
+        logger.warning("Failed to write string length");
+    }
+    const char *msg = hello.c_str();
+    if (write(connection.socketfd, msg, hello.length()) < 0) {
+        logger.warning("Failed to write message");
+    } */
 }
 
 } /* namespace Network */

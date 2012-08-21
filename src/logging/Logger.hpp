@@ -3,6 +3,7 @@
 #define LOGGER_HPP
 
 #include <string>
+#include <stdint.h>
 
 #include "Level.hpp"
 
@@ -34,6 +35,24 @@ public:
     inline void destroy() {
         destroyLogger(*this);
     }
+
+    Logger & operator<<(Level);
+    Logger & operator<<(const std::string &);
+    Logger & operator<<(char);
+    Logger & operator<<(uint8_t);
+    Logger & operator<<(int8_t);
+    Logger & operator<<(int16_t);
+    Logger & operator<<(uint16_t);
+    Logger & operator<<(int32_t);
+    Logger & operator<<(uint32_t);
+    Logger & operator<<(int64_t);
+    Logger & operator<<(uint64_t);
+    Logger & operator<<(float);
+    Logger & operator<<(double);
+    Logger & operator<<(long double);
+//    Logger & operator<<(const char *);
+    Logger & operator<<(bool);
+
     void addHandler(Handler *);
     void setDefaultLevel(Level level);
     ~Logger();

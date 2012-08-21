@@ -16,6 +16,7 @@ namespace MCServer {
 namespace Network {
 
 struct NetworkServerData;
+struct ClientConnection;
 
 class NetworkServer {
 public:
@@ -25,7 +26,8 @@ public:
 //    void acceptClient(boost::asio::ip::tcp::socket *socket);
 protected:
     void init();
-    void handleAccept(int, sockaddr_in);
+    void handleAccept(const ClientConnection &);
+    void serverListPing(const ClientConnection &);
 
     NetworkServerData *m;
 };

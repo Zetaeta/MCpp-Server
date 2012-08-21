@@ -95,8 +95,7 @@ void MinecraftServer::init() {
 }
 
 void MinecraftServer::tick() {
-    sleep(5);
-    m->consoleReader->println("Meow");
+
 }
 
 void MinecraftServer::shutdown() {
