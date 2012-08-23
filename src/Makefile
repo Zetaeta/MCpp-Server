@@ -8,8 +8,8 @@ LDFLAGS= -lpthread -lreadline
 
 all: mcpp-server
 
-main=main.o MinecraftServer.o ConsoleReader.o
-network=NetworkServer.o NetUtils.o SocketOutputStream.o SocketInputStream.o
+main=main.o MinecraftServer.o ConsoleReader.o Unicode.o
+network=NetworkServer.o NetUtils.o SocketOutputStream.o SocketInputStream.o SocketStream.o ClientConnection.o
 logging=Logger.o ConsoleHandler.o
 
 mcpp-server: $(main) $(network) $(logging)
@@ -22,7 +22,13 @@ main.o: main.cpp MinecraftServer.hpp
 MinecraftServer.o: MinecraftServer.cpp MinecraftServer.hpp network/NetworkServer.hpp logging/Logger.hpp ConsoleReader.hpp
 	$(CC) $(CFLAGS) -c MinecraftServer.cpp
 
-NetworkServer.o: network/NetworkServer.cpp network/NetworkServer.hpp network/SocketOutputStream.hpp logging/Logger.hpp
+ConsoleReader.o: ConsoleReader.hpp ConsoleReader.cpp MinecraftServer.hpp
+	$(CC) $(CFLAGS) -c ConsoleReader.cpp
+
+Unicode.o: Unicode.cpp Unicode.hpp logging/Logger.hpp MinecraftServer.hpp
+	$(CC) $(CFLAGS) -c Unicode.cpp
+
+NetworkServer.o: network/NetworkServer.cpp network/NetworkServer.hpp network/SocketOutputStream.hpp logging/Logger.hpp network/ClientConnection.hpp
 	$(CC) $(CFLAGS) -c network/NetworkServer.cpp
 
 SocketOutputStream.o: network/SocketOutputStream.cpp network/SocketOutputStream.hpp network/NetUtils.hpp
@@ -30,6 +36,14 @@ SocketOutputStream.o: network/SocketOutputStream.cpp network/SocketOutputStream.
 
 SocketInputStream.o: network/SocketInputStream.cpp network/SocketInputStream.hpp network/NetUtils.hpp
 	$(CC) $(CFLAGS) -c network/SocketInputStream.cpp
+
+SocketStream.o: network/SocketStream.cpp network/SocketStream.hpp
+	$(CC) $(CFLAGS) -c network/SocketStream.cpp
+
+ClientConnection.o: network/ClientConnection.cpp network/ClientConnection.hpp MinecraftServer.hpp logging/Logger.hpp
+	$(CC) $(CFLAGS) -c network/ClientConnection.cpp
+
+network/SocketStream.hpp: network/SocketInputStream.hpp network/SocketOutputStream.hpp
 
 NetUtils.o: network/NetUtils.cpp network/NetUtils.hpp
 	$(CC) $(CFLAGS) -c network/NetUtils.cpp
@@ -46,12 +60,10 @@ logging/Logger.hpp: logging/Level.hpp
 
 logging/Handler.hpp: logging/Logger.hpp
 
-ConsoleReader.o: ConsoleReader.hpp ConsoleReader.cpp MinecraftServer.hpp
-	$(CC) $(CFLAGS) -c ConsoleReader.cpp
 
 %.obj: %.cpp
 	$(CC) $(CFLAGS) -c $(.SOURCE)
 
 
 clean:
-	rm *.o
+	rm *.o mcpp-server

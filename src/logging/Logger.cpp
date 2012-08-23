@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include <iostream>
+#include <bitset>
 
 #include "Logger.hpp"
 #include "Handler.hpp"
@@ -75,12 +77,13 @@ Logger & Logger::operator<<(Level level) {
 
 Logger & Logger::operator<<(const string &str) {
     size_t nlIndex;
-    if ((nlIndex = str.find('\n')) == string::npos) {
+    if ((nlIndex = str.find('\n')) != string::npos) {
         m->oss << str.substr(0, nlIndex);
         log(m->oss.str());
         m->oss.str("");
         m->oss.clear();
-        operator<<(str.substr(nlIndex));
+        operator<<(str.substr(nlIndex + 1));
+        return *this;
     }
     m->oss << str;
     return *this;
@@ -159,6 +162,26 @@ Logger & Logger::operator<<(long double d) {
 
 Logger & Logger::operator<<(bool b) {
     m->oss << b;
+    return *this;
+}
+
+Logger & Logger::operator<<(std::bitset<8> b) {
+    m->oss << b;
+    return *this;
+}
+
+Logger & Logger::operator<<(std::bitset<16> b) {
+    m->oss << b;
+    return *this;
+}
+
+Logger & Logger::operator<<(std::bitset<32> b) {
+    m->oss << b;
+    return *this;
+}
+
+Logger & Logger::operator<<(const char *c) {
+    operator<<(string(c));
     return *this;
 }
 

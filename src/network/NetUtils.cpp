@@ -9,6 +9,7 @@ using std::vector;
 namespace MCServer {
 namespace Network {
 
+/*
 uint32_t codePointFromUtf8(const string &string, size_t &pos) {
 #define IS_IN_RANGE(c, f, l)    (((c) >= (f)) && ((c) <= (l)))
 
@@ -23,13 +24,13 @@ uint32_t codePointFromUtf8(const string &string, size_t &pos) {
     int seqlen;
     // int datalen = ... available length of p ...;    
 
-    /*
+    / *
     if( datalen < 1 )
     {
         // malformed data, do something !!!
         return (uint32_t) -1;
     }
-    */
+    * /
 
     c1 = string[pos]; // ptr[0];
 
@@ -59,13 +60,13 @@ uint32_t codePointFromUtf8(const string &string, size_t &pos) {
         return (uint32_t) -1;
     }
 
-    /*
+    / *
     if( seqlen > datalen )
     {
         // malformed data, do something !!!
         return (uint32_t) -1;
     }
-    */
+    * /
 
     for(int i = 1; i < seqlen; ++i)
     {
@@ -133,7 +134,7 @@ uint32_t codePointFromUtf8(const string &string, size_t &pos) {
 
     pos += seqlen;
     return uc; 
-}
+} 
 
 vector<uint16_t> utf8ToUsc2(const string &string) {
     vector<uint16_t> result;
@@ -197,7 +198,7 @@ string usc2ToUtf8(const vector<uint16_t> &src)
 //    if (dest < dest_end)
 //        *dest = '\0';
     return result;
-}
+} */
 
 
 bool isBigEndian() {
@@ -220,59 +221,59 @@ extern const bool bigEndian = isBigEndian();
 void swapEndian(uint16_t &data) {
     uint8_t b1, b2;
     b1 = data & 0xFF;
-    b2 = (data << 8) & 0xFF;
+    b2 = (data >> 8) & 0xFF;
     data = (b1 << 8) | b2;
 }
 
 void swapEndian(int16_t &data) {
     uint8_t b1, b2;
     b1 = data & 0xFF;
-    b2 = (data << 8) & 0xFF;
+    b2 = (data >> 8) & 0xFF;
     data = (b1 << 8) | b2;
 }
 
 void swapEndian(uint32_t &data) {
     uint8_t b1, b2, b3, b4;
     b1 = data & 0xFF;
-    b2 = (data << 8) & 0xFF;
-    b3 = (data << 16) & 0xFF;
-    b4 = (data << 24) & 0xFF;
+    b2 = (data >> 8) & 0xFF;
+    b3 = (data >> 16) & 0xFF;
+    b4 = (data >> 24) & 0xFF;
     data = (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
 }
 
 void swapEndian(int32_t &data) {
     uint8_t b1, b2, b3, b4;
     b1 = data & 0xFF;
-    b2 = (data << 8) & 0xFF;
-    b3 = (data << 16) & 0xFF;
-    b4 = (data << 24) & 0xFF;
+    b2 = (data >> 8) & 0xFF;
+    b3 = (data >> 16) & 0xFF;
+    b4 = (data >> 24) & 0xFF;
     data = (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
 }
 
 void swapEndian(uint64_t &data) {
-    uint8_t b[8];
+    uint64_t b[8];
     b[0] = data & 0xFF;
-    b[1] = (data << 8) & 0xFF;
-    b[2] = (data << 16) & 0xFF;
-    b[3] = (data << 24) & 0xFF;
-    b[4] = (data << 32) & 0xFF;
-    b[5] = (data << 40) & 0xFF;
-    b[6] = (data << 48) & 0xFF;
-    b[7] = (data << 56) & 0xFF; 
-    data = (static_cast<uint64_t>(b[0]) << 56) | (static_cast<uint64_t>(b[1]) << 48) | (static_cast<uint64_t>(b[2]) << 40) | (static_cast<uint64_t>(b[3]) << 32) | (static_cast<uint64_t>(b[4]) << 24) | (static_cast<uint64_t>(b[5]) << 16) | (static_cast<uint64_t>(b[6]) << 8) | b[7];
+    b[1] = (data >> 8) & 0xFF;
+    b[2] = (data >> 16) & 0xFF;
+    b[3] = (data >> 24) & 0xFF;
+    b[4] = (data >> 32) & 0xFF;
+    b[5] = (data >> 40) & 0xFF;
+    b[6] = (data >> 48) & 0xFF;
+    b[7] = (data >> 56) & 0xFF; 
+    data = (b[0] << 56) | (b[1] << 48) | (b[2] << 40) | (b[3] << 32) | (b[4] << 24) | (b[5] << 16) | (b[6] << 8) | b[7];
 }
 
 void swapEndian(int64_t &data) {
-    uint8_t b[8];
+    uint64_t b[8];
     b[0] = data & 0xFF;
-    b[1] = (data << 8) & 0xFF;
-    b[2] = (data << 16) & 0xFF;
-    b[3] = (data << 24) & 0xFF;
-    b[4] = (data << 32) & 0xFF;
-    b[5] = (data << 40) & 0xFF;
-    b[6] = (data << 48) & 0xFF;
-    b[7] = (data << 56) & 0xFF; 
-    data = (static_cast<uint64_t>(b[0]) << 56) | (static_cast<uint64_t>(b[1]) << 48) | (static_cast<uint64_t>(b[2]) << 40) | (static_cast<uint64_t>(b[3]) << 32) | (static_cast<uint64_t>(b[4]) << 24) | (static_cast<uint64_t>(b[5]) << 16) | (static_cast<uint64_t>(b[6]) << 8) | b[7];
+    b[1] = (data >> 8) & 0xFF;
+    b[2] = (data >> 16) & 0xFF;
+    b[3] = (data >> 24) & 0xFF;
+    b[4] = (data >> 32) & 0xFF;
+    b[5] = (data >> 40) & 0xFF;
+    b[6] = (data >> 48) & 0xFF;
+    b[7] = (data >> 56) & 0xFF; 
+    data = (b[0] << 56) | (b[1] << 48) | (b[2] << 40) | (b[3] << 32) | (b[4] << 24) | (b[5] << 16) | (b[6] << 8) | b[7];
 }
 
 void swapEndian(float &data) {

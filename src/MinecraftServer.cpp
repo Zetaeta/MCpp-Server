@@ -122,6 +122,18 @@ ConsoleReader & MinecraftServer::getConsoleReader() {
     return *m->consoleReader;
 }
 
+std::string MinecraftServer::getMotd() {
+    return "MC++-Server. Meow";
+}
+
+int MinecraftServer::getMaxPlayers() {
+    return 1024;
+}
+
+int MinecraftServer::getOnlinePlayerCount() {
+    return 2048;
+}
+
 
 MinecraftServer & MinecraftServer::getServer() {
     return *MinecraftServerData::server;

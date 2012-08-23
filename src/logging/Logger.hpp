@@ -7,6 +7,10 @@
 
 #include "Level.hpp"
 
+namespace std {
+template<size_t N> class bitset;
+}
+
 namespace MCServer {
 namespace Logging {
 
@@ -50,8 +54,11 @@ public:
     Logger & operator<<(float);
     Logger & operator<<(double);
     Logger & operator<<(long double);
-//    Logger & operator<<(const char *);
+    Logger & operator<<(const char *);
     Logger & operator<<(bool);
+    Logger & operator<<(std::bitset<8>);
+    Logger & operator<<(std::bitset<16>);
+    Logger & operator<<(std::bitset<32>);
 
     void addHandler(Handler *);
     void setDefaultLevel(Level level);

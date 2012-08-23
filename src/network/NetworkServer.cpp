@@ -19,6 +19,7 @@
 #include "NetworkServer.hpp"
 #include "SocketOutputStream.hpp"
 #include "../logging/Logger.hpp"
+#include "ClientConnection.hpp"
 
 namespace MCServer {
 namespace Network {
@@ -37,7 +38,7 @@ void * startNetworkServer(void *serverPtr) {
 using std::string;
 using std::cout;
 
-struct ClientConnection {
+struct Connection {
     int socketfd;
     sockaddr_in address;
 };
@@ -72,7 +73,7 @@ void NetworkServer::run() {
         int clientSockfd;
         socklen_t clientLength = sizeof(clientAddress);
         clientSockfd = accept(m->sockfd, reinterpret_cast<sockaddr *>(&clientAddress), &clientLength);
-        ClientConnection cc = {clientSockfd, clientAddress};
+        Connection cc = {clientSockfd, clientAddress};
         handleAccept(cc);
     }
 }
@@ -94,7 +95,7 @@ void NetworkServer::init() {
     listen(m->sockfd, 5);
 }
 
-void NetworkServer::handleAccept(const ClientConnection &connection) {
+void NetworkServer::handleAccept(const Connection &connection) {
     std::ostringstream oss;
     oss << "Accepted client, socketfd = " << connection.socketfd;
     m->server->getLogger().info(oss.str());
@@ -110,27 +111,21 @@ void NetworkServer::handleAccept(const ClientConnection &connection) {
     if (packetId == 0xFE) {
         serverListPing(connection);
     }
+    else {
+        m->server->getLogger() << Logging::INFO << "Starting ClientConnection!\n";
+        new ClientConnection(connection.socketfd);
+    }
 }
 
-void NetworkServer::serverListPing(const ClientConnection &connection) {
-    string hello = "Hello World§64§32";
+void NetworkServer::serverListPing(const Connection &connection) {
+//    string hello = "Hello World§64§32";
     Logging::Logger &logger = m->server->getLogger();
     logger.info("serverListPing()");
     SocketOutputStream out(connection.socketfd);
-//    unsigned char packetHeader = 0xFF;
     out << static_cast<uint8_t>(0xFF);
-    out << hello;
-/*    if (write(connection.socketfd, &packetHeader, 1) < 0) {
-        logger.warning("Failed to write packet header!");
-    }
-    unsigned short temp = hello.length();
-    if (write(connection.socketfd, &temp, 2) < 0) {
-        logger.warning("Failed to write string length");
-    }
-    const char *msg = hello.c_str();
-    if (write(connection.socketfd, msg, hello.length()) < 0) {
-        logger.warning("Failed to write message");
-    } */
+    std::ostringstream output;
+    output << m->server->getMotd() << "§" << m->server->getOnlinePlayerCount() << "§" << m->server->getMaxPlayers();
+    out << output.str();
 }
 
 } /* namespace Network */

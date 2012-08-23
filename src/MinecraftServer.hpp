@@ -38,6 +38,9 @@ public:
     Network::NetworkServer & getNetworkServer();
     ConsoleReader & getConsoleReader();
     void dispatchConsoleCommand(std::string command);
+    std::string getMotd();
+    int getMaxPlayers();
+    int getOnlinePlayerCount();
     
     static MinecraftServer & getServer();
 protected:

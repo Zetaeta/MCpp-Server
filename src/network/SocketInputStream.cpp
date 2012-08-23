@@ -3,6 +3,9 @@
 
 #include "SocketInputStream.hpp"
 #include "NetUtils.hpp"
+#include "../Unicode.hpp"
+#include "../logging/Logger.hpp"
+#include "../MinecraftServer.hpp"
 
 using std::vector;
 
@@ -15,7 +18,10 @@ SocketInputStream::SocketInputStream(int socketfd)
 }
 
 SocketInputStream & SocketInputStream::operator>>(uint8_t &data) {
+    Logging::Logger &log = MinecraftServer::getServer().getLogger();
+    log << "SocketInputStream::operator>>\n";
     read(socketfd, &data, sizeof(data));
+    log << "Read data!\n";
     return *this;
 }
 
@@ -91,9 +97,13 @@ SocketInputStream & SocketInputStream::operator>>(double &data) {
 SocketInputStream & SocketInputStream::operator>>(std::string &data) {
     uint16_t length;
     operator>>(length);
-    vector<uint16_t> usc2(length);
-    read(socketfd, usc2.data(), length * 2);
-    data = usc2ToUtf8(usc2);
+    vector<uint16_t> ucs2(length);
+    read(socketfd, ucs2.data(), length * 2);
+    for (auto it = ucs2.begin(); it != ucs2.end(); ++it) {
+        uint16_t u = *it;
+        *it = (u << 8) | (u >> 8);
+    }
+    data = ucs2ToUtf8(ucs2);
     return *this;
 }
 
