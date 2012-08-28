@@ -1,5 +1,8 @@
 
+#include <string.h>
+
 #include <unistd.h>
+#include <sys/socket.h>
 
 #include "SocketInputStream.hpp"
 #include "NetUtils.hpp"
@@ -99,6 +102,96 @@ SocketInputStream & SocketInputStream::operator>>(std::string &data) {
     operator>>(length);
     vector<uint16_t> ucs2(length);
     read(socketfd, ucs2.data(), length * 2);
+    for (auto it = ucs2.begin(); it != ucs2.end(); ++it) {
+        uint16_t u = *it;
+        *it = (u << 8) | (u >> 8);
+    }
+    data = ucs2ToUtf8(ucs2);
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(uint8_t &data) {
+    Logging::Logger &log = MinecraftServer::getServer().getLogger();
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(int8_t &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(uint16_t &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    if (!bigEndian) {
+        swapEndian(data);
+    }
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(int16_t &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    if (!bigEndian) {
+        swapEndian(data);
+    }
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(uint32_t &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    if (!bigEndian) {
+        swapEndian(data);
+    }
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(int32_t &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    if (!bigEndian) {
+        swapEndian(data);
+    }
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(uint64_t &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    if (!bigEndian) {
+        swapEndian(data);
+    }
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(int64_t &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    if (!bigEndian) {
+        swapEndian(data);
+    }
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(float &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    if (!bigEndian) {
+        swapEndian(data);
+    }
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(double &data) {
+    recv(socketfd, &data, sizeof(data), MSG_PEEK);
+    if (!bigEndian) {
+        swapEndian(data);
+    }
+    return *this;
+}
+
+SocketInputStream & SocketInputStream::peek(std::string &data) {
+    uint16_t length;
+    peek(length);
+    vector<uint16_t> ucs2(length);
+    uint16_t *rawdata = new uint16_t[length + 1];
+    recv(socketfd, rawdata, (length * 2) + 2, MSG_PEEK);
+    memcpy(ucs2.data(), rawdata + 1, length * 2);
     for (auto it = ucs2.begin(); it != ucs2.end(); ++it) {
         uint16_t u = *it;
         *it = (u << 8) | (u >> 8);

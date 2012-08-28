@@ -4,3 +4,5 @@
 *.swp
 src/mcpp-server
 *.out
+autom4te.cache
+configure.ac_

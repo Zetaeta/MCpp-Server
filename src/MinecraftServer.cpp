@@ -11,6 +11,10 @@
 
 #include <unistd.h>
 
+#include <openssl/rsa.h>
+#include <openssl/x509v3.h>
+#include <openssl/rc4.h>
+
 #include "MinecraftServer.hpp"
 #include "network/NetworkServer.hpp"
 #include "logging/Logger.hpp"
@@ -26,12 +30,23 @@ using std::string;
 
 using Network::NetworkServer;
 using Logging::Logger;
+using Logging::Level;
+using namespace MCServer::Logging;
 
 struct MinecraftServerData {
     bool shutdown;
     NetworkServer *networkServer;
     Logger *logger;
     ConsoleReader *consoleReader;
+
+    // Crypto stuff
+    RSA *rsa;
+    X509 *x509;
+    EVP_PKEY *pk;
+    string serverId;
+    string publicKey;
+    string encryptionBytes;
+    
 
     static MinecraftServer *server;
 };
@@ -43,6 +58,42 @@ MinecraftServer::MinecraftServer()
     MinecraftServerData::server = this;
     m->logger = &Logger::getLogger("Minecraft");
     m->consoleReader = new ConsoleReader(this);
+
+    m->rsa = RSA_generate_key(1024, 17, 0, 0);
+
+    m->x509 = X509_new();
+    m->pk = EVP_PKEY_new();
+    EVP_PKEY_assign_RSA(m->pk, m->rsa);
+    X509_set_version(m->x509, 0);
+    X509_set_pubkey(m->x509, m->pk);
+
+    int len;
+    uint8_t *buf = NULL;
+    len = i2d_X509(m->x509, &buf);
+    
+    // Wat.
+    m->publicKey = string(reinterpret_cast<char *>(buf), len - 36);
+    OPENSSL_free(buf);
+    
+    string encryptionByteCharacters = "abcedfghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
+    string hexDigits = "0123456789abcdef";
+    char serverId_[17];
+    char *serverId = serverId_;
+    char encryptionBytes[5];
+    for (int i=0; i<16; ++i) { // Server ID random generation
+        serverId[i] = hexDigits[rand() % hexDigits.size()];
+    }
+    serverId[16] = '\0';
+    for (int i=0; i<4; ++i) { // Encryption bytes random generation.
+        encryptionBytes[i] = encryptionByteCharacters[rand() % encryptionByteCharacters.size()];
+    }
+    encryptionBytes[4] = '\0';
+    if (!userValidationEnabled()) {
+        serverId = "-";
+    }
+    *m->logger << INFO << "Server ID: " << serverId;
+    m->serverId = serverId;
+    m->encryptionBytes = encryptionBytes;
 }
 
 MinecraftServer::~MinecraftServer() {

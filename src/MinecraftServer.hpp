@@ -41,6 +41,7 @@ public:
     std::string getMotd();
     int getMaxPlayers();
     int getOnlinePlayerCount();
+    bool userValidationEnabled() {return true;}
     
     static MinecraftServer & getServer();
 protected:

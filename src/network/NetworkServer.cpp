@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string.h>
 #include <sstream>
+#include <errno.h>
 
 #include <unistd.h>
 #include <pthread.h>
