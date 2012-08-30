@@ -50,6 +50,10 @@ struct NetworkServerData {
     int sockfd;
     sockaddr_in serverAddress;
     int portNum;
+
+    bool shutdown;
+
+    NetworkServerData() :shutdown(false) {}
 };
 
 NetworkServer::NetworkServer(MinecraftServer *server)
@@ -64,7 +68,11 @@ NetworkServer::NetworkServer(MinecraftServer *server)
 }
 
 NetworkServer::~NetworkServer() {
-
+    if (!m->shutdown) {
+        m->server->getLogger() << WARNING << "NetworkServer being destroyed without being stopped!\n";
+        shutdown();
+    }
+    delete m;
 }
 
 void NetworkServer::run() {
@@ -127,6 +135,10 @@ void NetworkServer::serverListPing(const Connection &connection) {
     std::ostringstream output;
     output << m->server->getMotd() << "§" << m->server->getOnlinePlayerCount() << "§" << m->server->getMaxPlayers();
     out << output.str();
+} 
+
+void NetworkServer::shutdown() {
+    m->shutdown = true;
 }
 
 } /* namespace Network */

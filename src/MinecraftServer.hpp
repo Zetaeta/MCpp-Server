@@ -11,17 +11,27 @@
 //#include <boost/asio/io_service.hpp>
 #include <string>
 
+#ifndef HEADER_RSA_H
+struct RSA;
+#endif
+
 namespace MCServer {
 
+#ifndef LOGGING_HPP
 namespace Logging {
 class Logger;
 }
+#endif
 
+#ifndef NETWORKSERVER_HPP
 namespace Network {
 class NetworkServer;
 }
+#endif
 
+#ifndef CONSOLEREADER_HPP
 class ConsoleReader;
+#endif
 
 struct MinecraftServerData;
 
@@ -42,6 +52,12 @@ public:
     int getMaxPlayers();
     int getOnlinePlayerCount();
     bool userValidationEnabled() {return true;}
+
+    RSA * getRsa();
+    std::string getAsn1PublicKey();
+    std::string getVerifyToken();
+    std::string getServerId();
+    std::string getPublicKey();
     
     static MinecraftServer & getServer();
 protected:

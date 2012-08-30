@@ -83,10 +83,27 @@ ClientConnection.o: network/ClientConnection.cpp \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/functional_hash.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/hash_bytes.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_string.tcc \
+ /usr/include/openssl/rsa.h /usr/include/openssl/asn1.h \
+ /usr/include/openssl/e_os2.h /usr/include/openssl/opensslconf.h \
+ /usr/include/openssl/bio.h /usr/include/openssl/crypto.h \
+ /usr/include/openssl/stack.h /usr/include/openssl/safestack.h \
+ /usr/include/openssl/opensslv.h /usr/include/openssl/ossl_typ.h \
+ /usr/include/openssl/symhacks.h /usr/include/openssl/bn.h \
  network/ClientConnection.hpp network/SocketStream.hpp \
  network/SocketInputStream.hpp network/SocketOutputStream.hpp \
  network/../logging/Logger.hpp network/../logging/Level.hpp \
- network/../MinecraftServer.hpp
+ network/../MinecraftServer.hpp network/PacketHandler.hpp \
+ network/Packet.hpp \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/vector \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_construct.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/alloc_traits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/alloc_traits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/ptr_traits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_uninitialized.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_vector.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_bvector.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/vector.tcc \
+ network/Packets.hpp
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/string:
 
@@ -298,6 +315,30 @@ ClientConnection.o: network/ClientConnection.cpp \
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_string.tcc:
 
+/usr/include/openssl/rsa.h:
+
+/usr/include/openssl/asn1.h:
+
+/usr/include/openssl/e_os2.h:
+
+/usr/include/openssl/opensslconf.h:
+
+/usr/include/openssl/bio.h:
+
+/usr/include/openssl/crypto.h:
+
+/usr/include/openssl/stack.h:
+
+/usr/include/openssl/safestack.h:
+
+/usr/include/openssl/opensslv.h:
+
+/usr/include/openssl/ossl_typ.h:
+
+/usr/include/openssl/symhacks.h:
+
+/usr/include/openssl/bn.h:
+
 network/ClientConnection.hpp:
 
 network/SocketStream.hpp:
@@ -311,3 +352,27 @@ network/../logging/Logger.hpp:
 network/../logging/Level.hpp:
 
 network/../MinecraftServer.hpp:
+
+network/PacketHandler.hpp:
+
+network/Packet.hpp:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/vector:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_construct.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/alloc_traits.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/alloc_traits.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/ptr_traits.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_uninitialized.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_vector.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_bvector.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/vector.tcc:
+
+network/Packets.hpp:

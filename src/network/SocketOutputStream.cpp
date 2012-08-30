@@ -9,6 +9,7 @@
 #include "../logging/Logger.hpp"
 #include "../MinecraftServer.hpp"
 #include "../Unicode.hpp"
+#include "Packet.hpp"
 
 using std::vector;
 
@@ -21,12 +22,12 @@ SocketOutputStream::SocketOutputStream(int socketfd)
 }
 
 SocketOutputStream & SocketOutputStream::operator<<(uint8_t data) {
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
 SocketOutputStream & SocketOutputStream::operator<<(int8_t data) {
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -34,7 +35,7 @@ SocketOutputStream & SocketOutputStream::operator<<(uint16_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -42,7 +43,7 @@ SocketOutputStream & SocketOutputStream::operator<<(int16_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -50,7 +51,7 @@ SocketOutputStream & SocketOutputStream::operator<<(uint32_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -58,7 +59,7 @@ SocketOutputStream & SocketOutputStream::operator<<(int32_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -66,7 +67,7 @@ SocketOutputStream & SocketOutputStream::operator<<(uint64_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -74,7 +75,7 @@ SocketOutputStream & SocketOutputStream::operator<<(int64_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -82,7 +83,7 @@ SocketOutputStream & SocketOutputStream::operator<<(float data) {
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -90,7 +91,7 @@ SocketOutputStream & SocketOutputStream::operator<<(double data) {
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
@@ -114,8 +115,22 @@ SocketOutputStream & SocketOutputStream::operator<<(const std::string &data) {
         usc2[i] = (u << 8) | (u >> 8);
     }
     operator<<(static_cast<uint16_t>(usc2.size()));
-    write(socketfd, usc2.data(), usc2.size() * sizeof(uint16_t));
+    ::write(socketfd, usc2.data(), usc2.size() * sizeof(uint16_t));
     return *this;
+}
+
+SocketOutputStream & SocketOutputStream::operator<<(const Packet &packet) {
+    ::write(socketfd, packet.getBytes(), packet.size());
+    const uint8_t *bytes = packet.getBytes();
+    Logging::Logger &log = MinecraftServer::getServer().getLogger();
+    log << "Sending packet: \n";
+//    for (int i=0; i<packet.size(); ++i) {
+//        log << "packet[" << i << "] = " << bytes[i] << " (" << static_cast<uint16_t>(bytes[i]) << ")\n";
+//    }
+}
+
+void SocketOutputStream::writeRaw(const void *data, size_t length) {
+    ::write(socketfd, data, length);
 }
 
 }

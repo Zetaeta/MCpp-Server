@@ -4,6 +4,7 @@
 
 namespace MCServer {
 namespace Network {
+
 enum Packets {
     PACKET_KEEP_ALIVE = 0x00,
     PACKET_LOGIN_REQUEST = 0x01,
@@ -80,7 +81,8 @@ enum Packets {
     PACKET_ENCRYPTION_KEY_REQUEST = 0xFD,
     PACKET_SERVER_LIST_PING = 0xFE,
     PACKET_DISCONNECT_KICK = 0xFF,
-}
+};
+
 }
 }
 

@@ -4,11 +4,16 @@
 
 #include <pthread.h>
 
+namespace MCServer {
+
 class Lock {
 public:
-    Lock()
-    :mutex(PTHREAD_MUTEX_INITIALISER) {
-        
+    Lock() {
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+        pthread_mutex_init(&mutex, &attr);
+        pthread_mutexattr_destroy(&attr);
     }
 
     void lock() {
@@ -24,7 +29,7 @@ public:
         // TODO: Proper error handling
     }
     bool tryLock() {
-        int ret = pthread_mutex_trylock(&mutex)
+        int ret = pthread_mutex_trylock(&mutex);
         if (ret == EBUSY) {
             return false;
         }
@@ -44,5 +49,8 @@ private:
     pthread_mutex_t mutex;
     volatile bool locked;
 };
+
+}
+
 
 #endif

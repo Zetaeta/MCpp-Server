@@ -12,5 +12,12 @@
     class x;\
     }
 
+inline uint32_t floatToIntBits(float f) {
+    return *reinterpret_cast<uint32_t *>(&f);
+}
+
+inline uint64_t doubleToInt64Bits(double d) {
+    return *reinterpret_cast<uint64_t *>(&d);
+}
 
 #endif /* UTILS_HPP_ */

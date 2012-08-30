@@ -21,9 +21,9 @@ struct Connection;
 class NetworkServer {
 public:
     NetworkServer(MinecraftServer *);
-    virtual ~NetworkServer();
+    ~NetworkServer();
     void run();
-//    void acceptClient(boost::asio::ip::tcp::socket *socket);
+    void shutdown();
 protected:
     void init();
     void handleAccept(const Connection &);

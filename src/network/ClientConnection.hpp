@@ -2,6 +2,8 @@
 #ifndef CLIENTCONNECTION_HPP
 #define CLIENTCONNECTION_HPP
 
+#include <string>
+
 namespace MCServer {
 namespace Network {
 
@@ -11,10 +13,16 @@ class ClientConnection {
 public:
     ClientConnection(int socketfd);
     void run();
-    void stop();
+    void shutdown();
+    void send(Packet &);
+
+    ~ClientConnection();
 protected:
     void init();
 private:
+//    void handleEncryptionResponse();
+    void setupCrypto(std::string);
+
     ClientConnectionData *m;
 };
 

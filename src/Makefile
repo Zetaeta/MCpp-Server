@@ -66,7 +66,8 @@ am__objects_1 = main.$(OBJEXT) MinecraftServer.$(OBJEXT) \
 	ConsoleReader.$(OBJEXT) Unicode.$(OBJEXT)
 am__objects_2 = NetworkServer.$(OBJEXT) NetUtils.$(OBJEXT) \
 	SocketOutputStream.$(OBJEXT) SocketInputStream.$(OBJEXT) \
-	SocketStream.$(OBJEXT) ClientConnection.$(OBJEXT)
+	SocketStream.$(OBJEXT) ClientConnection.$(OBJEXT) \
+	Packet.$(OBJEXT) PacketHandler.$(OBJEXT)
 am__objects_3 = Logger.$(OBJEXT) ConsoleHandler.$(OBJEXT)
 am_mcpp_server_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	$(am__objects_3)
@@ -185,7 +186,7 @@ currentdir = /home/daniel/Documents/Programming/MC++-Server
 AM_CXXFLAGS = -std=c++11
 AM_LDFLAGS = -lreadline -lpthread -lssl -lcrypto
 main = main.cpp MinecraftServer.cpp ConsoleReader.cpp Unicode.cpp
-network = network/NetworkServer.cpp network/NetUtils.cpp network/SocketOutputStream.cpp network/SocketInputStream.cpp network/SocketStream.cpp network/ClientConnection.cpp
+network = network/NetworkServer.cpp network/NetUtils.cpp network/SocketOutputStream.cpp network/SocketInputStream.cpp network/SocketStream.cpp network/ClientConnection.cpp network/Packet.cpp network/PacketHandler.cpp
 logging = logging/Logger.cpp logging/ConsoleHandler.cpp
 mcpp_server_SOURCES = $(main) $(network) $(logging)
 all: all-am
@@ -279,6 +280,8 @@ include ./$(DEPDIR)/Logger.Po
 include ./$(DEPDIR)/MinecraftServer.Po
 include ./$(DEPDIR)/NetUtils.Po
 include ./$(DEPDIR)/NetworkServer.Po
+include ./$(DEPDIR)/Packet.Po
+include ./$(DEPDIR)/PacketHandler.Po
 include ./$(DEPDIR)/SocketInputStream.Po
 include ./$(DEPDIR)/SocketOutputStream.Po
 include ./$(DEPDIR)/SocketStream.Po
@@ -382,6 +385,34 @@ ClientConnection.obj: network/ClientConnection.cpp
 #	source='network/ClientConnection.cpp' object='ClientConnection.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ClientConnection.obj `if test -f 'network/ClientConnection.cpp'; then $(CYGPATH_W) 'network/ClientConnection.cpp'; else $(CYGPATH_W) '$(srcdir)/network/ClientConnection.cpp'; fi`
+
+Packet.o: network/Packet.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Packet.o -MD -MP -MF $(DEPDIR)/Packet.Tpo -c -o Packet.o `test -f 'network/Packet.cpp' || echo '$(srcdir)/'`network/Packet.cpp
+	$(am__mv) $(DEPDIR)/Packet.Tpo $(DEPDIR)/Packet.Po
+#	source='network/Packet.cpp' object='Packet.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Packet.o `test -f 'network/Packet.cpp' || echo '$(srcdir)/'`network/Packet.cpp
+
+Packet.obj: network/Packet.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Packet.obj -MD -MP -MF $(DEPDIR)/Packet.Tpo -c -o Packet.obj `if test -f 'network/Packet.cpp'; then $(CYGPATH_W) 'network/Packet.cpp'; else $(CYGPATH_W) '$(srcdir)/network/Packet.cpp'; fi`
+	$(am__mv) $(DEPDIR)/Packet.Tpo $(DEPDIR)/Packet.Po
+#	source='network/Packet.cpp' object='Packet.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Packet.obj `if test -f 'network/Packet.cpp'; then $(CYGPATH_W) 'network/Packet.cpp'; else $(CYGPATH_W) '$(srcdir)/network/Packet.cpp'; fi`
+
+PacketHandler.o: network/PacketHandler.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PacketHandler.o -MD -MP -MF $(DEPDIR)/PacketHandler.Tpo -c -o PacketHandler.o `test -f 'network/PacketHandler.cpp' || echo '$(srcdir)/'`network/PacketHandler.cpp
+	$(am__mv) $(DEPDIR)/PacketHandler.Tpo $(DEPDIR)/PacketHandler.Po
+#	source='network/PacketHandler.cpp' object='PacketHandler.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PacketHandler.o `test -f 'network/PacketHandler.cpp' || echo '$(srcdir)/'`network/PacketHandler.cpp
+
+PacketHandler.obj: network/PacketHandler.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PacketHandler.obj -MD -MP -MF $(DEPDIR)/PacketHandler.Tpo -c -o PacketHandler.obj `if test -f 'network/PacketHandler.cpp'; then $(CYGPATH_W) 'network/PacketHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PacketHandler.cpp'; fi`
+	$(am__mv) $(DEPDIR)/PacketHandler.Tpo $(DEPDIR)/PacketHandler.Po
+#	source='network/PacketHandler.cpp' object='PacketHandler.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PacketHandler.obj `if test -f 'network/PacketHandler.cpp'; then $(CYGPATH_W) 'network/PacketHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PacketHandler.cpp'; fi`
 
 Logger.o: logging/Logger.cpp
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Logger.o -MD -MP -MF $(DEPDIR)/Logger.Tpo -c -o Logger.o `test -f 'logging/Logger.cpp' || echo '$(srcdir)/'`logging/Logger.cpp

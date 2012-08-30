@@ -13,6 +13,13 @@ enum Level {
     SEVERE
 };
 
+#define USING_LOGGING_LEVEL \
+    using MCServer::Logging::FINEST; \
+    using MCServer::Logging::FINE; \
+    using MCServer::Logging::INFO; \
+    using MCServer::Logging::WARNING; \
+    using MCServer::Logging::SEVERE;
+
 }
 }
 

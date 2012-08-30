@@ -19,6 +19,7 @@
 #include "network/NetworkServer.hpp"
 #include "logging/Logger.hpp"
 #include "ConsoleReader.hpp"
+#include "network/PacketHandler.hpp"
 
 namespace MCServer {
 
@@ -29,9 +30,11 @@ using std::endl;
 using std::string;
 
 using Network::NetworkServer;
+using Network::PacketHandler;
 using Logging::Logger;
 using Logging::Level;
-using namespace MCServer::Logging;
+//using namespace MCServer::Logging;
+USING_LOGGING_LEVEL
 
 struct MinecraftServerData {
     bool shutdown;
@@ -45,7 +48,7 @@ struct MinecraftServerData {
     EVP_PKEY *pk;
     string serverId;
     string publicKey;
-    string encryptionBytes;
+    string verifyToken;
     
 
     static MinecraftServer *server;
@@ -72,28 +75,30 @@ MinecraftServer::MinecraftServer()
     len = i2d_X509(m->x509, &buf);
     
     // Wat.
-    m->publicKey = string(reinterpret_cast<char *>(buf), len - 36);
+    m->publicKey = string(reinterpret_cast<char *>(buf) + 28, len - 36);
     OPENSSL_free(buf);
     
     string encryptionByteCharacters = "abcedfghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
     string hexDigits = "0123456789abcdef";
     char serverId_[17];
     char *serverId = serverId_;
-    char encryptionBytes[5];
+    char verifyToken[5];
     for (int i=0; i<16; ++i) { // Server ID random generation
         serverId[i] = hexDigits[rand() % hexDigits.size()];
     }
     serverId[16] = '\0';
     for (int i=0; i<4; ++i) { // Encryption bytes random generation.
-        encryptionBytes[i] = encryptionByteCharacters[rand() % encryptionByteCharacters.size()];
+        verifyToken[i] = encryptionByteCharacters[rand() % encryptionByteCharacters.size()];
     }
-    encryptionBytes[4] = '\0';
+    verifyToken[4] = '\0';
     if (!userValidationEnabled()) {
         serverId = "-";
     }
     *m->logger << INFO << "Server ID: " << serverId;
     m->serverId = serverId;
-    m->encryptionBytes = encryptionBytes;
+    m->verifyToken = verifyToken;
+
+    PacketHandler::initialise(this);
 }
 
 MinecraftServer::~MinecraftServer() {
@@ -183,6 +188,22 @@ int MinecraftServer::getMaxPlayers() {
 
 int MinecraftServer::getOnlinePlayerCount() {
     return 2048;
+}
+
+string MinecraftServer::getServerId() {
+    return m->serverId;
+}
+
+string MinecraftServer::getPublicKey() {
+    return m->publicKey;
+}
+
+string MinecraftServer::getVerifyToken() {
+    return m->verifyToken;
+}
+
+RSA * MinecraftServer::getRsa() {
+    return m->rsa;
 }
 
 

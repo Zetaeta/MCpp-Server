@@ -1,14 +1,12 @@
-NetworkServer.o: network/NetworkServer.cpp \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/string \
+Packet.o: network/Packet.cpp network/Packet.hpp \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/vector \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_algobase.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/c++config.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/os_defines.h \
  /usr/include/features.h /usr/include/stdc-predef.h \
  /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
  /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/cpu_defines.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stringfwd.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/char_traits.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_algobase.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/functexcept.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/exception_defines.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/cpp_type_traits.h \
@@ -22,16 +20,6 @@ NetworkServer.o: network/NetworkServer.cpp \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_iterator_base_funcs.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_iterator.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/debug/debug.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/postypes.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cwchar \
- /usr/include/wchar.h /usr/include/stdio.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stdarg.h \
- /usr/include/bits/wchar.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stddef.h \
- /usr/include/xlocale.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cstdint \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stdint.h \
- /usr/include/stdint.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/allocator.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/c++allocator.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/new_allocator.h \
@@ -40,6 +28,30 @@ NetworkServer.o: network/NetworkServer.cpp \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/atomic_lockfree_defines.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/exception_ptr.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/nested_exception.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_construct.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/alloc_traits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/alloc_traits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/ptr_traits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_uninitialized.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_vector.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/initializer_list \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_bvector.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/functional_hash.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/hash_bytes.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/range_access.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/vector.tcc \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/string \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stringfwd.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/char_traits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/postypes.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cwchar \
+ /usr/include/wchar.h /usr/include/stdio.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stdarg.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stddef.h \
+ /usr/include/xlocale.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cstdint \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/localefwd.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/c++locale.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/clocale \
@@ -54,7 +66,6 @@ NetworkServer.o: network/NetworkServer.cpp \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/cxxabi_forced.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_function.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/backward/binders.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/range_access.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_string.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/atomicity.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/gthr.h \
@@ -64,7 +75,6 @@ NetworkServer.o: network/NetworkServer.cpp \
  /usr/include/bits/timex.h /usr/include/bits/pthreadtypes.h \
  /usr/include/bits/setjmp.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/atomic_word.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/initializer_list \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/string_conversions.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cstdlib \
  /usr/include/stdlib.h /usr/include/bits/waitflags.h \
@@ -80,45 +90,16 @@ NetworkServer.o: network/NetworkServer.cpp \
  /usr/include/errno.h /usr/include/bits/errno.h \
  /usr/include/linux/errno.h /usr/include/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/functional_hash.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/hash_bytes.h \
  /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_string.tcc \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/iostream \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ostream \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ios \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/ios_base.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/locale_classes.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/locale_classes.tcc \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/streambuf \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/streambuf.tcc \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_ios.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/locale_facets.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cwctype \
- /usr/include/wctype.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/ctype_base.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/streambuf_iterator.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/ctype_inline.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/locale_facets.tcc \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_ios.tcc \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/ostream.tcc \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/istream \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/istream.tcc \
- /usr/include/string.h \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/sstream \
- /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/sstream.tcc \
- /usr/include/unistd.h /usr/include/bits/posix_opt.h \
- /usr/include/bits/environments.h /usr/include/bits/confname.h \
- /usr/include/getopt.h /usr/include/sys/socket.h /usr/include/sys/uio.h \
- /usr/include/bits/uio.h /usr/include/bits/socket.h \
- /usr/include/bits/socket_type.h /usr/include/bits/sockaddr.h \
- /usr/include/asm/socket.h /usr/include/asm-generic/socket.h \
- /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h \
- /usr/include/netinet/in.h /usr/include/bits/in.h \
- network/NetworkServer.hpp network/../MinecraftServer.hpp \
- network/SocketOutputStream.hpp network/../logging/Logger.hpp \
- network/../logging/Level.hpp network/ClientConnection.hpp
+ network/Packets.hpp network/NetUtils.hpp network/../utils.hpp \
+ network/../Unicode.hpp network/../MinecraftServer.hpp \
+ network/../logging/Logger.hpp network/../logging/Level.hpp
 
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/string:
+network/Packet.hpp:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/vector:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_algobase.h:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/c++config.h:
 
@@ -137,12 +118,6 @@ NetworkServer.o: network/NetworkServer.cpp \
 /usr/include/gnu/stubs-64.h:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/cpu_defines.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stringfwd.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/char_traits.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_algobase.h:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/functexcept.h:
 
@@ -170,28 +145,6 @@ NetworkServer.o: network/NetworkServer.cpp \
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/debug/debug.h:
 
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/postypes.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cwchar:
-
-/usr/include/wchar.h:
-
-/usr/include/stdio.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stdarg.h:
-
-/usr/include/bits/wchar.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stddef.h:
-
-/usr/include/xlocale.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cstdint:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stdint.h:
-
-/usr/include/stdint.h:
-
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/allocator.h:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/c++allocator.h:
@@ -207,6 +160,58 @@ NetworkServer.o: network/NetworkServer.cpp \
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/exception_ptr.h:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/nested_exception.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_construct.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/alloc_traits.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/alloc_traits.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/ptr_traits.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_uninitialized.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_vector.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/initializer_list:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stl_bvector.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/functional_hash.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/hash_bytes.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/range_access.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/vector.tcc:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/string:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/stringfwd.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/char_traits.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/postypes.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cwchar:
+
+/usr/include/wchar.h:
+
+/usr/include/stdio.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stdarg.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/include/stddef.h:
+
+/usr/include/xlocale.h:
+
+/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cstdint:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/localefwd.h:
 
@@ -244,8 +249,6 @@ NetworkServer.o: network/NetworkServer.cpp \
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/backward/binders.h:
 
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/range_access.h:
-
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_string.h:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/atomicity.h:
@@ -271,8 +274,6 @@ NetworkServer.o: network/NetworkServer.cpp \
 /usr/include/bits/setjmp.h:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/atomic_word.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/initializer_list:
 
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ext/string_conversions.h:
 
@@ -322,100 +323,18 @@ NetworkServer.o: network/NetworkServer.cpp \
 
 /usr/include/asm-generic/errno-base.h:
 
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/functional_hash.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/hash_bytes.h:
-
 /usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_string.tcc:
 
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/iostream:
+network/Packets.hpp:
 
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ostream:
+network/NetUtils.hpp:
 
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/ios:
+network/../utils.hpp:
 
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/ios_base.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/locale_classes.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/locale_classes.tcc:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/streambuf:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/streambuf.tcc:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_ios.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/locale_facets.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/cwctype:
-
-/usr/include/wctype.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/ctype_base.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/streambuf_iterator.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/x86_64-unknown-linux-gnu/bits/ctype_inline.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/locale_facets.tcc:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/basic_ios.tcc:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/ostream.tcc:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/istream:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/istream.tcc:
-
-/usr/include/string.h:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/sstream:
-
-/usr/lib/gcc/x86_64-unknown-linux-gnu/4.7.1/../../../../include/c++/4.7.1/bits/sstream.tcc:
-
-/usr/include/unistd.h:
-
-/usr/include/bits/posix_opt.h:
-
-/usr/include/bits/environments.h:
-
-/usr/include/bits/confname.h:
-
-/usr/include/getopt.h:
-
-/usr/include/sys/socket.h:
-
-/usr/include/sys/uio.h:
-
-/usr/include/bits/uio.h:
-
-/usr/include/bits/socket.h:
-
-/usr/include/bits/socket_type.h:
-
-/usr/include/bits/sockaddr.h:
-
-/usr/include/asm/socket.h:
-
-/usr/include/asm-generic/socket.h:
-
-/usr/include/asm/sockios.h:
-
-/usr/include/asm-generic/sockios.h:
-
-/usr/include/netinet/in.h:
-
-/usr/include/bits/in.h:
-
-network/NetworkServer.hpp:
+network/../Unicode.hpp:
 
 network/../MinecraftServer.hpp:
-
-network/SocketOutputStream.hpp:
 
 network/../logging/Logger.hpp:
 
 network/../logging/Level.hpp:
-
-network/ClientConnection.hpp:

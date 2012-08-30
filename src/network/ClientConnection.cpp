@@ -1,16 +1,22 @@
 
 #include <string>
 
+#include <openssl/rsa.h>
+#include <openssl/evp.h>
+
 #include "ClientConnection.hpp"
 #include "SocketStream.hpp"
 #include "../logging/Logger.hpp"
 #include "../MinecraftServer.hpp"
+#include "PacketHandler.hpp"
+#include "Packets.hpp"
 
 namespace MCServer {
 namespace Network {
 
 using std::string;
 using Logging::Logger;
+USING_LOGGING_LEVEL
 
 namespace {
 
@@ -27,28 +33,42 @@ struct ClientConnectionData {
     int socketfd;
     SocketStream ss;
     pthread_t threadId;
+    bool shutdown;
+    bool encrypted;
+    string sharedSecret;
+    EVP_CIPHER_CTX encryptor, decryptor;
 
     ClientConnectionData(int sfd)
-    :socketfd(sfd), ss(sfd)
-    { }
+    :socketfd(sfd), ss(sfd), server(MinecraftServer::getServer()), shutdown(false)
+    {}
+
+    MinecraftServer &server;
 };
 
 ClientConnection::ClientConnection(int socketfd) 
     :m(new ClientConnectionData(socketfd)) {
-    Logger &log = MinecraftServer::getServer().getLogger();
+    Logger &log = m->server.getLogger();
     log << "ClientConnection(int)!\n";
     log << "About to start thread\n";
     pthread_create(&m->threadId, NULL, &startClientConnection, this);
 }
 
+ClientConnection::~ClientConnection() {
+    if (!m->shutdown) {
+        m->server.getLogger() << WARNING << "ClientConnection being destroyed without being stopped.\n";
+        shutdown();
+    }
+    delete m;
+}
+
 void ClientConnection::init() {
-    Logger &log = MinecraftServer::getServer().getLogger();
+    Logger &log = m->server.getLogger();
     log << "ClientConnection::init\n";
     SocketStream &ss = m->ss;
     uint8_t packetHeader;
     ss >> packetHeader;
     if (packetHeader != 0x02) {
-        stop();
+        shutdown();
     }
     uint8_t protocolVersion;
     string username;
@@ -58,21 +78,98 @@ void ClientConnection::init() {
     
     ss >> protocolVersion >> username >> serverHost >> serverPort;
     log << "Read packet!\n";
-    MinecraftServer::getServer().getLogger() << "User " << username << " attempting to log into " << serverHost << ":" << serverPort << " with protocol version " << static_cast<int>(protocolVersion) << '\n';
+    m->server.getLogger() << "User " << username << " attempting to log into " << serverHost << ":" << serverPort << " with protocol version " << static_cast<int>(protocolVersion) << '\n';
+
+    m->server.getLogger() << "About to send encryption request!\n";
+    Packet p = PacketHandler::encryptionRequest();
+    ss << p;
+    m->server.getLogger() << "Sent encryption request!\n";
+
+    uint8_t packetId;
+    ss >> packetId;
+    if (packetId != PACKET_ENCRYPTION_KEY_RESPONSE) {
+        m->server.getLogger() << "Not an encryption key response packet: " << static_cast<uint16_t>(packetId) << '\n';
+        // TODO: Handle error
+        return;
+    }
+    m->server.getLogger() << "Recived encryption key response packet header!\n";
+    short ssLength;
+    ss >> ssLength;
+    uint8_t *sharedSecret = ss.read<uint8_t>(ssLength);
+    short vtLength;
+    ss >> vtLength;
+    uint8_t *verifyToken = ss.read<uint8_t>(vtLength);
+    if (ssLength > 1023 || vtLength > 1023) {
+        // TODO: Error handling
+        return;
+    }
+    uint8_t buffer[1024];
+    int verifyLen = RSA_private_decrypt(vtLength, verifyToken, buffer, m->server.getRsa(), RSA_PKCS1_PADDING);
+    if (verifyLen != 4) {
+        m->server.getLogger() << WARNING << "Invalid verify token length: " << verifyLen;
+        // TODO: Error handling
+        return;
+    }
+    if (string(reinterpret_cast<const char *>(buffer)) != m->server.getVerifyToken()) {
+        m->server.getLogger() << INFO << "Disconnecting user: " << username << ": incorrect verify token.\n";
+        return;
+    }
+    
+    int secretLen = RSA_private_decrypt(ssLength, sharedSecret, buffer, m->server.getRsa(), RSA_PKCS1_PADDING);
+    m->server.getLogger() << INFO << "Decrypted shared secret from user " << username << ": " << string(reinterpret_cast<const char *>(buffer), secretLen) << '\n';
+
+    setupCrypto(string(reinterpret_cast<const char *>buffer, secretLen));
+}
+
+/**
+ * Sets up the connection encryption for secure communication.
+ */
+void ClientConnection::setupCrypto(std::string sharedSecret) {
+    uint8_t key[16], iv[16];
+
+    memcpy(key, sharedSecret.c_str(), 16);
+    memcpy(key, sharedSecret.c_str(), 16);
+
+    EVP_CIPHER_CTX_INIT(&m->en);
+    EVP_CIPHER_CTX_INIT(&m->de);
+
+    EVP_EncryptInit_ex(&m->en, EVP_aes_128_cfb8(), NULL, key, iv);
+    EVP_EncryptInit_ex(&m->de, EVP_aes_128_cfb8(), NULL, key, iv);
+
+    // Empty 0xFC packet.
+    Packet pack;
+    pack << PACKET_ENCRYPTION_KEY_RESPONSE << 0; // 1 int = 2 shorts.
+
+    m->ss << pack;
+
 }
 
 void ClientConnection::run() {
-    MinecraftServer::getServer().getLogger() << "ClientConnection::run\n";
+    m->server.getLogger() << "ClientConnection::run\n";
     init();
     // Read-handle loop here.
+}
+
+void ClientConnection::send(Packet &pack) {
+    if (!encrypted) {
+        ss << pack;
+        return;
+    }
+    else {
+        int outLength = pack.size() + m->encryptor->block_size - 1;
+        uint8_t *output = new uint8_t[outLength];
+        EVP_EncryptUpdate(&m->encryptor, output, &outlength, pack.getBytes(), pack.size()); 
+        ss.write(output, outLength);
+        return;
+    }
 }
 
 /**
  * Shuts down the connection, freeing any resources and removing any references to it.
  */
-void ClientConnection::stop() {
-    
+void ClientConnection::shutdown() {
+    m->shutdown = true;
 }
 
 }
-}
+

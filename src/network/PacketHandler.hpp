@@ -5,17 +5,27 @@
 #include "Packet.hpp"
 
 namespace MCServer {
+
+#ifndef MINECRAFTSERVER_HPP
+class MinecraftServer;
+#endif
+
 namespace Network {
 
+#ifndef SOCKETINPUTSTREAM_HPP
+class SocketInputStream;
+#endif
 
 class PacketHandler {
 public:
+    static void initialise(MinecraftServer *server);
+
     static Packet encryptionRequest();
-    static void handleEncryptionResponse(SocketInputStream &);
+//    static void handleEncryptionResponse(SocketInputStream &);
 private:
     PacketHandler();
 
-    static MinecraftServer &server;
+    static MinecraftServer *server;
 };
 
 }
