@@ -6,3 +6,12 @@ src/mcpp-server
 *.out
 autom4te.cache
 configure.ac_
+test
+*.swo
+*/mcpp-server
+mcpp-server
+test
+*/Makefile
+Makefile
+stamp-h1
+config.*

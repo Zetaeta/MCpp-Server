@@ -164,6 +164,18 @@ void ClientConnection::send(Packet &pack) {
     }
 }
 
+uint8_t * ClientConnection::read(uint8_t *output, size_t length) {
+    if (!encrypted) {
+        ::read(socketfd, output, length);
+    }
+    else {
+        int inLength = length;
+        uint8_t input = new uint8_t[outLength];
+        EVP_DecryptUpdate(&m->decryptor, output, &outLength, 
+    }
+    return output;
+}
+
 /**
  * Shuts down the connection, freeing any resources and removing any references to it.
  */
