@@ -1,16 +1,22 @@
 
 #include <string.h>
+#include <iostream>
 
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+
+#include <openssl/evp.h>
 
 #include "EncryptedSocketInputStream.hpp"
 #include "NetUtils.hpp"
-#include "../Unicode.hpp"
+#include "../util/Unicode.hpp"
 #include "../logging/Logger.hpp"
 #include "../MinecraftServer.hpp"
-#include "../AutoDeleter.hpp"
+#include "../util/AutoDeleter.hpp"
+#include "../util/utils.hpp"
 
+USING_LOGGING_LEVEL
 
 using std::vector;
 
@@ -18,25 +24,25 @@ namespace MCServer {
 namespace Network {
 
 EncryptedSocketInputStream::EncryptedSocketInputStream(int socketfd, EVP_CIPHER_CTX *decryptor)
-    :socketfd(socketfd), decryptor(decryptor), outputBufferPos(0), bufferPos(0) {
-    outputBuffer.reserve(CIPHER_BUFFER_LENGTH + decryptor->block_size);
+    :socketfd(socketfd), decryptor(decryptor), outputBufferPos(0), bufferPos(-1), bufferFullLength(0), outputBufferFullLength(0) {
+    outputBuffer.resize(CIPHER_BUFFER_LENGTH + decryptor->cipher->block_size);
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(uint8_t &data) {
     Logging::Logger &log = MinecraftServer::getServer().getLogger();
     log << "EncryptedSocketInputStream::operator>>\n";
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     log << "Read data!\n";
     return *this;
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(int8_t &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     return *this;
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(uint16_t &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -44,7 +50,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(uint16_t &da
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(int16_t &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -52,7 +58,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(int16_t &dat
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(uint32_t &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -60,7 +66,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(uint32_t &da
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(int32_t &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -68,7 +74,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(int32_t &dat
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(uint64_t &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -76,7 +82,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(uint64_t &da
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(int64_t &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -84,7 +90,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(int64_t &dat
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(float &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -92,7 +98,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(float &data)
 }
 
 EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(double &data) {
-    ::read(socketfd, &data, sizeof(data));
+    read(&data, sizeof(data));
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -103,7 +109,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(std::string 
     uint16_t length;
     operator>>(length);
     vector<uint16_t> ucs2(length);
-    ::read(socketfd, ucs2.data(), length * 2);
+    read(ucs2.data(), length * 2);
     for (auto it = ucs2.begin(); it != ucs2.end(); ++it) {
         uint16_t u = *it;
         *it = (u << 8) | (u >> 8);
@@ -112,6 +118,7 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::operator>>(std::string 
     return *this;
 }
 
+/*
 EncryptedSocketInputStream & EncryptedSocketInputStream::peek(uint8_t &data) {
     Logging::Logger &log = MinecraftServer::getServer().getLogger();
     recv(socketfd, &data, sizeof(data), MSG_PEEK);
@@ -201,55 +208,107 @@ EncryptedSocketInputStream & EncryptedSocketInputStream::peek(std::string &data)
     data = ucs2ToUtf8(ucs2);
     return *this;
 }
+*/
 
 void * EncryptedSocketInputStream::readRaw(void *data, size_t length) {
-    ::read(socketfd, data, length);
+    read(data, length);
     return data;
 }
 
 void * EncryptedSocketInputStream::readRaw(size_t length) {
     char * data = new char[length];
-    ::read(socketfd, data, length);
+    read(data, length);
     return data;
 }
 
 
-ssize_t read(void *buf, size_t count) {
+/*
+ * FIXME: This method is bad and I should feel bad.
+ */
+ssize_t EncryptedSocketInputStream::read(void *buf, size_t count) {
     size_t addedToBuf = 0;
 //    while (count > (outputBuffer.size() - outputBufferPos)) {
+    Logging::Logger &log = MinecraftServer::getServer().getLogger();
+//    log << "Characters in encrypted buffer: " << std::string(reinterpret_cast<char *>(&encryptedBuffer[bufferPos]), bufferFullLength) << '\n';
+//    log << "Characters in output buffer: " << std::string(reinterpret_cast<char *>(&outputBuffer[outputBufferPos]), outputBufferFullLength) << '\n';
+    bool needMoreBytes = false; // To avoid unnecessary looping while waiting for reading.
     while (addedToBuf < count) {
-        if (bufferPos != 0) {
-            memmove(encryptedBuffer, &encryptedBuffer[bufferPos], (CIPHER_BUFFER_LENGTH - bufferPos));
-            read(socketfd, &encryptedBuffer[CIPHER_BUFFER_LENGTH - bufferPos], bufferPos);
+//        log << "Characters in encrypted buffer before reading: 0x" << std::hex << uint16_t(encryptedBuffer[0]) << '\n';
+        if (bufferPos > 0) { // There is space in the buffer.
+            memmove(encryptedBuffer, &encryptedBuffer[bufferPos], bufferFullLength);
             bufferPos = 0;
         }
-        int len = outputBuffer.size() - outputBufferPos;
-        if (len < count && !(count > CIPHER_BUFFER_LENGTH)) {
-            int lastPos;
-            if (outputBufferPos != 0) {
-                memmove(outputBuffer.data(), &outputBuffer[outputBufferPos], len);
-                outputBufferPos = 0;
-                lastPos = len;
-            }
-            else {
-                lastPos = outputBuffer.size();
-            }
-            outputBuffer.resize(count);
+        else if (bufferPos < 0) {
+            bufferPos = 0;
+        }
+        if (bufferFullLength < (CIPHER_BUFFER_LENGTH - 1)) {
+//            log << "Space in input buffer for reading!\n";
+            fd_set sockSet;
+            FD_ZERO(&sockSet);
+            FD_SET(socketfd, &sockSet);
+            struct timeval emptyTime;
+            memset(&emptyTime, 0, sizeof(emptyTime));
+            int selected = select(socketfd + 1, &sockSet, NULL, NULL, &emptyTime);
+            if ((selected == 1 && FD_ISSET(socketfd, &sockSet)) || needMoreBytes) {
+//                log << "Going to read!\n";
+                int read = ::read(socketfd, &encryptedBuffer[bufferFullLength], CIPHER_BUFFER_LENGTH - bufferFullLength - 1);
+                if (read < 0) {
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        read = 0;
+                    }
+                    else {
+                        log << WARNING << "read < 0! Strerror = " << strerror(read) << '\n';
+                        read = 0;
+                    }
+                }
             
+                bufferFullLength += read;
+                log << "Read " << std::dec << read << " bytes from stream!\n";
+            }
         }
-        if (outputBufferPos == 0) {
-            int written = std::min(outputBuffer.size(), count);
-            memcpy(buf, outputBuffer.data(), written);
-            addedToBuf += written;
-            outputBufferPos += written;
+        if (bufferFullLength) {
+            log << "Characters in encrypted buffer: " << std::hex;
+            for (int i=bufferPos; i<(bufferPos + bufferFullLength); ++i) {
+               log << "0x" << uint16_t(encryptedBuffer[i]) << ' ';
+            }
+            log << '\n';
         }
-        memmove(outputBuffer, &outputBuffer[outputBufferPos], outputBuffer.size() - outputBufferPos);
-        outputBufferPos = 0;
-        
+        if ((outputBufferFullLength * 2) < count && bufferFullLength > 0) { // If the outputBuffer is less than half empty.
+            log << "Decrypting data to outputBuffer!\n";
+            if (outputBufferPos > 0) {
+                memmove(outputBuffer.data(), &outputBuffer[outputBufferPos], outputBufferFullLength);
+            }
+            outputBufferPos = 0;
+            int outLen;
+            int inLen = min(size_t(bufferFullLength), (outputBuffer.size() - outputBufferFullLength) - decryptor->cipher->block_size); // Length to read.
+            EVP_DecryptUpdate(decryptor, &outputBuffer[outputBufferFullLength], &outLen, &encryptedBuffer[bufferPos], inLen);
+            log << "Decrypted " << inLen << " bytes (" << std::hex;
+            for (int i=0; i<inLen; ++i) {
+                log << "0x" << static_cast<uint16_t>(encryptedBuffer[bufferPos + i]) << ' ';
+            }
+            log << ") to " << outLen << " bytes (";
+            for (int i=0; i<outLen; ++i) {
+                log << "0x" << static_cast<uint16_t>(outputBuffer[outputBufferFullLength + i]) << ' ';
+            }
+            log << ")\n";
+            bufferPos += inLen; // increment bufferPos by the number of bytes taken and decrypted.
+            bufferFullLength -= outLen;
+            outputBufferFullLength += outLen;
+        }
+        int toWrite = min(outputBufferFullLength, count);
+        log << INFO << "toWrite: " << toWrite << '\n';
+        memcpy(buf, &outputBuffer[outputBufferPos], toWrite); // Move bytes from outputBuffer to output.
+        if (outputBufferFullLength)
+            log << "outputBuffer[outputBufferPos] = 0x" << int(outputBuffer[outputBufferPos]) << ", *buf = 0x" << int(*static_cast<uint8_t *>(buf)) << '\n' << std::dec;
+        addedToBuf += toWrite;
+        outputBufferPos += toWrite;
+        outputBufferFullLength -= toWrite;
+        if (!outputBufferFullLength && !bufferFullLength) {
+//            log << "Both buffers empty, need more bytes!\n";
+            needMoreBytes = true;
+        }
     }
-    memcpy(buf, &outputBuffer[outputBufferPos], count);
-    outputBufferPos += count;
-    return;
+    return 0;
 
 }
 

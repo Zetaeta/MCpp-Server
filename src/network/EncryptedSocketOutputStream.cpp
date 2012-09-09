@@ -4,11 +4,13 @@
 
 #include <unistd.h>
 
+#include <openssl/evp.h>
+
 #include "EncryptedSocketOutputStream.hpp"
 #include "NetUtils.hpp"
 #include "../logging/Logger.hpp"
 #include "../MinecraftServer.hpp"
-#include "../Unicode.hpp"
+#include "../util/Unicode.hpp"
 #include "Packet.hpp"
 
 using std::vector;
@@ -16,18 +18,18 @@ using std::vector;
 namespace MCServer {
 namespace Network {
 
-EncryptedSocketOutputStream::EncryptedSocketOutputStream(int socketfd)
-    :socketfd(socketfd) {
+EncryptedSocketOutputStream::EncryptedSocketOutputStream(int socketfd, EVP_CIPHER_CTX *encryptor)
+    :socketfd(socketfd), encryptor(encryptor) {
 
 }
 
 EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(uint8_t data) {
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
 EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(int8_t data) {
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -35,7 +37,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(uint16_t d
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -43,7 +45,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(int16_t da
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -51,7 +53,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(uint32_t d
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -59,7 +61,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(int32_t da
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -67,7 +69,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(uint64_t d
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -75,7 +77,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(int64_t da
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -83,7 +85,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(float data
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -91,7 +93,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(double dat
     if (!bigEndian) {
         swapEndian(data);
     }
-    write(socketfd, &data, sizeof(data));
+    write(static_cast<void *>(&data), sizeof(data));
     return *this;
 }
 
@@ -115,12 +117,12 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(const std:
         usc2[i] = (u << 8) | (u >> 8);
     }
     operator<<(static_cast<uint16_t>(usc2.size()));
-    write(socketfd, usc2.data(), usc2.size() * sizeof(uint16_t));
+    write(usc2.data(), usc2.size() * sizeof(uint16_t));
     return *this;
 }
 
 EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(const Packet &packet) {
-    write(socketfd, packet.getBytes(), packet.size());
+    write(packet.getBytes(), packet.size());
     const uint8_t *bytes = packet.getBytes();
     Logging::Logger &log = MinecraftServer::getServer().getLogger();
     log << "Sending packet: \n";
@@ -130,14 +132,14 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(const Pack
 }
 
 void EncryptedSocketOutputStream::writeRaw(const void *data, size_t length) {
-    write(socketfd, data, length);
+    write(data, length);
 }
 
-ssize_t EncryptedSocketOutputStream::write(int fd, const void *buf, size_t length) {
-    int outLength = length + encryptor.block_size - 1;
-    uint8_t output = new uint8_t[outLength];
-    EVP_EncryptUpdate(encryptor, output, &outLength, pack.getBytes(), pack.size());
-    return ::write(socketfd, output, outLength)
+ssize_t EncryptedSocketOutputStream::write(const void *buf, size_t length) {
+    int outLength = length + encryptor->cipher->block_size - 1;
+    uint8_t *output = new uint8_t[outLength];
+    EVP_EncryptUpdate(encryptor, output, &outLength, static_cast<const uint8_t *>(buf), length);
+    return ::write(socketfd, output, outLength);
 }
 
 }

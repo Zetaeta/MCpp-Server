@@ -227,6 +227,13 @@ Logger & Logger::operator<<(const char *c) {
     return *this;
 }
 
+Logger & Logger::operator<<(std::ios_base & (*modifier)(std::ios_base &)) {
+    m->lock.lock();
+    m->oss << modifier;
+    m->lock.unlock();
+    return *this;
+}
+
 Logger::~Logger() {
     for (auto it = m->handlers.begin(); it != m->handlers.end(); ++it) {
         delete *it;

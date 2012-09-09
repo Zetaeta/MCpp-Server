@@ -1,8 +1,8 @@
 
 #include "Packet.hpp"
 #include "NetUtils.hpp"
-#include "../utils.hpp"
-#include "../Unicode.hpp"
+#include "../util/utils.hpp"
+#include "../util/Unicode.hpp"
 #include "../MinecraftServer.hpp"
 #include "../logging/Logger.hpp"
 

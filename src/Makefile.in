@@ -63,14 +63,18 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(currentdir)"
 PROGRAMS = $(current_PROGRAMS)
 am__objects_1 = main.$(OBJEXT) MinecraftServer.$(OBJEXT) \
-	ConsoleReader.$(OBJEXT) Unicode.$(OBJEXT)
+	ConsoleReader.$(OBJEXT) EntityManager.$(OBJEXT)
 am__objects_2 = NetworkServer.$(OBJEXT) NetUtils.$(OBJEXT) \
-	SocketOutputStream.$(OBJEXT) SocketInputStream.$(OBJEXT) \
-	SocketStream.$(OBJEXT) ClientConnection.$(OBJEXT) \
-	Packet.$(OBJEXT) PacketHandler.$(OBJEXT)
+	PlainSocketOutputStream.$(OBJEXT) \
+	PlainSocketInputStream.$(OBJEXT) PlainSocketStream.$(OBJEXT) \
+	ClientConnection.$(OBJEXT) Packet.$(OBJEXT) \
+	PacketHandler.$(OBJEXT) EncryptedSocketInputStream.$(OBJEXT) \
+	EncryptedSocketOutputStream.$(OBJEXT) \
+	EncryptedSocketStream.$(OBJEXT)
 am__objects_3 = Logger.$(OBJEXT) ConsoleHandler.$(OBJEXT)
+am__objects_4 = Unicode.$(OBJEXT)
 am_mcpp_server_OBJECTS = $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3)
+	$(am__objects_3) $(am__objects_4)
 mcpp_server_OBJECTS = $(am_mcpp_server_OBJECTS)
 mcpp_server_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -185,10 +189,12 @@ top_srcdir = @top_srcdir@
 currentdir = /home/daniel/Documents/Programming/MC++-Server
 AM_CXXFLAGS = -std=c++11
 AM_LDFLAGS = -lreadline -lpthread -lssl -lcrypto
-main = main.cpp MinecraftServer.cpp ConsoleReader.cpp Unicode.cpp
-network = network/NetworkServer.cpp network/NetUtils.cpp network/SocketOutputStream.cpp network/SocketInputStream.cpp network/SocketStream.cpp network/ClientConnection.cpp network/Packet.cpp network/PacketHandler.cpp
+main = main.cpp MinecraftServer.cpp ConsoleReader.cpp EntityManager.cpp
+network = network/NetworkServer.cpp network/NetUtils.cpp network/PlainSocketOutputStream.cpp network/PlainSocketInputStream.cpp network/PlainSocketStream.cpp network/ClientConnection.cpp network/Packet.cpp network/PacketHandler.cpp network/EncryptedSocketInputStream.cpp network/EncryptedSocketOutputStream.cpp network/EncryptedSocketStream.cpp
 logging = logging/Logger.cpp logging/ConsoleHandler.cpp
-mcpp_server_SOURCES = $(main) $(network) $(logging)
+util = util/Unicode.cpp
+entity = entity/Entity.cpp
+mcpp_server_SOURCES = $(main) $(network) $(logging) $(util)
 all: all-am
 
 .SUFFIXES:
@@ -276,15 +282,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClientConnection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsoleHandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsoleReader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketInputStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketOutputStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EntityManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Logger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinecraftServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NetUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NetworkServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Packet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PacketHandler.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SocketInputStream.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SocketOutputStream.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SocketStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketInputStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketOutputStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Unicode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 
@@ -330,47 +340,47 @@ NetUtils.obj: network/NetUtils.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NetUtils.obj `if test -f 'network/NetUtils.cpp'; then $(CYGPATH_W) 'network/NetUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/network/NetUtils.cpp'; fi`
 
-SocketOutputStream.o: network/SocketOutputStream.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SocketOutputStream.o -MD -MP -MF $(DEPDIR)/SocketOutputStream.Tpo -c -o SocketOutputStream.o `test -f 'network/SocketOutputStream.cpp' || echo '$(srcdir)/'`network/SocketOutputStream.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SocketOutputStream.Tpo $(DEPDIR)/SocketOutputStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/SocketOutputStream.cpp' object='SocketOutputStream.o' libtool=no @AMDEPBACKSLASH@
+PlainSocketOutputStream.o: network/PlainSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketOutputStream.o -MD -MP -MF $(DEPDIR)/PlainSocketOutputStream.Tpo -c -o PlainSocketOutputStream.o `test -f 'network/PlainSocketOutputStream.cpp' || echo '$(srcdir)/'`network/PlainSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketOutputStream.Tpo $(DEPDIR)/PlainSocketOutputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/PlainSocketOutputStream.cpp' object='PlainSocketOutputStream.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SocketOutputStream.o `test -f 'network/SocketOutputStream.cpp' || echo '$(srcdir)/'`network/SocketOutputStream.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketOutputStream.o `test -f 'network/PlainSocketOutputStream.cpp' || echo '$(srcdir)/'`network/PlainSocketOutputStream.cpp
 
-SocketOutputStream.obj: network/SocketOutputStream.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SocketOutputStream.obj -MD -MP -MF $(DEPDIR)/SocketOutputStream.Tpo -c -o SocketOutputStream.obj `if test -f 'network/SocketOutputStream.cpp'; then $(CYGPATH_W) 'network/SocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/SocketOutputStream.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SocketOutputStream.Tpo $(DEPDIR)/SocketOutputStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/SocketOutputStream.cpp' object='SocketOutputStream.obj' libtool=no @AMDEPBACKSLASH@
+PlainSocketOutputStream.obj: network/PlainSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketOutputStream.obj -MD -MP -MF $(DEPDIR)/PlainSocketOutputStream.Tpo -c -o PlainSocketOutputStream.obj `if test -f 'network/PlainSocketOutputStream.cpp'; then $(CYGPATH_W) 'network/PlainSocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PlainSocketOutputStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketOutputStream.Tpo $(DEPDIR)/PlainSocketOutputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/PlainSocketOutputStream.cpp' object='PlainSocketOutputStream.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SocketOutputStream.obj `if test -f 'network/SocketOutputStream.cpp'; then $(CYGPATH_W) 'network/SocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/SocketOutputStream.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketOutputStream.obj `if test -f 'network/PlainSocketOutputStream.cpp'; then $(CYGPATH_W) 'network/PlainSocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PlainSocketOutputStream.cpp'; fi`
 
-SocketInputStream.o: network/SocketInputStream.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SocketInputStream.o -MD -MP -MF $(DEPDIR)/SocketInputStream.Tpo -c -o SocketInputStream.o `test -f 'network/SocketInputStream.cpp' || echo '$(srcdir)/'`network/SocketInputStream.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SocketInputStream.Tpo $(DEPDIR)/SocketInputStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/SocketInputStream.cpp' object='SocketInputStream.o' libtool=no @AMDEPBACKSLASH@
+PlainSocketInputStream.o: network/PlainSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketInputStream.o -MD -MP -MF $(DEPDIR)/PlainSocketInputStream.Tpo -c -o PlainSocketInputStream.o `test -f 'network/PlainSocketInputStream.cpp' || echo '$(srcdir)/'`network/PlainSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketInputStream.Tpo $(DEPDIR)/PlainSocketInputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/PlainSocketInputStream.cpp' object='PlainSocketInputStream.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SocketInputStream.o `test -f 'network/SocketInputStream.cpp' || echo '$(srcdir)/'`network/SocketInputStream.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketInputStream.o `test -f 'network/PlainSocketInputStream.cpp' || echo '$(srcdir)/'`network/PlainSocketInputStream.cpp
 
-SocketInputStream.obj: network/SocketInputStream.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SocketInputStream.obj -MD -MP -MF $(DEPDIR)/SocketInputStream.Tpo -c -o SocketInputStream.obj `if test -f 'network/SocketInputStream.cpp'; then $(CYGPATH_W) 'network/SocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/SocketInputStream.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SocketInputStream.Tpo $(DEPDIR)/SocketInputStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/SocketInputStream.cpp' object='SocketInputStream.obj' libtool=no @AMDEPBACKSLASH@
+PlainSocketInputStream.obj: network/PlainSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketInputStream.obj -MD -MP -MF $(DEPDIR)/PlainSocketInputStream.Tpo -c -o PlainSocketInputStream.obj `if test -f 'network/PlainSocketInputStream.cpp'; then $(CYGPATH_W) 'network/PlainSocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PlainSocketInputStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketInputStream.Tpo $(DEPDIR)/PlainSocketInputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/PlainSocketInputStream.cpp' object='PlainSocketInputStream.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SocketInputStream.obj `if test -f 'network/SocketInputStream.cpp'; then $(CYGPATH_W) 'network/SocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/SocketInputStream.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketInputStream.obj `if test -f 'network/PlainSocketInputStream.cpp'; then $(CYGPATH_W) 'network/PlainSocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PlainSocketInputStream.cpp'; fi`
 
-SocketStream.o: network/SocketStream.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SocketStream.o -MD -MP -MF $(DEPDIR)/SocketStream.Tpo -c -o SocketStream.o `test -f 'network/SocketStream.cpp' || echo '$(srcdir)/'`network/SocketStream.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SocketStream.Tpo $(DEPDIR)/SocketStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/SocketStream.cpp' object='SocketStream.o' libtool=no @AMDEPBACKSLASH@
+PlainSocketStream.o: network/PlainSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketStream.o -MD -MP -MF $(DEPDIR)/PlainSocketStream.Tpo -c -o PlainSocketStream.o `test -f 'network/PlainSocketStream.cpp' || echo '$(srcdir)/'`network/PlainSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketStream.Tpo $(DEPDIR)/PlainSocketStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/PlainSocketStream.cpp' object='PlainSocketStream.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SocketStream.o `test -f 'network/SocketStream.cpp' || echo '$(srcdir)/'`network/SocketStream.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketStream.o `test -f 'network/PlainSocketStream.cpp' || echo '$(srcdir)/'`network/PlainSocketStream.cpp
 
-SocketStream.obj: network/SocketStream.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SocketStream.obj -MD -MP -MF $(DEPDIR)/SocketStream.Tpo -c -o SocketStream.obj `if test -f 'network/SocketStream.cpp'; then $(CYGPATH_W) 'network/SocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/SocketStream.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/SocketStream.Tpo $(DEPDIR)/SocketStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/SocketStream.cpp' object='SocketStream.obj' libtool=no @AMDEPBACKSLASH@
+PlainSocketStream.obj: network/PlainSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketStream.obj -MD -MP -MF $(DEPDIR)/PlainSocketStream.Tpo -c -o PlainSocketStream.obj `if test -f 'network/PlainSocketStream.cpp'; then $(CYGPATH_W) 'network/PlainSocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PlainSocketStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketStream.Tpo $(DEPDIR)/PlainSocketStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/PlainSocketStream.cpp' object='PlainSocketStream.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SocketStream.obj `if test -f 'network/SocketStream.cpp'; then $(CYGPATH_W) 'network/SocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/SocketStream.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketStream.obj `if test -f 'network/PlainSocketStream.cpp'; then $(CYGPATH_W) 'network/PlainSocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PlainSocketStream.cpp'; fi`
 
 ClientConnection.o: network/ClientConnection.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ClientConnection.o -MD -MP -MF $(DEPDIR)/ClientConnection.Tpo -c -o ClientConnection.o `test -f 'network/ClientConnection.cpp' || echo '$(srcdir)/'`network/ClientConnection.cpp
@@ -414,6 +424,48 @@ PacketHandler.obj: network/PacketHandler.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PacketHandler.obj `if test -f 'network/PacketHandler.cpp'; then $(CYGPATH_W) 'network/PacketHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/network/PacketHandler.cpp'; fi`
 
+EncryptedSocketInputStream.o: network/EncryptedSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketInputStream.o -MD -MP -MF $(DEPDIR)/EncryptedSocketInputStream.Tpo -c -o EncryptedSocketInputStream.o `test -f 'network/EncryptedSocketInputStream.cpp' || echo '$(srcdir)/'`network/EncryptedSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketInputStream.Tpo $(DEPDIR)/EncryptedSocketInputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/EncryptedSocketInputStream.cpp' object='EncryptedSocketInputStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketInputStream.o `test -f 'network/EncryptedSocketInputStream.cpp' || echo '$(srcdir)/'`network/EncryptedSocketInputStream.cpp
+
+EncryptedSocketInputStream.obj: network/EncryptedSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketInputStream.obj -MD -MP -MF $(DEPDIR)/EncryptedSocketInputStream.Tpo -c -o EncryptedSocketInputStream.obj `if test -f 'network/EncryptedSocketInputStream.cpp'; then $(CYGPATH_W) 'network/EncryptedSocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/EncryptedSocketInputStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketInputStream.Tpo $(DEPDIR)/EncryptedSocketInputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/EncryptedSocketInputStream.cpp' object='EncryptedSocketInputStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketInputStream.obj `if test -f 'network/EncryptedSocketInputStream.cpp'; then $(CYGPATH_W) 'network/EncryptedSocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/EncryptedSocketInputStream.cpp'; fi`
+
+EncryptedSocketOutputStream.o: network/EncryptedSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketOutputStream.o -MD -MP -MF $(DEPDIR)/EncryptedSocketOutputStream.Tpo -c -o EncryptedSocketOutputStream.o `test -f 'network/EncryptedSocketOutputStream.cpp' || echo '$(srcdir)/'`network/EncryptedSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketOutputStream.Tpo $(DEPDIR)/EncryptedSocketOutputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/EncryptedSocketOutputStream.cpp' object='EncryptedSocketOutputStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketOutputStream.o `test -f 'network/EncryptedSocketOutputStream.cpp' || echo '$(srcdir)/'`network/EncryptedSocketOutputStream.cpp
+
+EncryptedSocketOutputStream.obj: network/EncryptedSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketOutputStream.obj -MD -MP -MF $(DEPDIR)/EncryptedSocketOutputStream.Tpo -c -o EncryptedSocketOutputStream.obj `if test -f 'network/EncryptedSocketOutputStream.cpp'; then $(CYGPATH_W) 'network/EncryptedSocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/EncryptedSocketOutputStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketOutputStream.Tpo $(DEPDIR)/EncryptedSocketOutputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/EncryptedSocketOutputStream.cpp' object='EncryptedSocketOutputStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketOutputStream.obj `if test -f 'network/EncryptedSocketOutputStream.cpp'; then $(CYGPATH_W) 'network/EncryptedSocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/EncryptedSocketOutputStream.cpp'; fi`
+
+EncryptedSocketStream.o: network/EncryptedSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketStream.o -MD -MP -MF $(DEPDIR)/EncryptedSocketStream.Tpo -c -o EncryptedSocketStream.o `test -f 'network/EncryptedSocketStream.cpp' || echo '$(srcdir)/'`network/EncryptedSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketStream.Tpo $(DEPDIR)/EncryptedSocketStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/EncryptedSocketStream.cpp' object='EncryptedSocketStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketStream.o `test -f 'network/EncryptedSocketStream.cpp' || echo '$(srcdir)/'`network/EncryptedSocketStream.cpp
+
+EncryptedSocketStream.obj: network/EncryptedSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketStream.obj -MD -MP -MF $(DEPDIR)/EncryptedSocketStream.Tpo -c -o EncryptedSocketStream.obj `if test -f 'network/EncryptedSocketStream.cpp'; then $(CYGPATH_W) 'network/EncryptedSocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/EncryptedSocketStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketStream.Tpo $(DEPDIR)/EncryptedSocketStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='network/EncryptedSocketStream.cpp' object='EncryptedSocketStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketStream.obj `if test -f 'network/EncryptedSocketStream.cpp'; then $(CYGPATH_W) 'network/EncryptedSocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/network/EncryptedSocketStream.cpp'; fi`
+
 Logger.o: logging/Logger.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Logger.o -MD -MP -MF $(DEPDIR)/Logger.Tpo -c -o Logger.o `test -f 'logging/Logger.cpp' || echo '$(srcdir)/'`logging/Logger.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Logger.Tpo $(DEPDIR)/Logger.Po
@@ -441,6 +493,20 @@ ConsoleHandler.obj: logging/ConsoleHandler.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='logging/ConsoleHandler.cpp' object='ConsoleHandler.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsoleHandler.obj `if test -f 'logging/ConsoleHandler.cpp'; then $(CYGPATH_W) 'logging/ConsoleHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/logging/ConsoleHandler.cpp'; fi`
+
+Unicode.o: util/Unicode.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Unicode.o -MD -MP -MF $(DEPDIR)/Unicode.Tpo -c -o Unicode.o `test -f 'util/Unicode.cpp' || echo '$(srcdir)/'`util/Unicode.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Unicode.Tpo $(DEPDIR)/Unicode.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/Unicode.cpp' object='Unicode.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Unicode.o `test -f 'util/Unicode.cpp' || echo '$(srcdir)/'`util/Unicode.cpp
+
+Unicode.obj: util/Unicode.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Unicode.obj -MD -MP -MF $(DEPDIR)/Unicode.Tpo -c -o Unicode.obj `if test -f 'util/Unicode.cpp'; then $(CYGPATH_W) 'util/Unicode.cpp'; else $(CYGPATH_W) '$(srcdir)/util/Unicode.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Unicode.Tpo $(DEPDIR)/Unicode.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/Unicode.cpp' object='Unicode.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Unicode.obj `if test -f 'util/Unicode.cpp'; then $(CYGPATH_W) 'util/Unicode.cpp'; else $(CYGPATH_W) '$(srcdir)/util/Unicode.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

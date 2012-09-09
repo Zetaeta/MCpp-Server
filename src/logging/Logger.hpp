@@ -9,6 +9,7 @@
 
 namespace std {
 template<size_t N> class bitset;
+class ios_base;
 }
 
 namespace MCServer {
@@ -59,6 +60,7 @@ public:
     Logger & operator<<(std::bitset<8>);
     Logger & operator<<(std::bitset<16>);
     Logger & operator<<(std::bitset<32>);
+    Logger & operator<<(std::ios_base & (*)(std::ios_base &));
 
     void addHandler(Handler *);
     void setDefaultLevel(Level level);

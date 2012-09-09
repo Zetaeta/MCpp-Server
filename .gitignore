@@ -11,7 +11,11 @@ test
 */mcpp-server
 mcpp-server
 test
-*/Makefile
+src/Makefile
+src/Makefile.old
 Makefile
 stamp-h1
 config.*
+autoscan.log
+configure.scan
+src/.deps

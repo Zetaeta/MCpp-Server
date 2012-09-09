@@ -5,7 +5,7 @@
 #include <string>
 #include <stdint.h>
 
-extern "C" ssize_t write(int fd, const void *buf, size_t count);
+// extern "C" ssize_t write(int fd, const void *buf, size_t count);
 
 namespace MCServer {
 namespace Network {
@@ -16,29 +16,25 @@ class Packet;
 
 class SocketOutputStream {
 public:
-    SocketOutputStream(int socketfd);
-    SocketOutputStream & operator<<(uint8_t);
-    SocketOutputStream & operator<<(int8_t);
-    SocketOutputStream & operator<<(uint16_t);
-    SocketOutputStream & operator<<(int16_t);
-    SocketOutputStream & operator<<(uint32_t);
-    SocketOutputStream & operator<<(int32_t);
-    SocketOutputStream & operator<<(uint64_t);
-    SocketOutputStream & operator<<(int64_t);
-    SocketOutputStream & operator<<(float);
-    SocketOutputStream & operator<<(double);
-    SocketOutputStream & operator<<(const std::string &);
-    SocketOutputStream & operator<<(const Packet &);
+    virtual SocketOutputStream & operator<<(uint8_t) = 0;
+    virtual SocketOutputStream & operator<<(int8_t) = 0;
+    virtual SocketOutputStream & operator<<(uint16_t) = 0;
+    virtual SocketOutputStream & operator<<(int16_t) = 0;
+    virtual SocketOutputStream & operator<<(uint32_t) = 0;
+    virtual SocketOutputStream & operator<<(int32_t) = 0;
+    virtual SocketOutputStream & operator<<(uint64_t) = 0;
+    virtual SocketOutputStream & operator<<(int64_t) = 0;
+    virtual SocketOutputStream & operator<<(float) = 0;
+    virtual SocketOutputStream & operator<<(double) = 0;
+    virtual SocketOutputStream & operator<<(const std::string &) = 0;
+    virtual SocketOutputStream & operator<<(const Packet &) = 0;
 
     template<class T>
     void write(const T *data, size_t length) {
-        write(socketfd, data, sizeof(T) * length);
+        writeRaw(data, sizeof(T) * length);
     }
 
-    void writeRaw(const void *data, size_t length);
-
-private:
-    int socketfd;
+    virtual void writeRaw(const void *data, size_t length) = 0;
 };
 
 }

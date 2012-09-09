@@ -1,22 +1,30 @@
 
-#ifndef SOCKETINPUTSTREAM_HPP
-#define SOCKETINPUTSTREAM_HPP
+#ifndef ENCRYPTEDSOCKETINPUTSTREAM_HPP
+#define ENCRYPTEDSOCKETINPUTSTREAM_HPP
 
 #include <string>
 #include <stdint.h>
+#include <vector>
+
+#include "SocketInputStream.hpp"
 
 extern "C" ssize_t read(int fd, void *buf, size_t count);
 
-#ifndef CIPHER_READING_BUFFER_LENGTH
-#define CIPHER_READING_BUFFER_LENGTH 1024
+#ifndef CIPHER_BUFFER_LENGTH
+#define CIPHER_BUFFER_LENGTH 1024
+#endif
+
+#ifndef HEADER_ENVELOPE_H
+typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
 #endif
 
 namespace MCServer {
 namespace Network {
 
-class EncryptedSocketInputStream {
+class EncryptedSocketInputStream : public virtual SocketInputStream {
 public:
     EncryptedSocketInputStream(int socketfd, EVP_CIPHER_CTX *);
+    EncryptedSocketInputStream() {}
     EncryptedSocketInputStream & operator>>(uint8_t&);
     EncryptedSocketInputStream & operator>>(int8_t&);
     EncryptedSocketInputStream & operator>>(uint16_t&);
@@ -41,21 +49,23 @@ public:
     EncryptedSocketInputStream & peek(float &);
     EncryptedSocketInputStream & peek(double &);
 
-    template<class T>
-    T * read(T *data, size_t length) {
-        read(socketfd, data, sizeof(T) * length);
-        return data;
-    }
+    ssize_t read(void *buf, size_t count);
+
+//    template<class T>
+//    inline T * read(T *data, size_t length) {
+//        read(data, sizeof(T) * length);
+//        return data;
+//    }
 
     /**
      * Return value mut be <code>delete</code>d
      */
-    template<class T>
-    T * read(size_t length) {
-        T * data = new T[length];
-        read(socketfd, data, sizeof(T) * length);
-        return data;
-    }
+//    template<class T>
+//    inline T * read(size_t length) {
+//        T * data = new T[length];
+//        read(data, sizeof(T) * length);
+//        return data;
+//    }
 
     void * readRaw(void *data, size_t length);
 
@@ -68,10 +78,11 @@ private:
     EVP_CIPHER_CTX *decryptor;
     uint8_t encryptedBuffer[CIPHER_BUFFER_LENGTH];
     int bufferPos;
-    vector<uint8_t> outputBuffer;
+    int bufferFullLength;
+    std::vector<uint8_t> outputBuffer;
     int outputBufferPos;
+    size_t outputBufferFullLength;
     
-    ssize_t read(int fd, void *buf, size_t count);
 };
 
 }

@@ -1,15 +1,23 @@
 
+#include <iostream>
 #include <string>
+#include <string.h>
+
+#include <unistd.h>
+#include <fcntl.h>
 
 #include <openssl/rsa.h>
 #include <openssl/evp.h>
 
 #include "ClientConnection.hpp"
 #include "SocketStream.hpp"
+#include "PlainSocketStream.hpp"
+#include "EncryptedSocketStream.hpp"
 #include "../logging/Logger.hpp"
 #include "../MinecraftServer.hpp"
 #include "PacketHandler.hpp"
 #include "Packets.hpp"
+
 
 namespace MCServer {
 namespace Network {
@@ -31,15 +39,26 @@ void * startClientConnection(void * cc_) {
 
 struct ClientConnectionData {
     int socketfd;
-    SocketStream ss;
+    
     pthread_t threadId;
     bool shutdown;
     bool encrypted;
     string sharedSecret;
     EVP_CIPHER_CTX encryptor, decryptor;
 
+    PlainSocketStream pss;
+    EncryptedSocketStream ess;
+    inline SocketStream & ss() {
+        if (encrypted) {
+            return ess;
+        }
+        else {
+            return pss;
+        }
+    }
+
     ClientConnectionData(int sfd)
-    :socketfd(sfd), ss(sfd), server(MinecraftServer::getServer()), shutdown(false)
+    :socketfd(sfd), pss(sfd), server(MinecraftServer::getServer()), shutdown(false)
     {}
 
     MinecraftServer &server;
@@ -47,6 +66,7 @@ struct ClientConnectionData {
 
 ClientConnection::ClientConnection(int socketfd) 
     :m(new ClientConnectionData(socketfd)) {
+//    setBlocking(false);
     Logger &log = m->server.getLogger();
     log << "ClientConnection(int)!\n";
     log << "About to start thread\n";
@@ -64,7 +84,8 @@ ClientConnection::~ClientConnection() {
 void ClientConnection::init() {
     Logger &log = m->server.getLogger();
     log << "ClientConnection::init\n";
-    SocketStream &ss = m->ss;
+    { // Scope for ss.
+    SocketStream &ss = m->ss();
     uint8_t packetHeader;
     ss >> packetHeader;
     if (packetHeader != 0x02) {
@@ -114,11 +135,25 @@ void ClientConnection::init() {
         m->server.getLogger() << INFO << "Disconnecting user: " << username << ": incorrect verify token.\n";
         return;
     }
-    
+
     int secretLen = RSA_private_decrypt(ssLength, sharedSecret, buffer, m->server.getRsa(), RSA_PKCS1_PADDING);
     m->server.getLogger() << INFO << "Decrypted shared secret from user " << username << ": " << string(reinterpret_cast<const char *>(buffer), secretLen) << '\n';
 
-    setupCrypto(string(reinterpret_cast<const char *>buffer, secretLen));
+    setupCrypto(string(reinterpret_cast<const char *>(buffer), secretLen));
+    } // End scope for ss.
+    SocketStream &ss = m->ss();
+    uint8_t clientStatusId;
+    uint8_t payload;
+    ss >> clientStatusId;
+    if (clientStatusId != PACKET_CLIENT_STATUS) {
+        log << WARNING << "Invalid client status header: 0x" << std::hex << static_cast<uint16_t>(clientStatusId) << '\n' << std::dec;
+        return;
+    }
+    ss >> payload;
+    if (payload) {
+        log << WARNING << "Invalid client status payload: 0x" << std::hex << static_cast<uint16_t>(payload) << '\n' << std::dec;
+        return;
+    }
 }
 
 /**
@@ -128,20 +163,23 @@ void ClientConnection::setupCrypto(std::string sharedSecret) {
     uint8_t key[16], iv[16];
 
     memcpy(key, sharedSecret.c_str(), 16);
-    memcpy(key, sharedSecret.c_str(), 16);
+    memcpy(iv, sharedSecret.c_str(), 16);
 
-    EVP_CIPHER_CTX_INIT(&m->en);
-    EVP_CIPHER_CTX_INIT(&m->de);
+    EVP_CIPHER_CTX_init(&m->encryptor);
+    EVP_CIPHER_CTX_init(&m->decryptor);
 
-    EVP_EncryptInit_ex(&m->en, EVP_aes_128_cfb8(), NULL, key, iv);
-    EVP_EncryptInit_ex(&m->de, EVP_aes_128_cfb8(), NULL, key, iv);
+    EVP_EncryptInit_ex(&m->encryptor, EVP_aes_128_cfb8(), NULL, key, iv);
+    EVP_DecryptInit_ex(&m->decryptor, EVP_aes_128_cfb8(), NULL, key, iv);
 
     // Empty 0xFC packet.
     Packet pack;
     pack << PACKET_ENCRYPTION_KEY_RESPONSE << 0; // 1 int = 2 shorts.
 
-    m->ss << pack;
+    m->ss() << pack;
 
+    m->ess = EncryptedSocketStream(m->socketfd, &m->encryptor, &m->decryptor);
+    m->encrypted = true;
+//    setBlocking(false);
 }
 
 void ClientConnection::run() {
@@ -150,23 +188,24 @@ void ClientConnection::run() {
     // Read-handle loop here.
 }
 
+/*
 void ClientConnection::send(Packet &pack) {
-    if (!encrypted) {
-        ss << pack;
+    if (!m->encrypted) {
+        m->ss() << pack;
         return;
     }
     else {
-        int outLength = pack.size() + m->encryptor->block_size - 1;
+        int outLength = pack.size() + m->encryptor.block_size - 1;
         uint8_t *output = new uint8_t[outLength];
-        EVP_EncryptUpdate(&m->encryptor, output, &outlength, pack.getBytes(), pack.size()); 
+        EVP_EncryptUpdate(&m->encryptor, output, &outLength, pack.getBytes(), pack.size()); 
         ss.write(output, outLength);
         return;
     }
 }
 
 uint8_t * ClientConnection::read(uint8_t *output, size_t length) {
-    if (!encrypted) {
-        ::read(socketfd, output, length);
+    if (!m->encrypted) {
+        ::read(m->socketfd, output, length);
     }
     else {
         int inLength = length;
@@ -174,7 +213,7 @@ uint8_t * ClientConnection::read(uint8_t *output, size_t length) {
         EVP_DecryptUpdate(&m->decryptor, output, &outLength, 
     }
     return output;
-}
+}*/
 
 /**
  * Shuts down the connection, freeing any resources and removing any references to it.
@@ -183,5 +222,21 @@ void ClientConnection::shutdown() {
     m->shutdown = true;
 }
 
+bool ClientConnection::isBlocking() {
+    return !(fcntl(m->socketfd, F_GETFL) & O_NONBLOCK);
+}
+
+void ClientConnection::setBlocking(bool blocking) {
+    int fl = fcntl(m->socketfd, F_GETFL);
+    if (blocking) {
+        fl &= ~O_NONBLOCK;
+    }
+    else {
+        fl |= O_NONBLOCK;
+    }
+    fcntl(m->socketfd, F_SETFL, fl);
+}
+
+}
 }
 

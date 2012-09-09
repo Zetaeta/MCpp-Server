@@ -35,6 +35,10 @@ void swapEndian(float &);
 
 void swapEndian(double &);
 
+bool isBlocking(int socketfd);
+
+void setBlocking(int socketfd, bool blocking);
+
 }
 }
 

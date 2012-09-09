@@ -28,9 +28,10 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
+AC_TYPE_SSIZE_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset socket strerror])
+AC_CHECK_FUNCS([memset memmove socket strerror])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile])

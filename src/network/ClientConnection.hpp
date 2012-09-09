@@ -7,6 +7,10 @@
 namespace MCServer {
 namespace Network {
 
+#ifndef PACKET_HPP
+class Packet;
+#endif
+
 struct ClientConnectionData;
 
 class ClientConnection {
@@ -15,6 +19,8 @@ public:
     void run();
     void shutdown();
     void send(Packet &);
+    bool isBlocking();
+    void setBlocking(bool);
 
     /**
      * @param output Output buffer to put read value into, can be NULL in which case memory is allocated and must be delete[]'d

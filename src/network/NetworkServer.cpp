@@ -18,7 +18,7 @@
 #include <netinet/in.h>
 
 #include "NetworkServer.hpp"
-#include "SocketOutputStream.hpp"
+#include "PlainSocketOutputStream.hpp"
 #include "../logging/Logger.hpp"
 #include "ClientConnection.hpp"
 
@@ -38,6 +38,7 @@ void * startNetworkServer(void *serverPtr) {
 
 using std::string;
 using std::cout;
+USING_LOGGING_LEVEL
 
 struct Connection {
     int socketfd;
@@ -130,7 +131,7 @@ void NetworkServer::serverListPing(const Connection &connection) {
 //    string hello = "Hello World§64§32";
     Logging::Logger &logger = m->server->getLogger();
     logger.info("serverListPing()");
-    SocketOutputStream out(connection.socketfd);
+    PlainSocketOutputStream out(connection.socketfd);
     out << static_cast<uint8_t>(0xFF);
     std::ostringstream output;
     output << m->server->getMotd() << "§" << m->server->getOnlinePlayerCount() << "§" << m->server->getMaxPlayers();

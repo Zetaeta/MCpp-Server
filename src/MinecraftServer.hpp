@@ -11,7 +11,7 @@
 //#include <boost/asio/io_service.hpp>
 #include <string>
 
-#ifndef HEADER_RSA_H
+#ifndef HEADER_OPENSSL_TYPES_H
 struct RSA;
 #endif
 

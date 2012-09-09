@@ -1,16 +1,18 @@
 
-#ifndef SOCKETSTREAM_HPP
-#define SOCKETSTREAM_HPP
+#ifndef ENCRYPTEDSOCKETSTREAM_HPP
+#define ENCRYPTEDSOCKETSTREAM_HPP
 
-#include "SocketInputStream.hpp"
-#include "SocketOutputStream.hpp"
+#include "EncryptedSocketInputStream.hpp"
+#include "EncryptedSocketOutputStream.hpp"
+#include "SocketStream.hpp"
 
 namespace MCServer {
 namespace Network {
 
-class SocketStream : public SocketInputStream, public SocketOutputStream {
+class EncryptedSocketStream : public EncryptedSocketInputStream, public EncryptedSocketOutputStream, public SocketStream {
 public:
-    SocketStream(int sockfd);
+    EncryptedSocketStream(int sockfd, EVP_CIPHER_CTX *encryptor, EVP_CIPHER_CTX *decryptor);
+    EncryptedSocketStream() {}
 };
 
 }

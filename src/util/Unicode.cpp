@@ -56,7 +56,7 @@ uint32_t utf8ToCodePoint(const string &utf8, size_t &pos) {
         log << Logging::WARNING << "Invalid character while converting UTF-8: " << ch << ", bits = " << std::bitset<8>(ch) << ", pos = " << pos << '\n';
         return -1;
     }
-    log << "position = " << pos << ", length = " << length << '\n';
+//    log << "position = " << pos << ", length = " << length << '\n';
     switch (length) {
     case 1:
 //        codePoint = ch;

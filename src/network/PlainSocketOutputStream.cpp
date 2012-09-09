@@ -4,11 +4,11 @@
 
 #include <unistd.h>
 
-#include "SocketOutputStream.hpp"
+#include "PlainSocketOutputStream.hpp"
 #include "NetUtils.hpp"
 #include "../logging/Logger.hpp"
 #include "../MinecraftServer.hpp"
-#include "../Unicode.hpp"
+#include "../util/Unicode.hpp"
 #include "Packet.hpp"
 
 using std::vector;
@@ -16,22 +16,22 @@ using std::vector;
 namespace MCServer {
 namespace Network {
 
-SocketOutputStream::SocketOutputStream(int socketfd)
+PlainSocketOutputStream::PlainSocketOutputStream(int socketfd)
     :socketfd(socketfd) {
 
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(uint8_t data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(uint8_t data) {
     ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(int8_t data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(int8_t data) {
     ::write(socketfd, &data, sizeof(data));
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(uint16_t data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(uint16_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -39,7 +39,7 @@ SocketOutputStream & SocketOutputStream::operator<<(uint16_t data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(int16_t data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(int16_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -47,7 +47,7 @@ SocketOutputStream & SocketOutputStream::operator<<(int16_t data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(uint32_t data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(uint32_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -55,7 +55,7 @@ SocketOutputStream & SocketOutputStream::operator<<(uint32_t data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(int32_t data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(int32_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -63,7 +63,7 @@ SocketOutputStream & SocketOutputStream::operator<<(int32_t data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(uint64_t data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(uint64_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -71,7 +71,7 @@ SocketOutputStream & SocketOutputStream::operator<<(uint64_t data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(int64_t data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(int64_t data) {
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -79,7 +79,7 @@ SocketOutputStream & SocketOutputStream::operator<<(int64_t data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(float data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(float data) {
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -87,7 +87,7 @@ SocketOutputStream & SocketOutputStream::operator<<(float data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(double data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(double data) {
     if (!bigEndian) {
         swapEndian(data);
     }
@@ -95,7 +95,7 @@ SocketOutputStream & SocketOutputStream::operator<<(double data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(const std::string &data) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(const std::string &data) {
     Logging::Logger &logger = MinecraftServer::getServer().getLogger();
     logger.info("operator<<: " + data);
     vector<uint16_t> usc2 = utf8ToUcs2(data);
@@ -119,7 +119,7 @@ SocketOutputStream & SocketOutputStream::operator<<(const std::string &data) {
     return *this;
 }
 
-SocketOutputStream & SocketOutputStream::operator<<(const Packet &packet) {
+PlainSocketOutputStream & PlainSocketOutputStream::operator<<(const Packet &packet) {
     ::write(socketfd, packet.getBytes(), packet.size());
     const uint8_t *bytes = packet.getBytes();
     Logging::Logger &log = MinecraftServer::getServer().getLogger();
@@ -129,7 +129,7 @@ SocketOutputStream & SocketOutputStream::operator<<(const Packet &packet) {
 //    }
 }
 
-void SocketOutputStream::writeRaw(const void *data, size_t length) {
+void PlainSocketOutputStream::writeRaw(const void *data, size_t length) {
     ::write(socketfd, data, length);
 }
 

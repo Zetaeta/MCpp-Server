@@ -2,6 +2,9 @@
 #include <iostream>
 #include <stdlib.h>
 
+#include <unistd.h>
+#include <fcntl.h>
+
 #include "NetUtils.hpp"
 
 using std::string;
@@ -114,6 +117,21 @@ void swapEndian(double &data) {
     dat2.b[6] = dat1.b[1];
     dat2.b[7] = dat1.b[0];
     data = dat2.d;
+}
+
+bool isBlocking(int socketfd) {
+    return !(fcntl(socketfd, F_GETFL) & O_NONBLOCK);
+}
+
+void setBlocking(int socketfd, bool blocking) {
+    int fl = fcntl(socketfd, F_GETFL);
+    if (blocking) {
+        fl &= ~O_NONBLOCK;
+    }
+    else {
+        fl |= O_NONBLOCK;
+    }
+    fcntl(socketfd, F_SETFL, fl);
 }
 
 
