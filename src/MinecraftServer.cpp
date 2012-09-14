@@ -18,29 +18,45 @@
 #include "MinecraftServer.hpp"
 #include "network/NetworkServer.hpp"
 #include "logging/Logger.hpp"
-#include "ConsoleReader.hpp"
 #include "network/PacketHandler.hpp"
+#include "GameMode.hpp"
+#include "WorldType.hpp"
+#include "Difficulty.hpp"
+#include "EntityManager.hpp"
+#include "plugin/PluginManager.hpp"
+#include "ui/UIManager.hpp"
+#include "util/StringUtils.hpp"
+#include "util/Utils.hpp"
 
 namespace MCServer {
 
-//using std::thread;
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+using std::map;
 
 using Network::NetworkServer;
 using Network::PacketHandler;
 using Logging::Logger;
 using Logging::Level;
-//using namespace MCServer::Logging;
 USING_LOGGING_LEVEL
+using Plugins::PluginManager;
+using UI::UIManager;
+
+#ifndef PLUGIN_DIR
+#define PLUGIN_DIR "plugins/"
+#endif
 
 struct MinecraftServerData {
     bool shutdown;
+    map<string, string *> options;
+
     NetworkServer *networkServer;
     Logger *logger;
-    ConsoleReader *consoleReader;
+    EntityManager *entityManager;
+    PluginManager *pluginManager;
+    UIManager *uiManager;
 
     // Crypto stuff
     RSA *rsa;
@@ -55,12 +71,25 @@ struct MinecraftServerData {
 };
 MinecraftServer * MinecraftServerData::server;
 
-MinecraftServer::MinecraftServer()
-    :m(new MinecraftServerData())
-{
+namespace {
+void shutdownServer() {
+    if (&MinecraftServer::getServer() && !MinecraftServer::getServer().isShutdown()) {
+        MinecraftServer::getServer().shutdown();
+    }
+}
+}
+
+MinecraftServer::MinecraftServer(const map<string, string *> &options)
+:m(new MinecraftServerData()) {
+    atexit(&shutdownServer);
     MinecraftServerData::server = this;
+    m->options = options;
+
+    initUI();
+
     m->logger = &Logger::getLogger("Minecraft");
-    m->consoleReader = new ConsoleReader(this);
+    m->entityManager = new EntityManager(this);
+    m->pluginManager = new PluginManager(this);
 
     m->rsa = RSA_generate_key(1024, 17, 0, 0);
 
@@ -94,11 +123,12 @@ MinecraftServer::MinecraftServer()
     if (!userValidationEnabled()) {
         serverId = "-";
     }
-    *m->logger << INFO << "Server ID: " << serverId;
+    *m->logger << INFO << "Server ID: " << serverId << '\n';
     m->serverId = serverId;
     m->verifyToken = verifyToken;
 
     PacketHandler::initialise(this);
+
 }
 
 MinecraftServer::~MinecraftServer() {
@@ -147,7 +177,44 @@ void MinecraftServer::run() {
 void MinecraftServer::init() {
     m->logger->info("Starting MC++-Server...");
     m->logger->info("Server version: " + getVersion());
+    m->pluginManager->loadPlugins(PLUGIN_DIR);
     m->networkServer = new NetworkServer(this);
+}
+
+void MinecraftServer::initUI() {
+    map<string, string *>::iterator gui = m->options.find("gui");
+    map<string, string *>::iterator ui = m->options.find("ui");
+    map<string, string *>::iterator cli = m->options.find("cli");
+
+    // Check for more than one UI option
+    int optCount(0);
+    if (gui != m->options.end())
+        ++optCount;
+    if (ui != m->options.end())
+        ++optCount;
+    if (cli != m->options.end())
+        ++optCount;
+    if (optCount > 1) {
+        invalidOption("Can only specify one of --cli, --gui and --ui!");
+    }
+
+    std::string uiName;
+    if (ui != m->options.end()) {
+        uiName = toLower(*ui->second);
+        if (uiName == "gui") {
+            uiName = "qt";
+        }
+    }
+    else if (gui != m->options.end()) {
+        uiName = "qt";
+    }
+    else if (cli != m->options.end()) {
+        uiName = "cli";
+    }
+    else {
+        uiName = "cli";
+    }
+    m->uiManager = &UIManager::init(this, uiName);
 }
 
 void MinecraftServer::tick() {
@@ -155,16 +222,13 @@ void MinecraftServer::tick() {
 }
 
 void MinecraftServer::shutdown() {
-    
+    m->shutdown = true;
 }
 
-void MinecraftServer::dispatchConsoleCommand(string command) {
-    m->logger->info("Dispatching command " + command);
+bool MinecraftServer::isShutdown() {
+    return m->shutdown;
 }
 
-string MinecraftServer::getVersion() {
-    return "0.1";
-}
 
 NetworkServer & MinecraftServer::getNetworkServer() {
     return *m->networkServer;
@@ -174,8 +238,17 @@ Logger & MinecraftServer::getLogger() {
     return *m->logger;
 }
 
-ConsoleReader & MinecraftServer::getConsoleReader() {
-    return *m->consoleReader;
+UIManager & MinecraftServer::getUIManager() {
+    return *m->uiManager;
+}
+
+EntityManager & MinecraftServer::getEntityManager() {
+    return *m->entityManager;
+}
+
+
+string MinecraftServer::getVersion() {
+    return "0.1";
 }
 
 std::string MinecraftServer::getMotd() {
@@ -194,6 +267,23 @@ string MinecraftServer::getServerId() {
     return m->serverId;
 }
 
+string MinecraftServer::getLevelType() {
+    return "default";
+}
+
+GameMode MinecraftServer::getDefaultGameMode() {
+    return CREATIVE;
+}
+
+WorldType MinecraftServer::getWorldType() {
+    return OVERWORLD;
+}
+
+Difficulty MinecraftServer::getDifficulty() {
+    return PEACEFUL;
+}
+
+
 string MinecraftServer::getPublicKey() {
     return m->publicKey;
 }
@@ -204,6 +294,11 @@ string MinecraftServer::getVerifyToken() {
 
 RSA * MinecraftServer::getRsa() {
     return m->rsa;
+}
+
+
+void MinecraftServer::dispatchConsoleCommand(string command) {
+    m->logger->info("Dispatching command " + command);
 }
 
 

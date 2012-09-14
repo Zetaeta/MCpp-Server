@@ -7,12 +7,13 @@
 #include "ConsoleReader.hpp"
 #include "MinecraftServer.hpp"
 
-namespace MCServer {
-
 using std::cout;
 using std::cerr;
 using std::cin;
 using std::string;
+
+namespace MCServer {
+namespace UI {
 
 namespace {
 
@@ -112,3 +113,5 @@ void ConsoleReader::stop() {
 }
 
 }
+}
+

@@ -1,12 +1,12 @@
 
 #include "Entity.hpp"
+#include "EntityData.hpp"
+#include "MinecraftServer.hpp"
+#include "EntityManager.hpp"
 
 namespace MCServer {
 namespace Entities {
 
-struct EntityData {
-    int id;
-};
 
 Entity::Entity(EntityData *m, int id)
 :m(m) {
@@ -19,6 +19,11 @@ Entity::Entity(EntityData *m)
 
 Entity::~Entity() {
     delete m;
+}
+
+
+int Entity::getId() {
+    return m->id;
 }
 
 }

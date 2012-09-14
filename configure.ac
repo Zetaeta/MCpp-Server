@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([MC++-Server], [0.0.1], [ZetaetaDaniel@gmail.com])
+AC_INIT([MC++-Server], [0.1], [ZetaetaDaniel@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])

@@ -2,32 +2,32 @@
 #include <ctime>
 #include <iostream>
 
-#include "ConsoleHandler.hpp"
-#include "../MinecraftServer.hpp"
-#include "../ConsoleReader.hpp"
+#include "UIHandler.hpp"
+#include "MinecraftServer.hpp"
+#include "ui/UIManager.hpp"
 
 namespace MCServer {
 namespace Logging {
 
-struct ConsoleHandlerData {
+struct UIHandlerData {
     MinecraftServer *server;
 };
 
-ConsoleHandler::ConsoleHandler(MinecraftServer *server)
- :m(new ConsoleHandlerData()) {
+UIHandler::UIHandler(MinecraftServer *server)
+ :m(new UIHandlerData()) {
     m->server = server;
 }
 
-void ConsoleHandler::handle(Level level, std::string message) {
+void UIHandler::handle(Level level, const std::string &message) {
     
-    m->server->getConsoleReader().println(timeString() + " [" + levelName(level) + "] " + message);
+    m->server->getUIManager().println(timeString() + " [" + levelName(level) + "] " + message);
 }
 
-Handler * ConsoleHandler::clone() {
-    return new ConsoleHandler(*this);
+Handler * UIHandler::clone() {
+    return new UIHandler(*this);
 }
 
-std::string ConsoleHandler::timeString() {
+std::string UIHandler::timeString() {
 #define TIMELENGTH 10
     char timeStr[TIMELENGTH];
     time_t currTime;
@@ -37,7 +37,7 @@ std::string ConsoleHandler::timeString() {
     return timeStr;
 }
 
-std::string ConsoleHandler::levelName(Level level) {
+std::string UIHandler::levelName(Level level) {
     switch (level) {
     case FINEST:
         return "FINEST";

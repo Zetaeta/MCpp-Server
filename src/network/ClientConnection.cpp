@@ -17,6 +17,7 @@
 #include "../MinecraftServer.hpp"
 #include "PacketHandler.hpp"
 #include "Packets.hpp"
+#include "../entity/Player.hpp"
 
 
 namespace MCServer {
@@ -25,6 +26,7 @@ namespace Network {
 using std::string;
 using Logging::Logger;
 USING_LOGGING_LEVEL
+using Entities::Player;
 
 namespace {
 
@@ -84,6 +86,11 @@ ClientConnection::~ClientConnection() {
 void ClientConnection::init() {
     Logger &log = m->server.getLogger();
     log << "ClientConnection::init\n";
+
+    string username;
+    string serverHost;
+    int serverPort;
+
     { // Scope for ss.
     SocketStream &ss = m->ss();
     uint8_t packetHeader;
@@ -92,9 +99,6 @@ void ClientConnection::init() {
         shutdown();
     }
     uint8_t protocolVersion;
-    string username;
-    string serverHost;
-    int serverPort;
     log << "About to read packet\n";
     
     ss >> protocolVersion >> username >> serverHost >> serverPort;
@@ -141,6 +145,7 @@ void ClientConnection::init() {
 
     setupCrypto(string(reinterpret_cast<const char *>(buffer), secretLen));
     } // End scope for ss.
+
     SocketStream &ss = m->ss();
     uint8_t clientStatusId;
     uint8_t payload;
@@ -154,6 +159,13 @@ void ClientConnection::init() {
         log << WARNING << "Invalid client status payload: 0x" << std::hex << static_cast<uint16_t>(payload) << '\n' << std::dec;
         return;
     }
+
+    Player *player = new Player(username);
+    Packet login;
+    login << player->getId();
+    login << m->server.getLevelType() << m->server.getDefaultGameMode() << m->server.getWorldType() << m->server.getDifficulty();
+    login << uint8_t(0) << uint8_t(m->server.getMaxPlayers());
+    ss << login;
 }
 
 /**

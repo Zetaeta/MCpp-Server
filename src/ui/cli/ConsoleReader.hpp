@@ -6,6 +6,9 @@
 namespace MCServer {
 
 class MinecraftServer;
+
+namespace UI {
+
 struct ConsoleReaderData;
 
 class ConsoleReader {
@@ -24,5 +27,7 @@ private:
 };
 
 }
+}
+
 
 #endif // CONSOLEREADER_HPP

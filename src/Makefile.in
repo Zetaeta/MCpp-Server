@@ -63,7 +63,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(currentdir)"
 PROGRAMS = $(current_PROGRAMS)
 am__objects_1 = main.$(OBJEXT) MinecraftServer.$(OBJEXT) \
-	ConsoleReader.$(OBJEXT) EntityManager.$(OBJEXT)
+	EntityManager.$(OBJEXT)
 am__objects_2 = NetworkServer.$(OBJEXT) NetUtils.$(OBJEXT) \
 	PlainSocketOutputStream.$(OBJEXT) \
 	PlainSocketInputStream.$(OBJEXT) PlainSocketStream.$(OBJEXT) \
@@ -71,10 +71,16 @@ am__objects_2 = NetworkServer.$(OBJEXT) NetUtils.$(OBJEXT) \
 	PacketHandler.$(OBJEXT) EncryptedSocketInputStream.$(OBJEXT) \
 	EncryptedSocketOutputStream.$(OBJEXT) \
 	EncryptedSocketStream.$(OBJEXT)
-am__objects_3 = Logger.$(OBJEXT) ConsoleHandler.$(OBJEXT)
-am__objects_4 = Unicode.$(OBJEXT)
+am__objects_3 = Logger.$(OBJEXT) UIHandler.$(OBJEXT)
+am__objects_4 = Unicode.$(OBJEXT) FSUtils.$(OBJEXT) \
+	StringUtils.$(OBJEXT) Utils.$(OBJEXT)
+am__objects_5 = Entity.$(OBJEXT) Player.$(OBJEXT)
+am__objects_6 = PluginManager.$(OBJEXT)
+am__objects_7 = CliUIManager.$(OBJEXT) ConsoleReader.$(OBJEXT) \
+	UIManager.$(OBJEXT)
 am_mcpp_server_OBJECTS = $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3) $(am__objects_4)
+	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
+	$(am__objects_6) $(am__objects_7)
 mcpp_server_OBJECTS = $(am_mcpp_server_OBJECTS)
 mcpp_server_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -187,14 +193,16 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 currentdir = /home/daniel/Documents/Programming/MC++-Server
-AM_CXXFLAGS = -std=c++11
-AM_LDFLAGS = -lreadline -lpthread -lssl -lcrypto
-main = main.cpp MinecraftServer.cpp ConsoleReader.cpp EntityManager.cpp
+AM_CXXFLAGS = -std=c++11 -rdynamic
+AM_LDFLAGS = -lreadline -lpthread -lssl -lcrypto -ldl -rdynamic
+main = main.cpp MinecraftServer.cpp EntityManager.cpp
 network = network/NetworkServer.cpp network/NetUtils.cpp network/PlainSocketOutputStream.cpp network/PlainSocketInputStream.cpp network/PlainSocketStream.cpp network/ClientConnection.cpp network/Packet.cpp network/PacketHandler.cpp network/EncryptedSocketInputStream.cpp network/EncryptedSocketOutputStream.cpp network/EncryptedSocketStream.cpp
-logging = logging/Logger.cpp logging/ConsoleHandler.cpp
-util = util/Unicode.cpp
-entity = entity/Entity.cpp
-mcpp_server_SOURCES = $(main) $(network) $(logging) $(util)
+logging = logging/Logger.cpp logging/UIHandler.cpp
+util = util/Unicode.cpp util/FSUtils.cpp util/StringUtils.cpp util/Utils.cpp
+entity = entity/Entity.cpp entity/Player.cpp
+plugin = plugin/PluginManager.cpp
+ui = ui/cli/CliUIManager.cpp ui/cli/ConsoleReader.cpp ui/UIManager.cpp
+mcpp_server_SOURCES = $(main) $(network) $(logging) $(util) $(entity) $(plugin) $(ui)
 all: all-am
 
 .SUFFIXES:
@@ -279,13 +287,15 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CliUIManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClientConnection.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsoleHandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsoleReader.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketInputStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketOutputStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Entity.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EntityManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FSUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Logger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinecraftServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NetUtils.Po@am__quote@
@@ -295,7 +305,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketInputStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketOutputStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Player.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PluginManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StringUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UIHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UIManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Unicode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 
 .cpp.o:
@@ -480,19 +496,19 @@ Logger.obj: logging/Logger.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Logger.obj `if test -f 'logging/Logger.cpp'; then $(CYGPATH_W) 'logging/Logger.cpp'; else $(CYGPATH_W) '$(srcdir)/logging/Logger.cpp'; fi`
 
-ConsoleHandler.o: logging/ConsoleHandler.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsoleHandler.o -MD -MP -MF $(DEPDIR)/ConsoleHandler.Tpo -c -o ConsoleHandler.o `test -f 'logging/ConsoleHandler.cpp' || echo '$(srcdir)/'`logging/ConsoleHandler.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsoleHandler.Tpo $(DEPDIR)/ConsoleHandler.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='logging/ConsoleHandler.cpp' object='ConsoleHandler.o' libtool=no @AMDEPBACKSLASH@
+UIHandler.o: logging/UIHandler.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UIHandler.o -MD -MP -MF $(DEPDIR)/UIHandler.Tpo -c -o UIHandler.o `test -f 'logging/UIHandler.cpp' || echo '$(srcdir)/'`logging/UIHandler.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UIHandler.Tpo $(DEPDIR)/UIHandler.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='logging/UIHandler.cpp' object='UIHandler.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsoleHandler.o `test -f 'logging/ConsoleHandler.cpp' || echo '$(srcdir)/'`logging/ConsoleHandler.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UIHandler.o `test -f 'logging/UIHandler.cpp' || echo '$(srcdir)/'`logging/UIHandler.cpp
 
-ConsoleHandler.obj: logging/ConsoleHandler.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsoleHandler.obj -MD -MP -MF $(DEPDIR)/ConsoleHandler.Tpo -c -o ConsoleHandler.obj `if test -f 'logging/ConsoleHandler.cpp'; then $(CYGPATH_W) 'logging/ConsoleHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/logging/ConsoleHandler.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsoleHandler.Tpo $(DEPDIR)/ConsoleHandler.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='logging/ConsoleHandler.cpp' object='ConsoleHandler.obj' libtool=no @AMDEPBACKSLASH@
+UIHandler.obj: logging/UIHandler.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UIHandler.obj -MD -MP -MF $(DEPDIR)/UIHandler.Tpo -c -o UIHandler.obj `if test -f 'logging/UIHandler.cpp'; then $(CYGPATH_W) 'logging/UIHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/logging/UIHandler.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UIHandler.Tpo $(DEPDIR)/UIHandler.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='logging/UIHandler.cpp' object='UIHandler.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsoleHandler.obj `if test -f 'logging/ConsoleHandler.cpp'; then $(CYGPATH_W) 'logging/ConsoleHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/logging/ConsoleHandler.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UIHandler.obj `if test -f 'logging/UIHandler.cpp'; then $(CYGPATH_W) 'logging/UIHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/logging/UIHandler.cpp'; fi`
 
 Unicode.o: util/Unicode.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Unicode.o -MD -MP -MF $(DEPDIR)/Unicode.Tpo -c -o Unicode.o `test -f 'util/Unicode.cpp' || echo '$(srcdir)/'`util/Unicode.cpp
@@ -507,6 +523,132 @@ Unicode.obj: util/Unicode.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/Unicode.cpp' object='Unicode.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Unicode.obj `if test -f 'util/Unicode.cpp'; then $(CYGPATH_W) 'util/Unicode.cpp'; else $(CYGPATH_W) '$(srcdir)/util/Unicode.cpp'; fi`
+
+FSUtils.o: util/FSUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FSUtils.o -MD -MP -MF $(DEPDIR)/FSUtils.Tpo -c -o FSUtils.o `test -f 'util/FSUtils.cpp' || echo '$(srcdir)/'`util/FSUtils.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FSUtils.Tpo $(DEPDIR)/FSUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/FSUtils.cpp' object='FSUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FSUtils.o `test -f 'util/FSUtils.cpp' || echo '$(srcdir)/'`util/FSUtils.cpp
+
+FSUtils.obj: util/FSUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FSUtils.obj -MD -MP -MF $(DEPDIR)/FSUtils.Tpo -c -o FSUtils.obj `if test -f 'util/FSUtils.cpp'; then $(CYGPATH_W) 'util/FSUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/util/FSUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FSUtils.Tpo $(DEPDIR)/FSUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/FSUtils.cpp' object='FSUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FSUtils.obj `if test -f 'util/FSUtils.cpp'; then $(CYGPATH_W) 'util/FSUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/util/FSUtils.cpp'; fi`
+
+StringUtils.o: util/StringUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT StringUtils.o -MD -MP -MF $(DEPDIR)/StringUtils.Tpo -c -o StringUtils.o `test -f 'util/StringUtils.cpp' || echo '$(srcdir)/'`util/StringUtils.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/StringUtils.Tpo $(DEPDIR)/StringUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/StringUtils.cpp' object='StringUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o StringUtils.o `test -f 'util/StringUtils.cpp' || echo '$(srcdir)/'`util/StringUtils.cpp
+
+StringUtils.obj: util/StringUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT StringUtils.obj -MD -MP -MF $(DEPDIR)/StringUtils.Tpo -c -o StringUtils.obj `if test -f 'util/StringUtils.cpp'; then $(CYGPATH_W) 'util/StringUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/util/StringUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/StringUtils.Tpo $(DEPDIR)/StringUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/StringUtils.cpp' object='StringUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o StringUtils.obj `if test -f 'util/StringUtils.cpp'; then $(CYGPATH_W) 'util/StringUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/util/StringUtils.cpp'; fi`
+
+Utils.o: util/Utils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Utils.o -MD -MP -MF $(DEPDIR)/Utils.Tpo -c -o Utils.o `test -f 'util/Utils.cpp' || echo '$(srcdir)/'`util/Utils.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Utils.Tpo $(DEPDIR)/Utils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/Utils.cpp' object='Utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Utils.o `test -f 'util/Utils.cpp' || echo '$(srcdir)/'`util/Utils.cpp
+
+Utils.obj: util/Utils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Utils.obj -MD -MP -MF $(DEPDIR)/Utils.Tpo -c -o Utils.obj `if test -f 'util/Utils.cpp'; then $(CYGPATH_W) 'util/Utils.cpp'; else $(CYGPATH_W) '$(srcdir)/util/Utils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Utils.Tpo $(DEPDIR)/Utils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='util/Utils.cpp' object='Utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Utils.obj `if test -f 'util/Utils.cpp'; then $(CYGPATH_W) 'util/Utils.cpp'; else $(CYGPATH_W) '$(srcdir)/util/Utils.cpp'; fi`
+
+Entity.o: entity/Entity.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Entity.o -MD -MP -MF $(DEPDIR)/Entity.Tpo -c -o Entity.o `test -f 'entity/Entity.cpp' || echo '$(srcdir)/'`entity/Entity.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Entity.Tpo $(DEPDIR)/Entity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='entity/Entity.cpp' object='Entity.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Entity.o `test -f 'entity/Entity.cpp' || echo '$(srcdir)/'`entity/Entity.cpp
+
+Entity.obj: entity/Entity.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Entity.obj -MD -MP -MF $(DEPDIR)/Entity.Tpo -c -o Entity.obj `if test -f 'entity/Entity.cpp'; then $(CYGPATH_W) 'entity/Entity.cpp'; else $(CYGPATH_W) '$(srcdir)/entity/Entity.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Entity.Tpo $(DEPDIR)/Entity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='entity/Entity.cpp' object='Entity.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Entity.obj `if test -f 'entity/Entity.cpp'; then $(CYGPATH_W) 'entity/Entity.cpp'; else $(CYGPATH_W) '$(srcdir)/entity/Entity.cpp'; fi`
+
+Player.o: entity/Player.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Player.o -MD -MP -MF $(DEPDIR)/Player.Tpo -c -o Player.o `test -f 'entity/Player.cpp' || echo '$(srcdir)/'`entity/Player.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Player.Tpo $(DEPDIR)/Player.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='entity/Player.cpp' object='Player.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Player.o `test -f 'entity/Player.cpp' || echo '$(srcdir)/'`entity/Player.cpp
+
+Player.obj: entity/Player.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Player.obj -MD -MP -MF $(DEPDIR)/Player.Tpo -c -o Player.obj `if test -f 'entity/Player.cpp'; then $(CYGPATH_W) 'entity/Player.cpp'; else $(CYGPATH_W) '$(srcdir)/entity/Player.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Player.Tpo $(DEPDIR)/Player.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='entity/Player.cpp' object='Player.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Player.obj `if test -f 'entity/Player.cpp'; then $(CYGPATH_W) 'entity/Player.cpp'; else $(CYGPATH_W) '$(srcdir)/entity/Player.cpp'; fi`
+
+PluginManager.o: plugin/PluginManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PluginManager.o -MD -MP -MF $(DEPDIR)/PluginManager.Tpo -c -o PluginManager.o `test -f 'plugin/PluginManager.cpp' || echo '$(srcdir)/'`plugin/PluginManager.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PluginManager.Tpo $(DEPDIR)/PluginManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plugin/PluginManager.cpp' object='PluginManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PluginManager.o `test -f 'plugin/PluginManager.cpp' || echo '$(srcdir)/'`plugin/PluginManager.cpp
+
+PluginManager.obj: plugin/PluginManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PluginManager.obj -MD -MP -MF $(DEPDIR)/PluginManager.Tpo -c -o PluginManager.obj `if test -f 'plugin/PluginManager.cpp'; then $(CYGPATH_W) 'plugin/PluginManager.cpp'; else $(CYGPATH_W) '$(srcdir)/plugin/PluginManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PluginManager.Tpo $(DEPDIR)/PluginManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='plugin/PluginManager.cpp' object='PluginManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PluginManager.obj `if test -f 'plugin/PluginManager.cpp'; then $(CYGPATH_W) 'plugin/PluginManager.cpp'; else $(CYGPATH_W) '$(srcdir)/plugin/PluginManager.cpp'; fi`
+
+CliUIManager.o: ui/cli/CliUIManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CliUIManager.o -MD -MP -MF $(DEPDIR)/CliUIManager.Tpo -c -o CliUIManager.o `test -f 'ui/cli/CliUIManager.cpp' || echo '$(srcdir)/'`ui/cli/CliUIManager.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CliUIManager.Tpo $(DEPDIR)/CliUIManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ui/cli/CliUIManager.cpp' object='CliUIManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CliUIManager.o `test -f 'ui/cli/CliUIManager.cpp' || echo '$(srcdir)/'`ui/cli/CliUIManager.cpp
+
+CliUIManager.obj: ui/cli/CliUIManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CliUIManager.obj -MD -MP -MF $(DEPDIR)/CliUIManager.Tpo -c -o CliUIManager.obj `if test -f 'ui/cli/CliUIManager.cpp'; then $(CYGPATH_W) 'ui/cli/CliUIManager.cpp'; else $(CYGPATH_W) '$(srcdir)/ui/cli/CliUIManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CliUIManager.Tpo $(DEPDIR)/CliUIManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ui/cli/CliUIManager.cpp' object='CliUIManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CliUIManager.obj `if test -f 'ui/cli/CliUIManager.cpp'; then $(CYGPATH_W) 'ui/cli/CliUIManager.cpp'; else $(CYGPATH_W) '$(srcdir)/ui/cli/CliUIManager.cpp'; fi`
+
+ConsoleReader.o: ui/cli/ConsoleReader.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsoleReader.o -MD -MP -MF $(DEPDIR)/ConsoleReader.Tpo -c -o ConsoleReader.o `test -f 'ui/cli/ConsoleReader.cpp' || echo '$(srcdir)/'`ui/cli/ConsoleReader.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsoleReader.Tpo $(DEPDIR)/ConsoleReader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ui/cli/ConsoleReader.cpp' object='ConsoleReader.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsoleReader.o `test -f 'ui/cli/ConsoleReader.cpp' || echo '$(srcdir)/'`ui/cli/ConsoleReader.cpp
+
+ConsoleReader.obj: ui/cli/ConsoleReader.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsoleReader.obj -MD -MP -MF $(DEPDIR)/ConsoleReader.Tpo -c -o ConsoleReader.obj `if test -f 'ui/cli/ConsoleReader.cpp'; then $(CYGPATH_W) 'ui/cli/ConsoleReader.cpp'; else $(CYGPATH_W) '$(srcdir)/ui/cli/ConsoleReader.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsoleReader.Tpo $(DEPDIR)/ConsoleReader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ui/cli/ConsoleReader.cpp' object='ConsoleReader.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsoleReader.obj `if test -f 'ui/cli/ConsoleReader.cpp'; then $(CYGPATH_W) 'ui/cli/ConsoleReader.cpp'; else $(CYGPATH_W) '$(srcdir)/ui/cli/ConsoleReader.cpp'; fi`
+
+UIManager.o: ui/UIManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UIManager.o -MD -MP -MF $(DEPDIR)/UIManager.Tpo -c -o UIManager.o `test -f 'ui/UIManager.cpp' || echo '$(srcdir)/'`ui/UIManager.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UIManager.Tpo $(DEPDIR)/UIManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ui/UIManager.cpp' object='UIManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UIManager.o `test -f 'ui/UIManager.cpp' || echo '$(srcdir)/'`ui/UIManager.cpp
+
+UIManager.obj: ui/UIManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UIManager.obj -MD -MP -MF $(DEPDIR)/UIManager.Tpo -c -o UIManager.obj `if test -f 'ui/UIManager.cpp'; then $(CYGPATH_W) 'ui/UIManager.cpp'; else $(CYGPATH_W) '$(srcdir)/ui/UIManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UIManager.Tpo $(DEPDIR)/UIManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ui/UIManager.cpp' object='UIManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UIManager.obj `if test -f 'ui/UIManager.cpp'; then $(CYGPATH_W) 'ui/UIManager.cpp'; else $(CYGPATH_W) '$(srcdir)/ui/UIManager.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

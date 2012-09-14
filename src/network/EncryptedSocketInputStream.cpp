@@ -10,11 +10,11 @@
 
 #include "EncryptedSocketInputStream.hpp"
 #include "NetUtils.hpp"
-#include "../util/Unicode.hpp"
-#include "../logging/Logger.hpp"
-#include "../MinecraftServer.hpp"
-#include "../util/AutoDeleter.hpp"
-#include "../util/utils.hpp"
+#include "util/Unicode.hpp"
+#include "logging/Logger.hpp"
+#include "MinecraftServer.hpp"
+#include "util/AutoDeleter.hpp"
+#include "util/Utils.hpp"
 
 USING_LOGGING_LEVEL
 

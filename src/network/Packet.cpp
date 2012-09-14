@@ -1,15 +1,16 @@
 
 #include "Packet.hpp"
 #include "NetUtils.hpp"
-#include "../util/utils.hpp"
-#include "../util/Unicode.hpp"
-#include "../MinecraftServer.hpp"
-#include "../logging/Logger.hpp"
+#include "util/Utils.hpp"
+#include "util/Unicode.hpp"
+#include "MinecraftServer.hpp"
+#include "logging/Logger.hpp"
+
+using std::vector;
 
 namespace MCServer {
 namespace Network {
 
-using std::vector;
 
 Packet::Packet()
 :readPos(0) {

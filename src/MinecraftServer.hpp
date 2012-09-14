@@ -5,63 +5,83 @@
  *      Author: daniel
  */
 
-#ifndef MINECRAFTSERVER_HPP_
-#define MINECRAFTSERVER_HPP_
+#ifndef MINECRAFTSERVER_HPP
+#define MINECRAFTSERVER_HPP
 
-//#include <boost/asio/io_service.hpp>
 #include <string>
+#include <map>
 
 #ifndef HEADER_OPENSSL_TYPES_H
-struct RSA;
+typedef struct rsa_st RSA;
 #endif
 
 namespace MCServer {
 
-#ifndef LOGGING_HPP
 namespace Logging {
 class Logger;
 }
-#endif
 
-#ifndef NETWORKSERVER_HPP
 namespace Network {
 class NetworkServer;
 }
-#endif
 
-#ifndef CONSOLEREADER_HPP
-class ConsoleReader;
-#endif
+namespace UI {
+class UIManager;
+}
+
+class EntityManager;
+namespace Plugins {
+class PluginManager;
+}
+
+enum GameMode : unsigned char;
+enum Difficulty : unsigned char;
+enum WorldType : signed char;
 
 struct MinecraftServerData;
 
 class MinecraftServer {
 public:
-    MinecraftServer();
+    MinecraftServer(const std::map<std::string, std::string *> &);
     ~MinecraftServer();
     void run();
     void init();
     void tick();
     void shutdown();
-    std::string getVersion();
+
+    bool isShutdown();
+
     Logging::Logger & getLogger();
     Network::NetworkServer & getNetworkServer();
-    ConsoleReader & getConsoleReader();
-    void dispatchConsoleCommand(std::string command);
+    UI::UIManager & getUIManager();
+    EntityManager & getEntityManager();
+    Plugins::PluginManager & getPluginManager();
+
+    std::string getVersion();
     std::string getMotd();
     int getMaxPlayers();
     int getOnlinePlayerCount();
     bool userValidationEnabled() {return true;}
+    std::string getLevelType();
+    GameMode getDefaultGameMode();
+    WorldType getWorldType();
+    Difficulty getDifficulty();
+    
+    std::string getSetting(const std::string &);
 
     RSA * getRsa();
     std::string getAsn1PublicKey();
     std::string getVerifyToken();
     std::string getServerId();
     std::string getPublicKey();
+
+    void dispatchConsoleCommand(std::string command);
     
     static MinecraftServer & getServer();
 protected:
     MinecraftServerData *m; // PIMPL
+
+    void initUI();
 };
 
 } /* namespace MCServer */

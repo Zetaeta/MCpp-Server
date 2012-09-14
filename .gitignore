@@ -19,3 +19,5 @@ config.*
 autoscan.log
 configure.scan
 src/.deps
+remake
+plugin

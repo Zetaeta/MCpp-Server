@@ -11,7 +11,7 @@ namespace Logging {
 
 class Handler {
 public:
-    virtual void handle(Level level, std::string message) = 0;
+    virtual void handle(Level level, const std::string &message) = 0;
     virtual Handler * clone() = 0;
     virtual ~Handler() {}
 };
