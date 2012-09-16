@@ -4,13 +4,15 @@
 
 #include <string>
 #include <stdint.h>
+#include <ios>
+#include <bitset>
 
 #include "Level.hpp"
 
-namespace std {
-template<size_t N> class bitset;
-class ios_base;
-}
+//namespace std {
+//template<size_t N> class bitset;
+//class ios_base;
+//}
 
 namespace MCServer {
 namespace Logging {
@@ -20,21 +22,21 @@ class Handler;
 
 class Logger {
 public:
-    void log(Level level, std::string message);
-    void log(std::string message);
-    inline void finest(std::string message) {
+    void log(Level level, const std::string &message);
+    void log(const std::string &message);
+    inline void finest(const std::string &message) {
         log(FINEST, message);
     }
-    inline void fine(std::string message) {
+    inline void fine(const std::string &message) {
         log(FINE, message);
     }
-    inline void info(std::string message) {
+    inline void info(const std::string &message) {
         log(INFO, message);
     }
-    inline void warning(std::string message) {
+    inline void warning(const std::string &message) {
         log(WARNING, message);
     }
-    inline void severe(std::string message) {
+    inline void severe(const std::string &message) {
         log(SEVERE, message);
     }
     inline void destroy() {
@@ -66,10 +68,10 @@ public:
     void setDefaultLevel(Level level);
     ~Logger();
 
-    static Logger & getLogger(std::string name);
+    static Logger & getLogger(const std::string &name);
     static void destroyLogger(Logger &logger);
 private:
-    Logger(std::string);
+    Logger(const std::string &);
 
     LoggerData *m;
 };

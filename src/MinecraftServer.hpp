@@ -42,7 +42,7 @@ struct MinecraftServerData;
 
 class MinecraftServer {
 public:
-    MinecraftServer(const std::map<std::string, std::string *> &);
+    MinecraftServer(const std::map<std::string, std::string *> &, int &argc, char **argv);
     ~MinecraftServer();
     void run();
     void init();
@@ -51,6 +51,8 @@ public:
 
     bool isShutdown();
 
+    int & argc();
+    char **argv();
     Logging::Logger & getLogger();
     Network::NetworkServer & getNetworkServer();
     UI::UIManager & getUIManager();
@@ -75,13 +77,17 @@ public:
     std::string getServerId();
     std::string getPublicKey();
 
-    void dispatchConsoleCommand(std::string command);
+    void dispatchConsoleCommand(const std::string &command);
     
     static MinecraftServer & getServer();
 protected:
     MinecraftServerData *m; // PIMPL
 
     void initUI();
+
+private:
+    // Inaccessible copy constructor.
+    MinecraftServer(const MinecraftServer &);
 };
 
 } /* namespace MCServer */

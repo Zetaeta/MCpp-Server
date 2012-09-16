@@ -27,22 +27,18 @@ UIManager & UIManager::init(MinecraftServer *server, const string &uiName) {
     }
 
     string fileName;
-    bool found(false);
-    if (exists((fileName = "ui/" + uiName + ".so"))) {
-        found = true;
+    if ((fileName = findFile("ui/" + uiName + ".so")) != "") {
     }
-    else if (exists(fileName = "/etc/mcpp-server/ui/" + uiName + ".so")) {
-        found = true;
+    else if ((fileName = findFile("ui/ui-" + uiName + ".so")) != "" ) {
     }
-    else if (exists(fileName = "ui/ui-" + uiName + ".so")) {
-        found = true;
+    else if ((fileName = findFile("ui/lib" + uiName + ".so" )) != "") {
     }
-    else if (exists(fileName = "/etc/mcpp-server/ui/ui-" + uiName + ".so")) {
-        found = true;
+    else if ((fileName = findFile("ui/libui-" + uiName + ".so")) != "") {
     }
-    if (!found) {
+    else {
         invalidOption("Invalid UI type: " + uiName);
     }
+
     void *handle = dlopen(fileName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
     if (!handle) {
         char *err = dlerror();
@@ -54,8 +50,8 @@ UIManager & UIManager::init(MinecraftServer *server, const string &uiName) {
         }
     }
 
-    UIManager * (*newUIManager)(MinecraftServer *) = reinterpret_cast<UIManager * (*)(MinecraftServer *)>(dlsym(handle, "newUIManager"));
-    if (!newUIManager) {
+    UIManager * (*getUIManager)(MinecraftServer *) = reinterpret_cast<UIManager * (*)(MinecraftServer *)>(dlsym(handle, "getUIManager"));
+    if (!getUIManager) {
         char *err = dlerror();
         if (err) {
             errorExit("Failed loading UI library in " + fileName + ": " + err);
@@ -64,7 +60,7 @@ UIManager & UIManager::init(MinecraftServer *server, const string &uiName) {
             errorExit("Failed loading UI library in " + fileName + ": Unknown error.");
         }
     }
-    uiManager = newUIManager(server);
+    uiManager = getUIManager(server);
     if (!uiManager) {
         cerr << "Failed to instantiate UIManager! Defaulting to CLI.\n";
         return setupCli(server);

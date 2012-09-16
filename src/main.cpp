@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         }
     }
 
-    MinecraftServer *server = new MinecraftServer(optionMap);
+    MinecraftServer *server = new MinecraftServer(optionMap, argc, argv);
 
     server->run();
 }

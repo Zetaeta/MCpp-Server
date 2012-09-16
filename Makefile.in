@@ -13,6 +13,9 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
+#SUBDIRS = src
+
 VPATH = @srcdir@
 am__make_dryrun = \
   { \
@@ -47,6 +50,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+current_PROGRAMS = mc++-server$(EXEEXT)
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
@@ -62,29 +66,49 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-SOURCES =
-DIST_SOURCES =
-RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
-	html-recursive info-recursive install-data-recursive \
-	install-dvi-recursive install-exec-recursive \
-	install-html-recursive install-info-recursive \
-	install-pdf-recursive install-ps-recursive install-recursive \
-	installcheck-recursive installdirs-recursive pdf-recursive \
-	ps-recursive uninstall-recursive
+am__installdirs = "$(DESTDIR)$(currentdir)"
+PROGRAMS = $(current_PROGRAMS)
+am__objects_1 = main.$(OBJEXT) MinecraftServer.$(OBJEXT) \
+	EntityManager.$(OBJEXT) Lock.$(OBJEXT)
+am__objects_2 = NetworkServer.$(OBJEXT) NetUtils.$(OBJEXT) \
+	PlainSocketOutputStream.$(OBJEXT) \
+	PlainSocketInputStream.$(OBJEXT) PlainSocketStream.$(OBJEXT) \
+	ClientConnection.$(OBJEXT) Packet.$(OBJEXT) \
+	PacketHandler.$(OBJEXT) EncryptedSocketInputStream.$(OBJEXT) \
+	EncryptedSocketOutputStream.$(OBJEXT) \
+	EncryptedSocketStream.$(OBJEXT)
+am__objects_3 = Logger.$(OBJEXT) UIHandler.$(OBJEXT)
+am__objects_4 = Unicode.$(OBJEXT) FSUtils.$(OBJEXT) \
+	StringUtils.$(OBJEXT) Utils.$(OBJEXT)
+am__objects_5 = Entity.$(OBJEXT) Player.$(OBJEXT)
+am__objects_6 = PluginManager.$(OBJEXT)
+am__objects_7 = CliUIManager.$(OBJEXT) ConsoleReader.$(OBJEXT) \
+	UIManager.$(OBJEXT)
+am_mc___server_OBJECTS = $(am__objects_1) $(am__objects_2) \
+	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
+	$(am__objects_6) $(am__objects_7)
+mc___server_OBJECTS = $(am_mc___server_OBJECTS)
+mc___server_LDADD = $(LDADD)
+DEFAULT_INCLUDES = -I.@am__isrc@
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+am__depfiles_maybe = depfiles
+am__mv = mv -f
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+SOURCES = $(mc___server_SOURCES)
+DIST_SOURCES = $(mc___server_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
-  distclean-recursive maintainer-clean-recursive
-AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
-	$(RECURSIVE_CLEAN_TARGETS:-recursive=) tags TAGS ctags CTAGS \
-	cscope distdir dist dist-all distcheck
 ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
-DIST_SUBDIRS = $(SUBDIRS)
+AM_RECURSIVE_TARGETS = cscope
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -95,31 +119,6 @@ am__remove_distdir = \
       || { sleep 5 && rm -rf "$(distdir)"; }; \
   else :; fi
 am__post_remove_distdir = $(am__remove_distdir)
-am__relativize = \
-  dir0=`pwd`; \
-  sed_first='s,^\([^/]*\)/.*$$,\1,'; \
-  sed_rest='s,^[^/]*/*,,'; \
-  sed_last='s,^.*/\([^/]*\)$$,\1,'; \
-  sed_butlast='s,/*[^/]*$$,,'; \
-  while test -n "$$dir1"; do \
-    first=`echo "$$dir1" | sed -e "$$sed_first"`; \
-    if test "$$first" != "."; then \
-      if test "$$first" = ".."; then \
-        dir2=`echo "$$dir0" | sed -e "$$sed_last"`/"$$dir2"; \
-        dir0=`echo "$$dir0" | sed -e "$$sed_butlast"`; \
-      else \
-        first2=`echo "$$dir2" | sed -e "$$sed_first"`; \
-        if test "$$first2" = "$$first"; then \
-          dir2=`echo "$$dir2" | sed -e "$$sed_rest"`; \
-        else \
-          dir2="../$$dir2"; \
-        fi; \
-        dir0="$$dir0"/"$$first"; \
-      fi; \
-    fi; \
-    dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
-  done; \
-  reldir="$$dir2"
 DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 DIST_TARGETS = dist-gzip
@@ -217,11 +216,22 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = src
+currentdir = /home/daniel/Documents/Programming/MC++-Server
+AM_CXXFLAGS = -std=c++11 -rdynamic -Isrc
+AM_LDFLAGS = -lreadline -lpthread -lssl -lcrypto -ldl -rdynamic
+main = src/main.cpp src/MinecraftServer.cpp src/EntityManager.cpp src/Lock.cpp
+network = src/network/NetworkServer.cpp src/network/NetUtils.cpp src/network/PlainSocketOutputStream.cpp src/network/PlainSocketInputStream.cpp src/network/PlainSocketStream.cpp src/network/ClientConnection.cpp src/network/Packet.cpp src/network/PacketHandler.cpp src/network/EncryptedSocketInputStream.cpp src/network/EncryptedSocketOutputStream.cpp src/network/EncryptedSocketStream.cpp
+logging = src/logging/Logger.cpp src/logging/UIHandler.cpp
+util = src/util/Unicode.cpp src/util/FSUtils.cpp src/util/StringUtils.cpp src/util/Utils.cpp
+entity = src/game/entity/Entity.cpp src/game/entity/Player.cpp
+plugin = src/plugin/PluginManager.cpp
+ui = src/ui/cli/CliUIManager.cpp src/ui/cli/ConsoleReader.cpp src/ui/UIManager.cpp
+mc___server_SOURCES = $(main) $(network) $(logging) $(util) $(entity) $(plugin) $(ui)
 all: config.h
-	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
+.SUFFIXES: .cpp .o .obj
 am--refresh: Makefile
 	@:
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
@@ -271,53 +281,475 @@ $(srcdir)/config.h.in:  $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config.h stamp-h1
+install-currentPROGRAMS: $(current_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	@list='$(current_PROGRAMS)'; test -n "$(currentdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(currentdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(currentdir)" || exit 1; \
+	fi; \
+	for p in $$list; do echo "$$p $$p"; done | \
+	sed 's/$(EXEEXT)$$//' | \
+	while read p p1; do if test -f $$p; \
+	  then echo "$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n;h' -e 's|.*|.|' \
+	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
+	sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
+	    else { print "f", $$3 "/" $$4, $$1; } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	    test -z "$$files" || { \
+	      echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(currentdir)$$dir'"; \
+	      $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(currentdir)$$dir" || exit $$?; \
+	    } \
+	; done
 
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run 'make' without going through this Makefile.
-# To change the values of 'make' variables: instead of editing Makefiles,
-# (1) if the variable is set in 'config.status', edit 'config.status'
-#     (which will cause the Makefiles to be regenerated when you run 'make');
-# (2) otherwise, pass the desired values on the 'make' command line.
-$(RECURSIVE_TARGETS) $(RECURSIVE_CLEAN_TARGETS):
-	@fail= failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-tags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
-	done
-ctags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) ctags); \
-	done
-cscopelist-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) cscopelist); \
-	done
+uninstall-currentPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(current_PROGRAMS)'; test -n "$(currentdir)" || list=; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
+	      -e 's/$$/$(EXEEXT)/' `; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(currentdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(currentdir)" && rm -f $$files
+
+clean-currentPROGRAMS:
+	-test -z "$(current_PROGRAMS)" || rm -f $(current_PROGRAMS)
+mc++-server$(EXEEXT): $(mc___server_OBJECTS) $(mc___server_DEPENDENCIES) $(EXTRA_mc___server_DEPENDENCIES) 
+	@rm -f mc++-server$(EXEEXT)
+	$(CXXLINK) $(mc___server_OBJECTS) $(mc___server_LDADD) $(LIBS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT)
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CliUIManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClientConnection.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsoleReader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketInputStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketOutputStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EncryptedSocketStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Entity.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EntityManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FSUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Lock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Logger.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinecraftServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NetUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NetworkServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Packet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PacketHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketInputStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketOutputStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlainSocketStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Player.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PluginManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StringUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UIHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UIManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Unicode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
+
+.cpp.o:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
+
+.cpp.obj:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+main.o: src/main.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT main.o -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.o `test -f 'src/main.cpp' || echo '$(srcdir)/'`src/main.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/main.cpp' object='main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o main.o `test -f 'src/main.cpp' || echo '$(srcdir)/'`src/main.cpp
+
+main.obj: src/main.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT main.obj -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.obj `if test -f 'src/main.cpp'; then $(CYGPATH_W) 'src/main.cpp'; else $(CYGPATH_W) '$(srcdir)/src/main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/main.cpp' object='main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o main.obj `if test -f 'src/main.cpp'; then $(CYGPATH_W) 'src/main.cpp'; else $(CYGPATH_W) '$(srcdir)/src/main.cpp'; fi`
+
+MinecraftServer.o: src/MinecraftServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT MinecraftServer.o -MD -MP -MF $(DEPDIR)/MinecraftServer.Tpo -c -o MinecraftServer.o `test -f 'src/MinecraftServer.cpp' || echo '$(srcdir)/'`src/MinecraftServer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/MinecraftServer.Tpo $(DEPDIR)/MinecraftServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/MinecraftServer.cpp' object='MinecraftServer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MinecraftServer.o `test -f 'src/MinecraftServer.cpp' || echo '$(srcdir)/'`src/MinecraftServer.cpp
+
+MinecraftServer.obj: src/MinecraftServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT MinecraftServer.obj -MD -MP -MF $(DEPDIR)/MinecraftServer.Tpo -c -o MinecraftServer.obj `if test -f 'src/MinecraftServer.cpp'; then $(CYGPATH_W) 'src/MinecraftServer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/MinecraftServer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/MinecraftServer.Tpo $(DEPDIR)/MinecraftServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/MinecraftServer.cpp' object='MinecraftServer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MinecraftServer.obj `if test -f 'src/MinecraftServer.cpp'; then $(CYGPATH_W) 'src/MinecraftServer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/MinecraftServer.cpp'; fi`
+
+EntityManager.o: src/EntityManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EntityManager.o -MD -MP -MF $(DEPDIR)/EntityManager.Tpo -c -o EntityManager.o `test -f 'src/EntityManager.cpp' || echo '$(srcdir)/'`src/EntityManager.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EntityManager.Tpo $(DEPDIR)/EntityManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/EntityManager.cpp' object='EntityManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EntityManager.o `test -f 'src/EntityManager.cpp' || echo '$(srcdir)/'`src/EntityManager.cpp
+
+EntityManager.obj: src/EntityManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EntityManager.obj -MD -MP -MF $(DEPDIR)/EntityManager.Tpo -c -o EntityManager.obj `if test -f 'src/EntityManager.cpp'; then $(CYGPATH_W) 'src/EntityManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/EntityManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EntityManager.Tpo $(DEPDIR)/EntityManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/EntityManager.cpp' object='EntityManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EntityManager.obj `if test -f 'src/EntityManager.cpp'; then $(CYGPATH_W) 'src/EntityManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/EntityManager.cpp'; fi`
+
+Lock.o: src/Lock.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Lock.o -MD -MP -MF $(DEPDIR)/Lock.Tpo -c -o Lock.o `test -f 'src/Lock.cpp' || echo '$(srcdir)/'`src/Lock.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Lock.Tpo $(DEPDIR)/Lock.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/Lock.cpp' object='Lock.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Lock.o `test -f 'src/Lock.cpp' || echo '$(srcdir)/'`src/Lock.cpp
+
+Lock.obj: src/Lock.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Lock.obj -MD -MP -MF $(DEPDIR)/Lock.Tpo -c -o Lock.obj `if test -f 'src/Lock.cpp'; then $(CYGPATH_W) 'src/Lock.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Lock.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Lock.Tpo $(DEPDIR)/Lock.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/Lock.cpp' object='Lock.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Lock.obj `if test -f 'src/Lock.cpp'; then $(CYGPATH_W) 'src/Lock.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Lock.cpp'; fi`
+
+NetworkServer.o: src/network/NetworkServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT NetworkServer.o -MD -MP -MF $(DEPDIR)/NetworkServer.Tpo -c -o NetworkServer.o `test -f 'src/network/NetworkServer.cpp' || echo '$(srcdir)/'`src/network/NetworkServer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/NetworkServer.Tpo $(DEPDIR)/NetworkServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/NetworkServer.cpp' object='NetworkServer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NetworkServer.o `test -f 'src/network/NetworkServer.cpp' || echo '$(srcdir)/'`src/network/NetworkServer.cpp
+
+NetworkServer.obj: src/network/NetworkServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT NetworkServer.obj -MD -MP -MF $(DEPDIR)/NetworkServer.Tpo -c -o NetworkServer.obj `if test -f 'src/network/NetworkServer.cpp'; then $(CYGPATH_W) 'src/network/NetworkServer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/NetworkServer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/NetworkServer.Tpo $(DEPDIR)/NetworkServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/NetworkServer.cpp' object='NetworkServer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NetworkServer.obj `if test -f 'src/network/NetworkServer.cpp'; then $(CYGPATH_W) 'src/network/NetworkServer.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/NetworkServer.cpp'; fi`
+
+NetUtils.o: src/network/NetUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT NetUtils.o -MD -MP -MF $(DEPDIR)/NetUtils.Tpo -c -o NetUtils.o `test -f 'src/network/NetUtils.cpp' || echo '$(srcdir)/'`src/network/NetUtils.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/NetUtils.Tpo $(DEPDIR)/NetUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/NetUtils.cpp' object='NetUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NetUtils.o `test -f 'src/network/NetUtils.cpp' || echo '$(srcdir)/'`src/network/NetUtils.cpp
+
+NetUtils.obj: src/network/NetUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT NetUtils.obj -MD -MP -MF $(DEPDIR)/NetUtils.Tpo -c -o NetUtils.obj `if test -f 'src/network/NetUtils.cpp'; then $(CYGPATH_W) 'src/network/NetUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/NetUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/NetUtils.Tpo $(DEPDIR)/NetUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/NetUtils.cpp' object='NetUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NetUtils.obj `if test -f 'src/network/NetUtils.cpp'; then $(CYGPATH_W) 'src/network/NetUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/NetUtils.cpp'; fi`
+
+PlainSocketOutputStream.o: src/network/PlainSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketOutputStream.o -MD -MP -MF $(DEPDIR)/PlainSocketOutputStream.Tpo -c -o PlainSocketOutputStream.o `test -f 'src/network/PlainSocketOutputStream.cpp' || echo '$(srcdir)/'`src/network/PlainSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketOutputStream.Tpo $(DEPDIR)/PlainSocketOutputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/PlainSocketOutputStream.cpp' object='PlainSocketOutputStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketOutputStream.o `test -f 'src/network/PlainSocketOutputStream.cpp' || echo '$(srcdir)/'`src/network/PlainSocketOutputStream.cpp
+
+PlainSocketOutputStream.obj: src/network/PlainSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketOutputStream.obj -MD -MP -MF $(DEPDIR)/PlainSocketOutputStream.Tpo -c -o PlainSocketOutputStream.obj `if test -f 'src/network/PlainSocketOutputStream.cpp'; then $(CYGPATH_W) 'src/network/PlainSocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/PlainSocketOutputStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketOutputStream.Tpo $(DEPDIR)/PlainSocketOutputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/PlainSocketOutputStream.cpp' object='PlainSocketOutputStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketOutputStream.obj `if test -f 'src/network/PlainSocketOutputStream.cpp'; then $(CYGPATH_W) 'src/network/PlainSocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/PlainSocketOutputStream.cpp'; fi`
+
+PlainSocketInputStream.o: src/network/PlainSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketInputStream.o -MD -MP -MF $(DEPDIR)/PlainSocketInputStream.Tpo -c -o PlainSocketInputStream.o `test -f 'src/network/PlainSocketInputStream.cpp' || echo '$(srcdir)/'`src/network/PlainSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketInputStream.Tpo $(DEPDIR)/PlainSocketInputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/PlainSocketInputStream.cpp' object='PlainSocketInputStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketInputStream.o `test -f 'src/network/PlainSocketInputStream.cpp' || echo '$(srcdir)/'`src/network/PlainSocketInputStream.cpp
+
+PlainSocketInputStream.obj: src/network/PlainSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketInputStream.obj -MD -MP -MF $(DEPDIR)/PlainSocketInputStream.Tpo -c -o PlainSocketInputStream.obj `if test -f 'src/network/PlainSocketInputStream.cpp'; then $(CYGPATH_W) 'src/network/PlainSocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/PlainSocketInputStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketInputStream.Tpo $(DEPDIR)/PlainSocketInputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/PlainSocketInputStream.cpp' object='PlainSocketInputStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketInputStream.obj `if test -f 'src/network/PlainSocketInputStream.cpp'; then $(CYGPATH_W) 'src/network/PlainSocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/PlainSocketInputStream.cpp'; fi`
+
+PlainSocketStream.o: src/network/PlainSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketStream.o -MD -MP -MF $(DEPDIR)/PlainSocketStream.Tpo -c -o PlainSocketStream.o `test -f 'src/network/PlainSocketStream.cpp' || echo '$(srcdir)/'`src/network/PlainSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketStream.Tpo $(DEPDIR)/PlainSocketStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/PlainSocketStream.cpp' object='PlainSocketStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketStream.o `test -f 'src/network/PlainSocketStream.cpp' || echo '$(srcdir)/'`src/network/PlainSocketStream.cpp
+
+PlainSocketStream.obj: src/network/PlainSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PlainSocketStream.obj -MD -MP -MF $(DEPDIR)/PlainSocketStream.Tpo -c -o PlainSocketStream.obj `if test -f 'src/network/PlainSocketStream.cpp'; then $(CYGPATH_W) 'src/network/PlainSocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/PlainSocketStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PlainSocketStream.Tpo $(DEPDIR)/PlainSocketStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/PlainSocketStream.cpp' object='PlainSocketStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PlainSocketStream.obj `if test -f 'src/network/PlainSocketStream.cpp'; then $(CYGPATH_W) 'src/network/PlainSocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/PlainSocketStream.cpp'; fi`
+
+ClientConnection.o: src/network/ClientConnection.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ClientConnection.o -MD -MP -MF $(DEPDIR)/ClientConnection.Tpo -c -o ClientConnection.o `test -f 'src/network/ClientConnection.cpp' || echo '$(srcdir)/'`src/network/ClientConnection.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ClientConnection.Tpo $(DEPDIR)/ClientConnection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/ClientConnection.cpp' object='ClientConnection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ClientConnection.o `test -f 'src/network/ClientConnection.cpp' || echo '$(srcdir)/'`src/network/ClientConnection.cpp
+
+ClientConnection.obj: src/network/ClientConnection.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ClientConnection.obj -MD -MP -MF $(DEPDIR)/ClientConnection.Tpo -c -o ClientConnection.obj `if test -f 'src/network/ClientConnection.cpp'; then $(CYGPATH_W) 'src/network/ClientConnection.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/ClientConnection.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ClientConnection.Tpo $(DEPDIR)/ClientConnection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/ClientConnection.cpp' object='ClientConnection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ClientConnection.obj `if test -f 'src/network/ClientConnection.cpp'; then $(CYGPATH_W) 'src/network/ClientConnection.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/ClientConnection.cpp'; fi`
+
+Packet.o: src/network/Packet.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Packet.o -MD -MP -MF $(DEPDIR)/Packet.Tpo -c -o Packet.o `test -f 'src/network/Packet.cpp' || echo '$(srcdir)/'`src/network/Packet.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Packet.Tpo $(DEPDIR)/Packet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/Packet.cpp' object='Packet.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Packet.o `test -f 'src/network/Packet.cpp' || echo '$(srcdir)/'`src/network/Packet.cpp
+
+Packet.obj: src/network/Packet.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Packet.obj -MD -MP -MF $(DEPDIR)/Packet.Tpo -c -o Packet.obj `if test -f 'src/network/Packet.cpp'; then $(CYGPATH_W) 'src/network/Packet.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/Packet.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Packet.Tpo $(DEPDIR)/Packet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/Packet.cpp' object='Packet.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Packet.obj `if test -f 'src/network/Packet.cpp'; then $(CYGPATH_W) 'src/network/Packet.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/Packet.cpp'; fi`
+
+PacketHandler.o: src/network/PacketHandler.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PacketHandler.o -MD -MP -MF $(DEPDIR)/PacketHandler.Tpo -c -o PacketHandler.o `test -f 'src/network/PacketHandler.cpp' || echo '$(srcdir)/'`src/network/PacketHandler.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PacketHandler.Tpo $(DEPDIR)/PacketHandler.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/PacketHandler.cpp' object='PacketHandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PacketHandler.o `test -f 'src/network/PacketHandler.cpp' || echo '$(srcdir)/'`src/network/PacketHandler.cpp
+
+PacketHandler.obj: src/network/PacketHandler.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PacketHandler.obj -MD -MP -MF $(DEPDIR)/PacketHandler.Tpo -c -o PacketHandler.obj `if test -f 'src/network/PacketHandler.cpp'; then $(CYGPATH_W) 'src/network/PacketHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/PacketHandler.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PacketHandler.Tpo $(DEPDIR)/PacketHandler.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/PacketHandler.cpp' object='PacketHandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PacketHandler.obj `if test -f 'src/network/PacketHandler.cpp'; then $(CYGPATH_W) 'src/network/PacketHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/PacketHandler.cpp'; fi`
+
+EncryptedSocketInputStream.o: src/network/EncryptedSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketInputStream.o -MD -MP -MF $(DEPDIR)/EncryptedSocketInputStream.Tpo -c -o EncryptedSocketInputStream.o `test -f 'src/network/EncryptedSocketInputStream.cpp' || echo '$(srcdir)/'`src/network/EncryptedSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketInputStream.Tpo $(DEPDIR)/EncryptedSocketInputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/EncryptedSocketInputStream.cpp' object='EncryptedSocketInputStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketInputStream.o `test -f 'src/network/EncryptedSocketInputStream.cpp' || echo '$(srcdir)/'`src/network/EncryptedSocketInputStream.cpp
+
+EncryptedSocketInputStream.obj: src/network/EncryptedSocketInputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketInputStream.obj -MD -MP -MF $(DEPDIR)/EncryptedSocketInputStream.Tpo -c -o EncryptedSocketInputStream.obj `if test -f 'src/network/EncryptedSocketInputStream.cpp'; then $(CYGPATH_W) 'src/network/EncryptedSocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/EncryptedSocketInputStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketInputStream.Tpo $(DEPDIR)/EncryptedSocketInputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/EncryptedSocketInputStream.cpp' object='EncryptedSocketInputStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketInputStream.obj `if test -f 'src/network/EncryptedSocketInputStream.cpp'; then $(CYGPATH_W) 'src/network/EncryptedSocketInputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/EncryptedSocketInputStream.cpp'; fi`
+
+EncryptedSocketOutputStream.o: src/network/EncryptedSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketOutputStream.o -MD -MP -MF $(DEPDIR)/EncryptedSocketOutputStream.Tpo -c -o EncryptedSocketOutputStream.o `test -f 'src/network/EncryptedSocketOutputStream.cpp' || echo '$(srcdir)/'`src/network/EncryptedSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketOutputStream.Tpo $(DEPDIR)/EncryptedSocketOutputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/EncryptedSocketOutputStream.cpp' object='EncryptedSocketOutputStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketOutputStream.o `test -f 'src/network/EncryptedSocketOutputStream.cpp' || echo '$(srcdir)/'`src/network/EncryptedSocketOutputStream.cpp
+
+EncryptedSocketOutputStream.obj: src/network/EncryptedSocketOutputStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketOutputStream.obj -MD -MP -MF $(DEPDIR)/EncryptedSocketOutputStream.Tpo -c -o EncryptedSocketOutputStream.obj `if test -f 'src/network/EncryptedSocketOutputStream.cpp'; then $(CYGPATH_W) 'src/network/EncryptedSocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/EncryptedSocketOutputStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketOutputStream.Tpo $(DEPDIR)/EncryptedSocketOutputStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/EncryptedSocketOutputStream.cpp' object='EncryptedSocketOutputStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketOutputStream.obj `if test -f 'src/network/EncryptedSocketOutputStream.cpp'; then $(CYGPATH_W) 'src/network/EncryptedSocketOutputStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/EncryptedSocketOutputStream.cpp'; fi`
+
+EncryptedSocketStream.o: src/network/EncryptedSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketStream.o -MD -MP -MF $(DEPDIR)/EncryptedSocketStream.Tpo -c -o EncryptedSocketStream.o `test -f 'src/network/EncryptedSocketStream.cpp' || echo '$(srcdir)/'`src/network/EncryptedSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketStream.Tpo $(DEPDIR)/EncryptedSocketStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/EncryptedSocketStream.cpp' object='EncryptedSocketStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketStream.o `test -f 'src/network/EncryptedSocketStream.cpp' || echo '$(srcdir)/'`src/network/EncryptedSocketStream.cpp
+
+EncryptedSocketStream.obj: src/network/EncryptedSocketStream.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT EncryptedSocketStream.obj -MD -MP -MF $(DEPDIR)/EncryptedSocketStream.Tpo -c -o EncryptedSocketStream.obj `if test -f 'src/network/EncryptedSocketStream.cpp'; then $(CYGPATH_W) 'src/network/EncryptedSocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/EncryptedSocketStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/EncryptedSocketStream.Tpo $(DEPDIR)/EncryptedSocketStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/network/EncryptedSocketStream.cpp' object='EncryptedSocketStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EncryptedSocketStream.obj `if test -f 'src/network/EncryptedSocketStream.cpp'; then $(CYGPATH_W) 'src/network/EncryptedSocketStream.cpp'; else $(CYGPATH_W) '$(srcdir)/src/network/EncryptedSocketStream.cpp'; fi`
+
+Logger.o: src/logging/Logger.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Logger.o -MD -MP -MF $(DEPDIR)/Logger.Tpo -c -o Logger.o `test -f 'src/logging/Logger.cpp' || echo '$(srcdir)/'`src/logging/Logger.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Logger.Tpo $(DEPDIR)/Logger.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/logging/Logger.cpp' object='Logger.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Logger.o `test -f 'src/logging/Logger.cpp' || echo '$(srcdir)/'`src/logging/Logger.cpp
+
+Logger.obj: src/logging/Logger.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Logger.obj -MD -MP -MF $(DEPDIR)/Logger.Tpo -c -o Logger.obj `if test -f 'src/logging/Logger.cpp'; then $(CYGPATH_W) 'src/logging/Logger.cpp'; else $(CYGPATH_W) '$(srcdir)/src/logging/Logger.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Logger.Tpo $(DEPDIR)/Logger.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/logging/Logger.cpp' object='Logger.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Logger.obj `if test -f 'src/logging/Logger.cpp'; then $(CYGPATH_W) 'src/logging/Logger.cpp'; else $(CYGPATH_W) '$(srcdir)/src/logging/Logger.cpp'; fi`
+
+UIHandler.o: src/logging/UIHandler.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UIHandler.o -MD -MP -MF $(DEPDIR)/UIHandler.Tpo -c -o UIHandler.o `test -f 'src/logging/UIHandler.cpp' || echo '$(srcdir)/'`src/logging/UIHandler.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UIHandler.Tpo $(DEPDIR)/UIHandler.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/logging/UIHandler.cpp' object='UIHandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UIHandler.o `test -f 'src/logging/UIHandler.cpp' || echo '$(srcdir)/'`src/logging/UIHandler.cpp
+
+UIHandler.obj: src/logging/UIHandler.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UIHandler.obj -MD -MP -MF $(DEPDIR)/UIHandler.Tpo -c -o UIHandler.obj `if test -f 'src/logging/UIHandler.cpp'; then $(CYGPATH_W) 'src/logging/UIHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/src/logging/UIHandler.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UIHandler.Tpo $(DEPDIR)/UIHandler.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/logging/UIHandler.cpp' object='UIHandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UIHandler.obj `if test -f 'src/logging/UIHandler.cpp'; then $(CYGPATH_W) 'src/logging/UIHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/src/logging/UIHandler.cpp'; fi`
+
+Unicode.o: src/util/Unicode.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Unicode.o -MD -MP -MF $(DEPDIR)/Unicode.Tpo -c -o Unicode.o `test -f 'src/util/Unicode.cpp' || echo '$(srcdir)/'`src/util/Unicode.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Unicode.Tpo $(DEPDIR)/Unicode.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/util/Unicode.cpp' object='Unicode.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Unicode.o `test -f 'src/util/Unicode.cpp' || echo '$(srcdir)/'`src/util/Unicode.cpp
+
+Unicode.obj: src/util/Unicode.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Unicode.obj -MD -MP -MF $(DEPDIR)/Unicode.Tpo -c -o Unicode.obj `if test -f 'src/util/Unicode.cpp'; then $(CYGPATH_W) 'src/util/Unicode.cpp'; else $(CYGPATH_W) '$(srcdir)/src/util/Unicode.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Unicode.Tpo $(DEPDIR)/Unicode.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/util/Unicode.cpp' object='Unicode.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Unicode.obj `if test -f 'src/util/Unicode.cpp'; then $(CYGPATH_W) 'src/util/Unicode.cpp'; else $(CYGPATH_W) '$(srcdir)/src/util/Unicode.cpp'; fi`
+
+FSUtils.o: src/util/FSUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FSUtils.o -MD -MP -MF $(DEPDIR)/FSUtils.Tpo -c -o FSUtils.o `test -f 'src/util/FSUtils.cpp' || echo '$(srcdir)/'`src/util/FSUtils.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FSUtils.Tpo $(DEPDIR)/FSUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/util/FSUtils.cpp' object='FSUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FSUtils.o `test -f 'src/util/FSUtils.cpp' || echo '$(srcdir)/'`src/util/FSUtils.cpp
+
+FSUtils.obj: src/util/FSUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FSUtils.obj -MD -MP -MF $(DEPDIR)/FSUtils.Tpo -c -o FSUtils.obj `if test -f 'src/util/FSUtils.cpp'; then $(CYGPATH_W) 'src/util/FSUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/util/FSUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FSUtils.Tpo $(DEPDIR)/FSUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/util/FSUtils.cpp' object='FSUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FSUtils.obj `if test -f 'src/util/FSUtils.cpp'; then $(CYGPATH_W) 'src/util/FSUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/util/FSUtils.cpp'; fi`
+
+StringUtils.o: src/util/StringUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT StringUtils.o -MD -MP -MF $(DEPDIR)/StringUtils.Tpo -c -o StringUtils.o `test -f 'src/util/StringUtils.cpp' || echo '$(srcdir)/'`src/util/StringUtils.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/StringUtils.Tpo $(DEPDIR)/StringUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/util/StringUtils.cpp' object='StringUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o StringUtils.o `test -f 'src/util/StringUtils.cpp' || echo '$(srcdir)/'`src/util/StringUtils.cpp
+
+StringUtils.obj: src/util/StringUtils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT StringUtils.obj -MD -MP -MF $(DEPDIR)/StringUtils.Tpo -c -o StringUtils.obj `if test -f 'src/util/StringUtils.cpp'; then $(CYGPATH_W) 'src/util/StringUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/util/StringUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/StringUtils.Tpo $(DEPDIR)/StringUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/util/StringUtils.cpp' object='StringUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o StringUtils.obj `if test -f 'src/util/StringUtils.cpp'; then $(CYGPATH_W) 'src/util/StringUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/util/StringUtils.cpp'; fi`
+
+Utils.o: src/util/Utils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Utils.o -MD -MP -MF $(DEPDIR)/Utils.Tpo -c -o Utils.o `test -f 'src/util/Utils.cpp' || echo '$(srcdir)/'`src/util/Utils.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Utils.Tpo $(DEPDIR)/Utils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/util/Utils.cpp' object='Utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Utils.o `test -f 'src/util/Utils.cpp' || echo '$(srcdir)/'`src/util/Utils.cpp
+
+Utils.obj: src/util/Utils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Utils.obj -MD -MP -MF $(DEPDIR)/Utils.Tpo -c -o Utils.obj `if test -f 'src/util/Utils.cpp'; then $(CYGPATH_W) 'src/util/Utils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/util/Utils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Utils.Tpo $(DEPDIR)/Utils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/util/Utils.cpp' object='Utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Utils.obj `if test -f 'src/util/Utils.cpp'; then $(CYGPATH_W) 'src/util/Utils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/util/Utils.cpp'; fi`
+
+Entity.o: src/game/entity/Entity.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Entity.o -MD -MP -MF $(DEPDIR)/Entity.Tpo -c -o Entity.o `test -f 'src/game/entity/Entity.cpp' || echo '$(srcdir)/'`src/game/entity/Entity.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Entity.Tpo $(DEPDIR)/Entity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/game/entity/Entity.cpp' object='Entity.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Entity.o `test -f 'src/game/entity/Entity.cpp' || echo '$(srcdir)/'`src/game/entity/Entity.cpp
+
+Entity.obj: src/game/entity/Entity.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Entity.obj -MD -MP -MF $(DEPDIR)/Entity.Tpo -c -o Entity.obj `if test -f 'src/game/entity/Entity.cpp'; then $(CYGPATH_W) 'src/game/entity/Entity.cpp'; else $(CYGPATH_W) '$(srcdir)/src/game/entity/Entity.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Entity.Tpo $(DEPDIR)/Entity.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/game/entity/Entity.cpp' object='Entity.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Entity.obj `if test -f 'src/game/entity/Entity.cpp'; then $(CYGPATH_W) 'src/game/entity/Entity.cpp'; else $(CYGPATH_W) '$(srcdir)/src/game/entity/Entity.cpp'; fi`
+
+Player.o: src/game/entity/Player.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Player.o -MD -MP -MF $(DEPDIR)/Player.Tpo -c -o Player.o `test -f 'src/game/entity/Player.cpp' || echo '$(srcdir)/'`src/game/entity/Player.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Player.Tpo $(DEPDIR)/Player.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/game/entity/Player.cpp' object='Player.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Player.o `test -f 'src/game/entity/Player.cpp' || echo '$(srcdir)/'`src/game/entity/Player.cpp
+
+Player.obj: src/game/entity/Player.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Player.obj -MD -MP -MF $(DEPDIR)/Player.Tpo -c -o Player.obj `if test -f 'src/game/entity/Player.cpp'; then $(CYGPATH_W) 'src/game/entity/Player.cpp'; else $(CYGPATH_W) '$(srcdir)/src/game/entity/Player.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Player.Tpo $(DEPDIR)/Player.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/game/entity/Player.cpp' object='Player.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Player.obj `if test -f 'src/game/entity/Player.cpp'; then $(CYGPATH_W) 'src/game/entity/Player.cpp'; else $(CYGPATH_W) '$(srcdir)/src/game/entity/Player.cpp'; fi`
+
+PluginManager.o: src/plugin/PluginManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PluginManager.o -MD -MP -MF $(DEPDIR)/PluginManager.Tpo -c -o PluginManager.o `test -f 'src/plugin/PluginManager.cpp' || echo '$(srcdir)/'`src/plugin/PluginManager.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PluginManager.Tpo $(DEPDIR)/PluginManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/plugin/PluginManager.cpp' object='PluginManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PluginManager.o `test -f 'src/plugin/PluginManager.cpp' || echo '$(srcdir)/'`src/plugin/PluginManager.cpp
+
+PluginManager.obj: src/plugin/PluginManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PluginManager.obj -MD -MP -MF $(DEPDIR)/PluginManager.Tpo -c -o PluginManager.obj `if test -f 'src/plugin/PluginManager.cpp'; then $(CYGPATH_W) 'src/plugin/PluginManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/plugin/PluginManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/PluginManager.Tpo $(DEPDIR)/PluginManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/plugin/PluginManager.cpp' object='PluginManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PluginManager.obj `if test -f 'src/plugin/PluginManager.cpp'; then $(CYGPATH_W) 'src/plugin/PluginManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/plugin/PluginManager.cpp'; fi`
+
+CliUIManager.o: src/ui/cli/CliUIManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CliUIManager.o -MD -MP -MF $(DEPDIR)/CliUIManager.Tpo -c -o CliUIManager.o `test -f 'src/ui/cli/CliUIManager.cpp' || echo '$(srcdir)/'`src/ui/cli/CliUIManager.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CliUIManager.Tpo $(DEPDIR)/CliUIManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ui/cli/CliUIManager.cpp' object='CliUIManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CliUIManager.o `test -f 'src/ui/cli/CliUIManager.cpp' || echo '$(srcdir)/'`src/ui/cli/CliUIManager.cpp
+
+CliUIManager.obj: src/ui/cli/CliUIManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CliUIManager.obj -MD -MP -MF $(DEPDIR)/CliUIManager.Tpo -c -o CliUIManager.obj `if test -f 'src/ui/cli/CliUIManager.cpp'; then $(CYGPATH_W) 'src/ui/cli/CliUIManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ui/cli/CliUIManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CliUIManager.Tpo $(DEPDIR)/CliUIManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ui/cli/CliUIManager.cpp' object='CliUIManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CliUIManager.obj `if test -f 'src/ui/cli/CliUIManager.cpp'; then $(CYGPATH_W) 'src/ui/cli/CliUIManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ui/cli/CliUIManager.cpp'; fi`
+
+ConsoleReader.o: src/ui/cli/ConsoleReader.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsoleReader.o -MD -MP -MF $(DEPDIR)/ConsoleReader.Tpo -c -o ConsoleReader.o `test -f 'src/ui/cli/ConsoleReader.cpp' || echo '$(srcdir)/'`src/ui/cli/ConsoleReader.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsoleReader.Tpo $(DEPDIR)/ConsoleReader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ui/cli/ConsoleReader.cpp' object='ConsoleReader.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsoleReader.o `test -f 'src/ui/cli/ConsoleReader.cpp' || echo '$(srcdir)/'`src/ui/cli/ConsoleReader.cpp
+
+ConsoleReader.obj: src/ui/cli/ConsoleReader.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsoleReader.obj -MD -MP -MF $(DEPDIR)/ConsoleReader.Tpo -c -o ConsoleReader.obj `if test -f 'src/ui/cli/ConsoleReader.cpp'; then $(CYGPATH_W) 'src/ui/cli/ConsoleReader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ui/cli/ConsoleReader.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsoleReader.Tpo $(DEPDIR)/ConsoleReader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ui/cli/ConsoleReader.cpp' object='ConsoleReader.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsoleReader.obj `if test -f 'src/ui/cli/ConsoleReader.cpp'; then $(CYGPATH_W) 'src/ui/cli/ConsoleReader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ui/cli/ConsoleReader.cpp'; fi`
+
+UIManager.o: src/ui/UIManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UIManager.o -MD -MP -MF $(DEPDIR)/UIManager.Tpo -c -o UIManager.o `test -f 'src/ui/UIManager.cpp' || echo '$(srcdir)/'`src/ui/UIManager.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UIManager.Tpo $(DEPDIR)/UIManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ui/UIManager.cpp' object='UIManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UIManager.o `test -f 'src/ui/UIManager.cpp' || echo '$(srcdir)/'`src/ui/UIManager.cpp
+
+UIManager.obj: src/ui/UIManager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UIManager.obj -MD -MP -MF $(DEPDIR)/UIManager.Tpo -c -o UIManager.obj `if test -f 'src/ui/UIManager.cpp'; then $(CYGPATH_W) 'src/ui/UIManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ui/UIManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UIManager.Tpo $(DEPDIR)/UIManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/ui/UIManager.cpp' object='UIManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UIManager.obj `if test -f 'src/ui/UIManager.cpp'; then $(CYGPATH_W) 'src/ui/UIManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/ui/UIManager.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -329,23 +761,10 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	set x; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      set "$$@" "$$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	list='$(SOURCES) $(HEADERS) config.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
@@ -364,7 +783,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
 	  fi; \
 	fi
 ctags: CTAGS
-CTAGS: ctags-recursive $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
+CTAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	list='$(SOURCES) $(HEADERS) config.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
@@ -388,9 +807,9 @@ cscope: cscope.files
 clean-cscope:
 	-rm -f cscope.files
 
-cscope.files: clean-cscope cscopelist-recursive cscopelist
+cscope.files: clean-cscope  cscopelist
 
-cscopelist: cscopelist-recursive $(HEADERS) $(SOURCES) $(LISP)
+cscopelist:  $(HEADERS) $(SOURCES) $(LISP)
 	list='$(SOURCES) $(HEADERS) $(LISP)'; \
 	case "$(srcdir)" in \
 	  [\\/]* | ?:[\\/]*) sdir="$(srcdir)" ;; \
@@ -438,31 +857,6 @@ distdir: $(DISTFILES)
 	    test -f "$(distdir)/$$file" \
 	    || cp -p $$d/$$file "$(distdir)/$$file" \
 	    || exit 1; \
-	  fi; \
-	done
-	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    $(am__make_dryrun) \
-	      || test -d "$(distdir)/$$subdir" \
-	      || $(MKDIR_P) "$(distdir)/$$subdir" \
-	      || exit 1; \
-	    dir1=$$subdir; dir2="$(distdir)/$$subdir"; \
-	    $(am__relativize); \
-	    new_distdir=$$reldir; \
-	    dir1=$$subdir; dir2="$(top_distdir)"; \
-	    $(am__relativize); \
-	    new_top_distdir=$$reldir; \
-	    echo " (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir="$$new_top_distdir" distdir="$$new_distdir" \\"; \
-	    echo "     am__remove_distdir=: am__skip_length_check=: am__skip_mode_fix=: distdir)"; \
-	    ($(am__cd) $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$new_top_distdir" \
-	        distdir="$$new_distdir" \
-		am__remove_distdir=: \
-		am__skip_length_check=: \
-		am__skip_mode_fix=: \
-	        distdir) \
-	      || exit 1; \
 	  fi; \
 	done
 	-test -n "$(am__skip_mode_fix)" \
@@ -590,19 +984,21 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-check: check-recursive
-all-am: Makefile config.h
-installdirs: installdirs-recursive
-installdirs-am:
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile $(PROGRAMS) config.h
+installdirs:
+	for dir in "$(DESTDIR)$(currentdir)"; do \
+	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
+	done
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	if test -z '$(STRIP)'; then \
 	  $(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
@@ -624,94 +1020,95 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-recursive
+clean: clean-am
 
-clean-am: clean-generic mostlyclean-am
+clean-am: clean-currentPROGRAMS clean-generic mostlyclean-am
 
-distclean: distclean-recursive
+distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-hdr distclean-tags
+distclean-am: clean-am distclean-compile distclean-generic \
+	distclean-hdr distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
 html-am:
 
-info: info-recursive
+info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-currentPROGRAMS
 
-install-dvi: install-dvi-recursive
+install-dvi: install-dvi-am
 
 install-dvi-am:
 
 install-exec-am:
 
-install-html: install-html-recursive
+install-html: install-html-am
 
 install-html-am:
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-info-am:
 
 install-man:
 
-install-pdf: install-pdf-recursive
+install-pdf: install-pdf-am
 
 install-pdf-am:
 
-install-ps: install-ps-recursive
+install-ps: install-ps-am
 
 install-ps-am:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
+maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
-uninstall-am:
+uninstall-am: uninstall-currentPROGRAMS
 
-.MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) all \
-	cscopelist-recursive ctags-recursive install-am install-strip \
-	tags-recursive
+.MAKE: all install-am install-strip
 
-.PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
-	all all-am am--refresh check check-am clean clean-cscope \
-	clean-generic cscope cscopelist cscopelist-recursive ctags \
-	ctags-recursive dist dist-all dist-bzip2 dist-gzip dist-lzip \
+.PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
+	clean-cscope clean-currentPROGRAMS clean-generic cscope \
+	cscopelist ctags dist dist-all dist-bzip2 dist-gzip dist-lzip \
 	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-generic distclean-hdr distclean-tags distcleancheck \
-	distdir distuninstallcheck dvi dvi-am html html-am info \
-	info-am install install-am install-data install-data-am \
+	distclean-compile distclean-generic distclean-hdr \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-currentPROGRAMS install-data install-data-am \
 	install-dvi install-dvi-am install-exec install-exec-am \
 	install-html install-html-am install-info install-info-am \
 	install-man install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
-	pdf-am ps ps-am tags tags-recursive uninstall uninstall-am
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
+	ps ps-am tags uninstall uninstall-am uninstall-currentPROGRAMS
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

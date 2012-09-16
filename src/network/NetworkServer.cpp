@@ -37,7 +37,6 @@ void * startNetworkServer(void *serverPtr) {
 
 
 using std::string;
-using std::cout;
 USING_LOGGING_LEVEL
 
 struct Connection {
@@ -90,7 +89,7 @@ void NetworkServer::run() {
 
 
 void NetworkServer::init() {
-    cout << "Setting up network... \n";
+    m->server->getLogger() <<  "Setting up network... \n";
     //              not local, stream (TCP), default protocol (TCP)
     m->portNum = 25565;
     m->sockfd = socket(AF_INET, SOCK_STREAM, 0);

@@ -10,6 +10,7 @@ test
 *.swo
 */mcpp-server
 mcpp-server
+mc++-server
 test
 src/Makefile
 src/Makefile.old
@@ -20,4 +21,6 @@ autoscan.log
 configure.scan
 src/.deps
 remake
-plugin
+plugins
+ui
+.deps

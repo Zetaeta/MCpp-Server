@@ -51,6 +51,8 @@ using UI::UIManager;
 struct MinecraftServerData {
     bool shutdown;
     map<string, string *> options;
+    int &argc;
+    char **argv;
 
     NetworkServer *networkServer;
     Logger *logger;
@@ -65,7 +67,9 @@ struct MinecraftServerData {
     string serverId;
     string publicKey;
     string verifyToken;
-    
+
+    MinecraftServerData(int &argc)
+    :argc(argc) {}
 
     static MinecraftServer *server;
 };
@@ -79,8 +83,9 @@ void shutdownServer() {
 }
 }
 
-MinecraftServer::MinecraftServer(const map<string, string *> &options)
-:m(new MinecraftServerData()) {
+MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc, char **argv)
+:m(new MinecraftServerData(argc)) {
+    m->argv = argv;
     atexit(&shutdownServer);
     MinecraftServerData::server = this;
     m->options = options;
@@ -230,6 +235,14 @@ bool MinecraftServer::isShutdown() {
 }
 
 
+int & MinecraftServer::argc() {
+    return m->argc;
+}
+
+char ** MinecraftServer::argv() {
+    m->argv;
+}
+
 NetworkServer & MinecraftServer::getNetworkServer() {
     return *m->networkServer;
 }
@@ -297,7 +310,7 @@ RSA * MinecraftServer::getRsa() {
 }
 
 
-void MinecraftServer::dispatchConsoleCommand(string command) {
+void MinecraftServer::dispatchConsoleCommand(const string &command) {
     m->logger->info("Dispatching command " + command);
 }
 

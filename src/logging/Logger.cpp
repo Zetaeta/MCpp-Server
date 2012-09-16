@@ -11,13 +11,14 @@
 #include "MinecraftServer.hpp"
 #include "Lock.hpp"
 
-namespace MCServer {
-namespace Logging {
-
 using std::vector;
 using std::string;
 using std::map;
 using std::ostringstream;
+
+namespace MCServer {
+namespace Logging {
+
 
 struct LoggerData {
     string name;
@@ -31,22 +32,22 @@ struct LoggerData {
 
 map<string, Logger *> LoggerData::loggers;
 
-Logger::Logger(std::string name)
+Logger::Logger(const std::string &name)
  :m(new LoggerData()) {
     m->name = name;
     m->defaultLevel = INFO;
 }
 
 
-void Logger::log(Level level, string message) {
+void Logger::log(Level level, const string &message) {
     m->lock.lock();
     for (auto it = m->handlers.begin(); it != m->handlers.end(); ++it) {
         (*it)->handle(level, message);
     }
-    m->lock.unlock();
+    m->lock.unLock();
 }
 
-void Logger::log(string message) {
+void Logger::log(const string &message) {
     log(m->defaultLevel, message);
 }
 
@@ -54,7 +55,7 @@ void Logger::addHandler(Handler *handler) {
     m->handlers.push_back(handler->clone());
 }
 
-Logger & Logger::getLogger(string name) {
+Logger & Logger::getLogger(const string &name) {
     Logger *log;
     if ((log = LoggerData::loggers[name]) != 0) {
         return *log;
@@ -87,13 +88,13 @@ Logger & Logger::operator<<(const string &str) {
         log(m->oss.str());
         m->oss.str("");
         m->oss.clear();
-        m->lock.unlock();
+        m->lock.unLock();
         operator<<(str.substr(nlIndex + 1));
         return *this;
     }
     m->lock.lock();
     m->oss << str;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
@@ -108,117 +109,117 @@ Logger & Logger::operator<<(char c) {
         log(m->oss.str());
         m->oss.str("");
         m->oss.clear();
-        m->lock.unlock();
+        m->lock.unLock();
         return *this;
     }
     m->lock.lock();
     m->oss << c;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(uint8_t c) {
     m->lock.lock();
     m->oss << c;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(int8_t c) {
     m->lock.lock();
     m->oss << c;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(int16_t i) {
     m->lock.lock();
     m->oss << i;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(uint16_t i) {
     m->lock.lock();
     m->oss << i;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(int32_t i) {
     m->lock.lock();
     m->oss << i;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(uint32_t i) {
     m->lock.lock();
     m->oss << i;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(int64_t i) {
     m->lock.lock();
     m->oss << i;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(uint64_t i) {
     m->lock.lock();
     m->oss << i;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(float f) {
     m->lock.lock();
     m->oss << f;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(double d) {
     m->lock.lock();
     m->oss << d;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(long double d) {
     m->lock.lock();
     m->oss << d;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(bool b) {
     m->lock.lock();
     m->oss << b;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(std::bitset<8> b) {
     m->lock.lock();
     m->oss << b;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(std::bitset<16> b) {
     m->lock.lock();
     m->oss << b;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
 Logger & Logger::operator<<(std::bitset<32> b) {
     m->lock.lock();
     m->oss << b;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 
@@ -230,7 +231,7 @@ Logger & Logger::operator<<(const char *c) {
 Logger & Logger::operator<<(std::ios_base & (*modifier)(std::ios_base &)) {
     m->lock.lock();
     m->oss << modifier;
-    m->lock.unlock();
+    m->lock.unLock();
     return *this;
 }
 

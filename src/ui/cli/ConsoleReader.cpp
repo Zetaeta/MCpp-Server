@@ -6,6 +6,7 @@
 
 #include "ConsoleReader.hpp"
 #include "MinecraftServer.hpp"
+#include "Lock.hpp"
 
 using std::cout;
 using std::cerr;
@@ -29,6 +30,8 @@ struct ConsoleReaderData {
     MinecraftServer *server;
     string lineBuffer;
     bool running;
+
+    Lock lock;
     
     ConsoleReaderData() :server(0), running(true) {}
 };
@@ -42,39 +45,19 @@ ConsoleReader::ConsoleReader(MinecraftServer *server)
 void ConsoleReader::run() {
     init();
     while (m->running) {
-/*        cout << '>';
-        string line;
-        char ch;
-        while ((cin >> ch) && ch != '\n') {
-            putchar(ch);
-            m->lineBuffer += ch;
-        }
-        m->lineBuffer.clear(); */
         const char *line = readline(">");
         if (!line) {
             return;
         }
-//        m->server->dispatchConsoleCommand(line);
+        m->server->dispatchConsoleCommand(line);
     }
 }
 
 void ConsoleReader::init() {
-//    system("stty -icanon min 1 -icrnl -inlcr -echo");
 }
 
 void ConsoleReader::println(const string &s) {
-//    clearLine();
-//    cout << s << '\n';
-//    rl_forced_update_display();
-/*    clearLine();
-    if (s[s.size() - 1] == '\n') {
-        cout << s;
-    }
-    else {
-        cout << s << '\n';
-    }
-    cout << '>' << m->lineBuffer;
-*/
+    m->lock.lock();
     int savedPoint = rl_point;
     char *savedLine = rl_copy_text(0, rl_end);
     rl_set_prompt("");
@@ -84,15 +67,8 @@ void ConsoleReader::println(const string &s) {
     rl_set_prompt(">");
     rl_replace_line(savedLine, 0);
     rl_point = savedPoint;
-//    cerr << "rl_line_buffer: " << rl_line_buffer << '\n';
-//    if (strlen(savedLine) != 0) {
-        rl_redisplay();
-//    }
-
-//    cout << '\r';
-//    cout << s << '\n';
-//    rl_set_prompt(">");
-//    rl_redisplay();
+    rl_redisplay();
+    m->lock.unLock();
 }
 
 void ConsoleReader::clearLine() {
