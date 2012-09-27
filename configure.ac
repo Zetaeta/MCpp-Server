@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT([MC++-Server], [0.1], [ZetaetaDaniel@gmail.com])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([ foreign])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 

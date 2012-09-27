@@ -1,32 +1,44 @@
-/*
- * MinecraftServer.cpp
- *
- *  Created on: 3 Aug 2012
- *      Author: daniel
- */
 
 #include <iostream>
 #include <exception>
-#include <cstdlib>
+#include <map>
+#include <algorithm>
+#include <stdlib.h>
+#include <utility>
+#include <typeinfo>
+#include <cxxabi.h>
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #include <openssl/rsa.h>
 #include <openssl/x509v3.h>
 #include <openssl/rc4.h>
 
 #include "MinecraftServer.hpp"
-#include "network/NetworkServer.hpp"
+#include "int128.h"
+
+
 #include "logging/Logger.hpp"
+#include "logging/LoggerStreamBuf.hpp"
+
+#include "network/NetworkServer.hpp"
 #include "network/PacketHandler.hpp"
-#include "GameMode.hpp"
-#include "WorldType.hpp"
-#include "Difficulty.hpp"
-#include "EntityManager.hpp"
+
 #include "plugin/PluginManager.hpp"
 #include "ui/UIManager.hpp"
+
+#include "game/GameMode.hpp"
+#include "game/WorldType.hpp"
+#include "game/Difficulty.hpp"
+#include "game/EntityManager.hpp"
+#include "game/World.hpp"
+#include "game/WorldLoadingFailure.hpp"
+
 #include "util/StringUtils.hpp"
 #include "util/Utils.hpp"
+#include "util/FSUtils.hpp"
 
 namespace MCServer {
 
@@ -35,24 +47,32 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::map;
+using std::vector;
+using std::streambuf;
 
 using Network::NetworkServer;
 using Network::PacketHandler;
 using Logging::Logger;
 using Logging::Level;
+using Logging::LoggerStreamBuf;
 USING_LOGGING_LEVEL
-using Plugins::PluginManager;
+using Plugin::PluginManager;
 using UI::UIManager;
 
 #ifndef PLUGIN_DIR
 #define PLUGIN_DIR "plugins/"
 #endif
 
+MinecraftServer *MinecraftServer::_server = 0;
+
 struct MinecraftServerData {
     bool shutdown;
     map<string, string *> options;
     int &argc;
     char **argv;
+
+    streambuf *realStdout;
+    streambuf *realStderr;
 
     NetworkServer *networkServer;
     Logger *logger;
@@ -68,12 +88,11 @@ struct MinecraftServerData {
     string publicKey;
     string verifyToken;
 
+    map<string, World> worlds;
+
     MinecraftServerData(int &argc)
     :argc(argc) {}
-
-    static MinecraftServer *server;
 };
-MinecraftServer * MinecraftServerData::server;
 
 namespace {
 void shutdownServer() {
@@ -85,14 +104,20 @@ void shutdownServer() {
 
 MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc, char **argv)
 :m(new MinecraftServerData(argc)) {
+
+    _server = this;
     m->argv = argv;
     atexit(&shutdownServer);
-    MinecraftServerData::server = this;
     m->options = options;
+    m->realStdout = cout.rdbuf();
+    m->realStderr = cerr.rdbuf();
 
     initUI();
 
     m->logger = &Logger::getLogger("Minecraft");
+    cout.rdbuf(new LoggerStreamBuf(*m->logger, INFO));
+    cerr.rdbuf(new LoggerStreamBuf(*m->logger, SEVERE));
+    
     m->entityManager = new EntityManager(this);
     m->pluginManager = new PluginManager(this);
 
@@ -151,7 +176,7 @@ void MinecraftServer::run() {
         }
     }
     catch (std::exception &e) {
-        cerr << "Unhandled exception in server: " << e.what() << endl;
+        cerr << "Unhandled exception in server: " << demangle(typeid(e).name()) << ": "<< e.what() << endl;
     }
     catch (const char *str) {
         cerr << "Unhandled (const char *) exception in server: " << str << endl;
@@ -184,6 +209,7 @@ void MinecraftServer::init() {
     m->logger->info("Server version: " + getVersion());
     m->pluginManager->loadPlugins(PLUGIN_DIR);
     m->networkServer = new NetworkServer(this);
+    setupWorlds();
 }
 
 void MinecraftServer::initUI() {
@@ -223,15 +249,55 @@ void MinecraftServer::initUI() {
 }
 
 void MinecraftServer::tick() {
-
+//    sleep(1);
+//    *m->logger << "Testing m->logger!\n";
+//    std::cout << "Testing cout!\n";
 }
 
 void MinecraftServer::shutdown() {
     m->shutdown = true;
+    exit(0);
 }
 
 bool MinecraftServer::isShutdown() {
     return m->shutdown;
+}
+
+namespace {
+
+struct isntWorldFolder {
+    bool operator()(const std::string &fileName) {
+        return !exists(fileName + "/level.dat");
+    }
+};
+}
+
+void MinecraftServer::setupWorlds() {
+    vector<string> entries;
+    getEntries(".", entries);
+    if (!inUsrShare()) {
+        getEntries("/usr/share/mc++-server", entries);
+    }
+    vector<string>::iterator end = std::remove_if(entries.begin(), entries.end(), isntWorldFolder());
+
+    for (vector<string>::iterator it = entries.begin(); it != end; ++it) {
+        *m->logger << "Going to load " << *it << '\n';
+        loadWorld(*it);
+    }
+}
+
+void MinecraftServer::loadWorld(const std::string &directory) {
+
+    World world;
+    try {
+        world.loadFrom(directory);
+    } catch (const WorldLoadingFailure &ex) {
+        *m->logger << "Failed loading world in " << directory << ": " << ex.what() << '\n';
+        return;
+    }
+    *m->logger << "Loaded world!\n";
+    m->worlds[world.getName()] = std::move(world);
+
 }
 
 
@@ -241,6 +307,14 @@ int & MinecraftServer::argc() {
 
 char ** MinecraftServer::argv() {
     m->argv;
+}
+
+streambuf * MinecraftServer::getStdout() {
+    return m->realStdout;
+}
+
+streambuf * MinecraftServer::getStderr() {
+    return m->realStderr;
 }
 
 NetworkServer & MinecraftServer::getNetworkServer() {
@@ -312,11 +386,6 @@ RSA * MinecraftServer::getRsa() {
 
 void MinecraftServer::dispatchConsoleCommand(const string &command) {
     m->logger->info("Dispatching command " + command);
-}
-
-
-MinecraftServer & MinecraftServer::getServer() {
-    return *MinecraftServerData::server;
 }
 
 } /* namespace MCServer */

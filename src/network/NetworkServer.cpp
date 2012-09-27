@@ -19,7 +19,7 @@
 
 #include "NetworkServer.hpp"
 #include "PlainSocketOutputStream.hpp"
-#include "../logging/Logger.hpp"
+#include "logging/Logger.hpp"
 #include "ClientConnection.hpp"
 
 namespace MCServer {

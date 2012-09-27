@@ -34,6 +34,10 @@ void errorExit(std::string message, int exitCode = 1);
 
 extern std::string commandName;
 
+bool inUsrShare();
+
+std::string demangle(const std::string &);
+
 }
 
 #endif /* UTILS_HPP_ */

@@ -1,7 +1,7 @@
 
 #include "Player.hpp"
 #include "PlayerData.hpp"
-#include "../Pimpl.hpp"
+#include "Pimpl.hpp"
 #include "MinecraftServer.hpp"
 #include "logging/Logger.hpp"
 

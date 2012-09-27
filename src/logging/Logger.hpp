@@ -66,6 +66,10 @@ public:
 
     void addHandler(Handler *);
     void setDefaultLevel(Level level);
+    // Set current level (reset every line)
+    void setLevel(Level level);
+    // Reset current level to default level
+    void resetLevel();
     ~Logger();
 
     static Logger & getLogger(const std::string &name);

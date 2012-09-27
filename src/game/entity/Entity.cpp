@@ -2,7 +2,7 @@
 #include "Entity.hpp"
 #include "EntityData.hpp"
 #include "MinecraftServer.hpp"
-#include "EntityManager.hpp"
+#include "game/EntityManager.hpp"
 
 namespace MCServer {
 namespace Entities {

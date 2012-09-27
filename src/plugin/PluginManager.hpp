@@ -8,7 +8,11 @@ namespace MCServer {
 
 class MinecraftServer;
 
-namespace Plugins {
+namespace Plugin {
+
+typedef bool (*PluginLoaderRule)(const char *);
+
+class PluginLoader;
 
 struct PluginManagerData;
 
@@ -17,12 +21,15 @@ public:
     PluginManager(MinecraftServer *server);
     ~PluginManager();
 
+    void registerRule(PluginLoaderRule, PluginLoader *);
+
     int loadPlugins(const std::string &directory);
     bool loadPlugin(const std::string &file);
 private:
     PluginManagerData *m;
 };
 
+// Rule to decide which PluginLoader loads a plugin.
 
 }
 }

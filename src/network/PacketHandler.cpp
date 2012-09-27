@@ -4,8 +4,8 @@
 #include "PacketHandler.hpp"
 #include "Packets.hpp"
 #include "SocketInputStream.hpp"
-#include "../MinecraftServer.hpp"
-#include "../logging/Logger.hpp"
+#include "MinecraftServer.hpp"
+#include "logging/Logger.hpp"
 
 namespace MCServer {
 namespace Network {

@@ -12,6 +12,7 @@ using std::cout;
 using std::cerr;
 using std::cin;
 using std::string;
+using std::ostream;
 
 namespace MCServer {
 namespace UI {
@@ -30,14 +31,15 @@ struct ConsoleReaderData {
     MinecraftServer *server;
     string lineBuffer;
     bool running;
+    ostream cout, cerr;
 
     Lock lock;
     
-    ConsoleReaderData() :server(0), running(true) {}
+    ConsoleReaderData(MinecraftServer *server) :server(0), running(true), cout(server->getStdout()), cerr(server->getStderr()) {}
 };
 
 ConsoleReader::ConsoleReader(MinecraftServer *server)
- :m(new ConsoleReaderData()) {
+ :m(new ConsoleReaderData(server)) {
     m->server = server;
     pthread_create(&m->thread, NULL, &startConsoleReader, this);
 }
@@ -47,10 +49,11 @@ void ConsoleReader::run() {
     while (m->running) {
         const char *line = readline(">");
         if (!line) {
-            return;
+           break;
         }
         m->server->dispatchConsoleCommand(line);
     }
+    exit(0);
 }
 
 void ConsoleReader::init() {
@@ -63,7 +66,7 @@ void ConsoleReader::println(const string &s) {
     rl_set_prompt("");
     rl_replace_line("", 0);
     rl_redisplay();
-    cout << s << '\n';
+    m->cout << s << '\n';
     rl_set_prompt(">");
     rl_replace_line(savedLine, 0);
     rl_point = savedPoint;

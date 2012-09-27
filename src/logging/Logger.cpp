@@ -23,6 +23,7 @@ namespace Logging {
 struct LoggerData {
     string name;
     Level defaultLevel;
+    Level currentLevel;
     vector<Handler *> handlers;
     ostringstream oss;
     Lock lock;
@@ -48,7 +49,7 @@ void Logger::log(Level level, const string &message) {
 }
 
 void Logger::log(const string &message) {
-    log(m->defaultLevel, message);
+    log(m->currentLevel, message);
 }
 
 void Logger::addHandler(Handler *handler) {
@@ -75,8 +76,16 @@ void Logger::setDefaultLevel(Level level) {
     m->defaultLevel = level;
 }
 
+void Logger::setLevel(Level level) {
+    m->currentLevel = level;
+}
+
+void Logger::resetLevel() {
+    m->currentLevel = m->defaultLevel;
+}
+
 Logger & Logger::operator<<(Level level) {
-    m->defaultLevel = level;
+    m->currentLevel = level;
     return *this;
 }
 
@@ -86,6 +95,7 @@ Logger & Logger::operator<<(const string &str) {
         m->lock.lock();
         m->oss << str.substr(0, nlIndex);
         log(m->oss.str());
+        resetLevel();
         m->oss.str("");
         m->oss.clear();
         m->lock.unLock();
@@ -107,6 +117,7 @@ Logger & Logger::operator<<(char c) {
     if (c == '\n') {
         m->lock.lock();
         log(m->oss.str());
+        resetLevel();
         m->oss.str("");
         m->oss.clear();
         m->lock.unLock();

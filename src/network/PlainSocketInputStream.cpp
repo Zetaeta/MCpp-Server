@@ -6,9 +6,9 @@
 
 #include "PlainSocketInputStream.hpp"
 #include "NetUtils.hpp"
-#include "../util/Unicode.hpp"
-#include "../logging/Logger.hpp"
-#include "../MinecraftServer.hpp"
+#include "util/Unicode.hpp"
+#include "logging/Logger.hpp"
+#include "MinecraftServer.hpp"
 
 using std::vector;
 

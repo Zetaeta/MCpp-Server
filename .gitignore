@@ -24,3 +24,7 @@ remake
 plugins
 ui
 .deps
+world
+core.*
+*.log
+*.objdump

@@ -1,22 +1,17 @@
-/*
- * MinecraftServer.hpp
- *
- *  Created on: 3 Aug 2012
- *      Author: daniel
- */
 
 #ifndef MINECRAFTSERVER_HPP
 #define MINECRAFTSERVER_HPP
 
 #include <string>
 #include <map>
+#include <streambuf>
+
 
 #ifndef HEADER_OPENSSL_TYPES_H
 typedef struct rsa_st RSA;
 #endif
 
-namespace MCServer {
-
+namespace MCServer { 
 namespace Logging {
 class Logger;
 }
@@ -30,7 +25,7 @@ class UIManager;
 }
 
 class EntityManager;
-namespace Plugins {
+namespace Plugin {
 class PluginManager;
 }
 
@@ -45,19 +40,19 @@ public:
     MinecraftServer(const std::map<std::string, std::string *> &, int &argc, char **argv);
     ~MinecraftServer();
     void run();
-    void init();
-    void tick();
     void shutdown();
 
     bool isShutdown();
 
     int & argc();
     char **argv();
+    std::streambuf * getStdout();
+    std::streambuf * getStderr();
     Logging::Logger & getLogger();
     Network::NetworkServer & getNetworkServer();
     UI::UIManager & getUIManager();
     EntityManager & getEntityManager();
-    Plugins::PluginManager & getPluginManager();
+    Plugin::PluginManager & getPluginManager();
 
     std::string getVersion();
     std::string getMotd();
@@ -79,13 +74,25 @@ public:
 
     void dispatchConsoleCommand(const std::string &command);
     
-    static MinecraftServer & getServer();
+    static inline MinecraftServer & getServer() {
+        return *_server;
+    }
+
+    static inline MinecraftServer & server() {
+        return *_server;
+    }
+
 protected:
     MinecraftServerData *m; // PIMPL
 
     void initUI();
+    void init();
+    void tick();
+    void setupWorlds();
+    void loadWorld(const std::string &directory);
 
 private:
+    static MinecraftServer *_server;
     // Inaccessible copy constructor.
     MinecraftServer(const MinecraftServer &);
 };

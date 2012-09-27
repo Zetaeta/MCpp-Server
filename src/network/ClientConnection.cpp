@@ -13,11 +13,11 @@
 #include "SocketStream.hpp"
 #include "PlainSocketStream.hpp"
 #include "EncryptedSocketStream.hpp"
-#include "../logging/Logger.hpp"
-#include "../MinecraftServer.hpp"
+#include "logging/Logger.hpp"
+#include "MinecraftServer.hpp"
 #include "PacketHandler.hpp"
 #include "Packets.hpp"
-#include "../entity/Player.hpp"
+#include "game/entity/Player.hpp"
 
 
 namespace MCServer {
