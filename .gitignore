@@ -12,9 +12,13 @@ test
 mcpp-server
 mc++-server
 test
-src/Makefile
-src/Makefile.old
 Makefile
+Makefile.in
+configure
+depcomp
+install-sh
+missing
+aclocal.m4
 stamp-h1
 config.*
 autoscan.log
