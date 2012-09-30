@@ -28,3 +28,5 @@ world
 core.*
 *.log
 *.objdump
+countLines
+countEmptyLines

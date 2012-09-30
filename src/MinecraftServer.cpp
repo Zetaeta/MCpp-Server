@@ -151,7 +151,7 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     }
     verifyToken[4] = '\0';
     if (!userValidationEnabled()) {
-        serverId = "-";
+        serverId = (const char *) "-";
     }
     *m->logger << INFO << "Server ID: " << serverId << '\n';
     m->serverId = serverId;
@@ -306,7 +306,7 @@ int & MinecraftServer::argc() {
 }
 
 char ** MinecraftServer::argv() {
-    m->argv;
+    return m->argv;
 }
 
 streambuf * MinecraftServer::getStdout() {

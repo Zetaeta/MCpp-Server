@@ -2,10 +2,12 @@
 #include <map>
 #include <typeinfo>
 #include <iostream>
+#include <sstream>
 
 #include <nbt/NBT.hpp>
 #include <nbt/TagCompound.hpp>
 #include <nbt/TagNotFound.hpp>
+#include <nbt/TagList.hpp>
 
 #include <IOStream/PlainInputStream.hpp>
 #include <IOStream/GZipInputStream.hpp>
@@ -13,6 +15,7 @@
 
 #include "World.hpp"
 #include "Point3D.hpp"
+#include "ChunkCoordinates.hpp"
 #include "Chunk.hpp"
 #include "util/FSUtils.hpp"
 #include "GameMode.hpp"
@@ -28,6 +31,7 @@ using std::cout;
 
 using NBT::Tag;
 using NBT::TagCompound;
+using NBT::TagList;
 
 using IOStream::PlainInputStream;
 using IOStream::GZipInputStream;
@@ -40,7 +44,7 @@ namespace MCServer {
 
 struct WorldData {
     string name;
-    map<Point2D, Chunk> chunks;
+    map<ChunkCoordinates, Chunk> chunks;
 
     bool hardcore;
     bool structures;
@@ -132,6 +136,56 @@ const std::string & World::getName() {
     return m->name;
 }
 
+vector<string> printTag(Tag *tag) {
+    cout << "tag = " << tag << '\n';
+    vector<string> strings;
+    std::ostringstream ss;
+    try {
+        ss << demangle(typeid(*tag).name());
+    } catch (const std::exception &e) {
+        cout << e.what() << "tag = " << tag << '\n';
+    }
+    if (tag->getName().size() > 0) {
+        ss << ": " << tag->getName();
+    }
+    TagCompound *compound = 0;
+    TagList *list = 0;
+    if ((compound = dynamic_cast<TagCompound *>(tag)) != 0) {
+        ss << " {\n";
+        strings.push_back(ss.str());
+        map<string, Tag *> &m = compound->getData();
+        for (auto it = m.begin(); it != m.end(); ++it) {
+            vector<string> child = printTag(it->second);
+            for (auto it2 = child.begin(); it2 != child.end(); ++it2) {
+                strings.push_back("    " + *it2);
+            }
+        }
+        strings.push_back("}\n");
+    }
+    else if ((list = dynamic_cast<TagList *>(tag)) != 0) {
+        ss << "{\n";
+        strings.push_back(ss.str());
+        vector<Tag *> &m = list->getData();
+        for (auto it = m.begin(); it != m.end(); ++it) {
+            cout << "it: " << *it << '\n';
+            if (!*it) {
+                strings.push_back("NULL");
+                continue;
+            }
+            vector<string> child = printTag(*it);
+            for (auto it2 = child.begin(); it2 != child.end(); ++it2) {
+                strings.push_back("    " + *it2);
+            }
+        }
+        strings.push_back("}\n");
+    }
+    else {
+        ss << '\n';
+        strings.push_back(ss.str());
+    }
+    return strings;
+}
+
 void World::readRegionFile(const std::string &fileName) {
     PlainInputStream in(fileName, BIG);
     uint32_t i = in.readInt();
@@ -152,12 +206,25 @@ void World::readRegionFile(const std::string &fileName) {
     cout << "    " << demangle(typeid(*compound).name()) << '\n';
     cout << "Compound's name: \n";
     cout << "    " << compound->getName() << '\n';
-    map<string, NBT::Tag *> &chunkData = compound->getData();
+
     cout << "compound's members: \n";
-    for (auto it = chunkData.begin(); it != chunkData.end(); ++it) {
-        cout << "    " << it->first << ": " << demangle(typeid(*it->second).name()) << '\n';
+    cout << "    compound: " << compound << '\n';
+    vector<string> tree = printTag(compound);
+    for (size_t i=0; i < tree.size(); ++i) {
+        cout << tree[i];
     }
 
+
+    TagCompound &level = compound->getCompound("Level");
+    TagList &sections = level.getList("Sections");
+    vector<Tag *> &sectionsV = sections.getData();
+    for (Tag *section : sectionsV) {
+        TagCompound *sectionC = dynamic_cast<TagCompound *>(section);
+        uint8_t y = sectionC->getUByte("Y");
+        cout << "Y: " << uint16_t(y) << '\n';
+    }
+    m->chunks[{0, 0}].loadFrom(*compound);
+    
 }
 
 }

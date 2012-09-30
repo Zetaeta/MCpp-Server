@@ -7,15 +7,16 @@
 namespace MCServer {
 
 class Block {
-    Block(uint16_t = 0, uint8_t = 0);
+public:
+    Block(uint8_t = 0, uint8_t = 0);
     virtual ~Block();
 
     uint16_t getId();
     uint8_t getMetadata();
 
-    static Block * newBlock(uint16_t id, uint8_t metadata);
-private:
-    uint16_t id;
+    static Block * newBlock(uint8_t id, uint8_t metadata);
+//private:
+    uint8_t id;
     uint8_t metadata;
 };
 

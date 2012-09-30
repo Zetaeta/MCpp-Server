@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <vector>
 
+#include <IOStream/Buffer.hpp>
+
 #include "SocketInputStream.hpp"
 
 extern "C" ssize_t read(int fd, void *buf, size_t count);
@@ -18,13 +20,16 @@ extern "C" ssize_t read(int fd, void *buf, size_t count);
 typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
 #endif
 
+#define UPDATED_ESIS_READ
+
 namespace MCServer {
 namespace Network {
 
 class EncryptedSocketInputStream : public virtual SocketInputStream {
 public:
     EncryptedSocketInputStream(int socketfd, EVP_CIPHER_CTX *);
-    EncryptedSocketInputStream() {}
+    EncryptedSocketInputStream()
+    :input(0), output(0) {}
     EncryptedSocketInputStream & operator>>(uint8_t&);
     EncryptedSocketInputStream & operator>>(int8_t&);
     EncryptedSocketInputStream & operator>>(uint16_t&);
@@ -74,15 +79,22 @@ public:
      */
     void * readRaw(size_t length);
 private:
+    void populateInput();
+
     int socketfd;
     EVP_CIPHER_CTX *decryptor;
+#ifdef UPDATED_ESIS_READ
+    IOStream::Buffer input;
+    IOStream::Buffer output;
+
+#else
     uint8_t encryptedBuffer[CIPHER_BUFFER_LENGTH];
     int bufferPos;
     int bufferFullLength;
     std::vector<uint8_t> outputBuffer;
     int outputBufferPos;
     size_t outputBufferFullLength;
-    
+#endif
 };
 
 }

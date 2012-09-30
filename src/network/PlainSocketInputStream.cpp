@@ -111,7 +111,6 @@ PlainSocketInputStream & PlainSocketInputStream::operator>>(std::string &data) {
 }
 
 PlainSocketInputStream & PlainSocketInputStream::peek(uint8_t &data) {
-    Logging::Logger &log = MinecraftServer::getServer().getLogger();
     recv(socketfd, &data, sizeof(data), MSG_PEEK);
     return *this;
 }

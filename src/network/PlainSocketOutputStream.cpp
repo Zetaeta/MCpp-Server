@@ -121,12 +121,7 @@ PlainSocketOutputStream & PlainSocketOutputStream::operator<<(const std::string 
 
 PlainSocketOutputStream & PlainSocketOutputStream::operator<<(const Packet &packet) {
     ::write(socketfd, packet.getBytes(), packet.size());
-    const uint8_t *bytes = packet.getBytes();
-    Logging::Logger &log = MinecraftServer::getServer().getLogger();
-    log << "Sending packet: \n";
-//    for (int i=0; i<packet.size(); ++i) {
-//        log << "packet[" << i << "] = " << bytes[i] << " (" << static_cast<uint16_t>(bytes[i]) << ")\n";
-//    }
+    return *this;
 }
 
 void PlainSocketOutputStream::writeRaw(const void *data, size_t length) {

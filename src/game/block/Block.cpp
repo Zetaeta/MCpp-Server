@@ -3,7 +3,7 @@
 
 namespace MCServer {
 
-Block::Block(uint16_t id, uint8_t metadata)
+Block::Block(uint8_t id, uint8_t metadata)
 :id(id), metadata(metadata) {
     
 }

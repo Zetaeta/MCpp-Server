@@ -95,7 +95,7 @@ bool PluginManager::loadPlugin(const std::string &file) {
             #ifdef DEBUG
             rulesTried.push_back(it->second->getName());
             #endif
-            if (plugin = it->second->loadPlugin(file)) {
+            if ( (plugin = it->second->loadPlugin(file)) ) {
                 log << "Succeeded loading " << file << '\n';
                 break;
             }
@@ -115,6 +115,7 @@ bool PluginManager::loadPlugin(const std::string &file) {
         return 0;
     }
     plugin->load();
+    return true;
 }
 
 }

@@ -46,7 +46,7 @@ public:
     template<class T>
     void add(T *data, size_t length) {
         buffer.reserve(length * sizeof(T));
-        int i = 0;
+        size_t i = 0;
         while (i < length) {
             buffer.push_back(data[i]);
             ++i;

@@ -3,9 +3,9 @@ currentdir=/home/daniel/Documents/Programming/MC++-Server
 
 current_PROGRAMS = mc++-server
 
-mc___server_CXXFLAGS = -O1 -g -std=c++11 -rdynamic -I src/
+mc___server_CXXFLAGS = -O1 -g -std=c++11 -rdynamic -I src/ -Wall
 mc___server_LDFLAGS = -rdynamic
-mc___server_LDADD = -lreadline -lpthread -lssl -lcrypto -ldl -lNBT -lIOStream
+mc___server_LDADD = -lreadline -lpthread -lssl -lcrypto -ldl -lNBT -lIOStream -lrt
 
 main = src/main.cpp src/MinecraftServer.cpp src/Lock.cpp
 network = src/network/NetworkServer.cpp src/network/NetUtils.cpp src/network/PlainSocketOutputStream.cpp src/network/PlainSocketInputStream.cpp src/network/PlainSocketStream.cpp src/network/ClientConnection.cpp src/network/Packet.cpp src/network/PacketHandler.cpp src/network/EncryptedSocketInputStream.cpp src/network/EncryptedSocketOutputStream.cpp src/network/EncryptedSocketStream.cpp

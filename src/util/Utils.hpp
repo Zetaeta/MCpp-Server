@@ -11,11 +11,13 @@
 namespace MCServer {
 
 inline uint32_t floatToIntBits(float f) {
-    return *reinterpret_cast<uint32_t *>(&f);
+    uint32_t *i = reinterpret_cast<uint32_t *>(&f);
+    return *i;
 }
 
 inline uint64_t doubleToInt64Bits(double d) {
-    return *reinterpret_cast<uint64_t *>(&d);
+    uint64_t *i = reinterpret_cast<uint64_t *>(&d);
+    return *i;
 }
 
 template<class T>
@@ -37,6 +39,8 @@ extern std::string commandName;
 bool inUsrShare();
 
 std::string demangle(const std::string &);
+
+double diffms(timespec start, timespec end);
 
 }
 

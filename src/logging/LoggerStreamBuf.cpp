@@ -15,6 +15,7 @@ streambuf::int_type LoggerStreamBuf::overflow(streambuf::int_type c) {
     if (c != EOF) {
         log << level << char(c);
     }
+    return c;
 }
 
 }

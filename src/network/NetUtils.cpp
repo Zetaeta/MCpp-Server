@@ -16,11 +16,11 @@ namespace Network {
 
 bool isBigEndian() {
     unsigned char endianTest[] = {1, 0};
-    short x = *(reinterpret_cast<short *>(endianTest));
-    if (x == 256) {
+    short *x = reinterpret_cast<short *>(endianTest);
+    if (*x == 256) {
         return true;
     }
-    else if (x == 1) {
+    else if (*x == 1) {
         return false;
     }
     else {

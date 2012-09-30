@@ -123,12 +123,7 @@ EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(const std:
 
 EncryptedSocketOutputStream & EncryptedSocketOutputStream::operator<<(const Packet &packet) {
     write(packet.getBytes(), packet.size());
-    const uint8_t *bytes = packet.getBytes();
-    Logging::Logger &log = MinecraftServer::getServer().getLogger();
-    log << "Sending packet: \n";
-//    for (int i=0; i<packet.size(); ++i) {
-//        log << "packet[" << i << "] = " << bytes[i] << " (" << static_cast<uint16_t>(bytes[i]) << ")\n";
-//    }
+    return *this;
 }
 
 void EncryptedSocketOutputStream::writeRaw(const void *data, size_t length) {

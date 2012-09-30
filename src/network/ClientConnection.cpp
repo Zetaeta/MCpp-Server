@@ -40,6 +40,7 @@ void * startClientConnection(void * cc_) {
 }
 
 struct ClientConnectionData {
+    MinecraftServer &server;
     int socketfd;
     
     pthread_t threadId;
@@ -60,10 +61,8 @@ struct ClientConnectionData {
     }
 
     ClientConnectionData(int sfd)
-    :socketfd(sfd), pss(sfd), server(MinecraftServer::getServer()), shutdown(false)
-    {}
+    :server(MinecraftServer::getServer()), socketfd(sfd), shutdown(false), encrypted(false), pss(sfd) {}
 
-    MinecraftServer &server;
 };
 
 ClientConnection::ClientConnection(int socketfd) 

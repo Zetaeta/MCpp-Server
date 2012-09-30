@@ -40,4 +40,11 @@ string demangle(const string &name) {
     }
 }
 
+double diffms(timespec start, timespec end) {
+    std::cout << start.tv_nsec << ' ' << end.tv_nsec << '\n';
+    long diff = end.tv_nsec - start.tv_nsec;
+    std::cout << diff << '\n';
+    return diff / 1000;
+}
+
 }

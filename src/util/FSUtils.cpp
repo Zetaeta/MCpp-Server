@@ -32,6 +32,7 @@ bool exists(const string &file) {
     }
     else {
         MinecraftServer::server().getLogger() << "Failed stat(): " << strerror(errno) << '\n';
+        return false;
     }
 }
 
@@ -64,7 +65,7 @@ void getEntries(const string &_directory, vector<string> &entries) {
         return;
     }
     dirent *entry;
-    while (entry = readdir(dir)) {
+    while ( (entry = readdir(dir)) ) {
         if (strcmp(entry->d_name, "..") == 0) {
             continue;
         }
