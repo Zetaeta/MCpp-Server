@@ -224,9 +224,6 @@ void * EncryptedSocketInputStream::readRaw(size_t length) {
 
 
 ssize_t EncryptedSocketInputStream::read(void *buf, size_t count) {
-#ifdef UPDATED_ESIS_READ
-    cout << "read(): count = " << count << '\n'
-        << "output.available() = " << output.available() << ", input.available() = " << input.available() << '\n';
     size_t added = 0;
     while (added < count) { // Buf is not full
         if (output.available() < (count - added)) {
@@ -236,20 +233,13 @@ ssize_t EncryptedSocketInputStream::read(void *buf, size_t count) {
             if (input.available() == 0) { // Input buffer is empty.
                 populateInput();
             }
-            cout << "input.available() = " << input.available() << '\n';
             int outLen, inLen = min(input.available(), output.spaceAfter() - decryptor->cipher->block_size);
             EVP_DecryptUpdate(decryptor, output.end(), &outLen, input.begin(), inLen);
-            cout << "inLen = " << inLen << ", outLen = " << outLen << '\n';
-            cout << std::hex << "*output.end() = 0x" << uint16_t(*output.end()) << ", *output.begin() = 0x" << uint16_t(*output.begin()) << '\n';
             input.take(inLen);
             output.add(outLen);
-            cout << std::hex << "*output.end() - 1 = 0x" << uint16_t(*(output.end() - 1)) << ", *output.begin() = 0x" << uint16_t(*output.begin()) << '\n';
-            cout << "output[0] = 0x" << uint16_t(output[0]) << ", output[1] = 0x" << uint16_t(output[1]) << '\n';
         }
         int copy = min(count - added, output.available());
-        cout << "copy = " << copy << '\n';
         memcpy(buf, output.begin(), copy);
-        cout << "buf[0] = " << uint16_t(static_cast<uint8_t *>(buf)[0]) << '\n';
         output.take(copy);
         added += copy;
     }
@@ -257,13 +247,8 @@ ssize_t EncryptedSocketInputStream::read(void *buf, size_t count) {
 }
 
 void EncryptedSocketInputStream::populateInput() {
-    cout << "populateInput(): input.available() = " << input.available() << '\n';
     input.shiftToStart();
-    cout << "input.spaceAfter(): " << input.spaceAfter() << '\n';
-    cout << "input.spaceBefore(): " << input.spaceBefore() << '\n';
-    cout << "input.fullSize(): " << input.fullSize() << '\n';
     ssize_t bytesRead = ::read(socketfd, input.end(), input.spaceAfter());
-    cout << "Read " << bytesRead << " bytes!\n";
     if (bytesRead < 0) {
         std::cerr << "bytesRead < 0!\n";
         return;

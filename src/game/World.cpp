@@ -12,6 +12,7 @@
 #include <IOStream/PlainInputStream.hpp>
 #include <IOStream/GZipInputStream.hpp>
 #include <IOStream/DeflateInputStream.hpp>
+#include <IOStream/InputStream.hpp>
 
 #include "World.hpp"
 #include "Point3D.hpp"
@@ -28,6 +29,7 @@ using std::string;
 using std::map;
 using std::vector;
 using std::cout;
+using std::ostringstream;
 
 using NBT::Tag;
 using NBT::TagCompound;
@@ -37,6 +39,7 @@ using IOStream::PlainInputStream;
 using IOStream::GZipInputStream;
 using IOStream::DeflateInputStream;
 using IOStream::BIG;
+using IOStream::InputStream;
 
 USING_LOGGING_LEVEL
 
@@ -68,7 +71,7 @@ World::World()
 :m(new WorldData) {
 }
 
-World::World(const string &name, uint128_t uid)
+World::World(const string &name)
 :m(new WorldData) {
     m->name = name;
 }
@@ -187,18 +190,16 @@ vector<string> printTag(Tag *tag) {
 }
 
 void World::readRegionFile(const std::string &fileName) {
-    PlainInputStream in(fileName, BIG);
+    PlainInputStream _in(fileName);
+    InputStream in(_in, BIG);
     uint32_t i = in.readInt();
     uint8_t usedSectors = i & 0xFF;
     uint32_t chunkOffset = i >> 8;
-    cout << "Loading " << fileName << '\n';
-    cout << "Sectors used by chunk: " << uint16_t(usedSectors) << ", chunk offset: " << chunkOffset << '\n';
     in.seek(chunkOffset * 4096, SEEK_SET);
-    cout << "File size: " << fileSize(fileName) << '\n';
     int length = in.readInt();
     uint8_t compression = in.readUByte();
-    cout << "Length: " << length << ", compression = " << uint16_t(compression) << '\n';
-    DeflateInputStream chunk(in.fd(), BIG);
+    DeflateInputStream _chunk(_in.fd());
+    InputStream chunk(_chunk, BIG);
     Tag *chunkRoot = NBT::readTag(chunk);
     cout << "Loaded chunkRoot: " << chunkRoot << "\n";
     TagCompound *compound = dynamic_cast<TagCompound *>(chunkRoot);
@@ -225,6 +226,15 @@ void World::readRegionFile(const std::string &fileName) {
     }
     m->chunks[{0, 0}].loadFrom(*compound);
     
+}
+
+Chunk & World::loadChunk(const ChunkCoordinates &pos) {
+    ostringstream filenameSs;
+    filenameSs << "r." << (pos.x / 32) << '.' << (pos.z / 32) << ".mca";
+    string filename = filenameSs.str();
+    InputStream plain(new PlainInputStream(filenameSs.str()), BIG);
+    size_t headerOffset = 4 * (pos.x + pos.z * 32); // Offset of chunk information from start of file.
+    plain.seek(headerOffset, SEEK_SET);
 }
 
 }

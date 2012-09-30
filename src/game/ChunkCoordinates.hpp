@@ -8,26 +8,35 @@
 
 namespace MCServer {
 
-struct ChunkCoordinates : public Point2D {
-    ChunkCoordinates()
+struct ChunkCoordinates {
+    constexpr ChunkCoordinates()
     :ChunkCoordinates(0, 0) {}
 
-    ChunkCoordinates(Coordinate x, Coordinate y)
-    :Point2D(x * 16, y * 16), blockX(Point2D::x), blockY(Point2D::y) {}
+    constexpr ChunkCoordinates(Coordinate x, Coordinate z)
+    :x(x), z(z) {}
 
-    ChunkCoordinates(const Point2D &p)
-    :Point2D(p), blockX(Point2D::x), blockY(Point2D::y) {}
+    constexpr ChunkCoordinates(const Point2D &p)
+    :x(p.x / 16), z(p.z / 16) {}
 
-    ChunkCoordinates(Point2D &&p)
-    :Point2D(p), blockX(Point2D::x), blockY(Point2D::y) {}
+    constexpr ChunkCoordinates(Point2D &&p)
+    :x(p.x / 16), z(p.z / 16) {}
 
     ChunkCoordinates(const std::initializer_list<int> &i)
     :ChunkCoordinates(*i.begin(), *(i.end() - 1)) {
         assert(i.size() == 2);
     }
 
-    int x, y;
-    int &blockX, &blockY;
+    constexpr operator Point2D() const {
+        return Point2D(x * 16, z *  16);
+    }
+
+    Coordinate x, z;
+    constexpr Coordinate blockX() const {
+        return x * 16;
+    }
+    constexpr Coordinate blockZ() const {
+        return z * 16;
+    }
 };
 
 }

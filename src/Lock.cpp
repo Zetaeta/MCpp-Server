@@ -47,6 +47,7 @@ bool Lock::tryLock() {
     }
     else {
         std::cerr << strerror(errno) << '\n';
+        return false;
     }
     // TODO: Proper error handling
 }

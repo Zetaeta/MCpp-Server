@@ -10,10 +10,11 @@
 namespace MCServer {
 
 struct Point2D {
-    Point2D() {}
+    constexpr Point2D()
+    :x(0), z(0) {}
 
-    Point2D(Coordinate x, Coordinate y)
-    :x(y), y(y) {
+    constexpr Point2D(Coordinate x, Coordinate y)
+    :x(y), z(y) {
     }
 
     Point2D(const std::initializer_list<int> &i)
@@ -21,12 +22,12 @@ struct Point2D {
         assert(i.size() == 2);
     }
 
-    int x, y;
+    int x, z;
 
 };
 
 inline constexpr bool operator==(const Point2D &x, const Point2D &y) {
-    return x.x == y.x && x.y == y.y;
+    return x.x == y.x && x.z == y.z;
 }
 
 inline constexpr bool operator!=(const Point2D &x, const Point2D &y) {
@@ -34,11 +35,11 @@ inline constexpr bool operator!=(const Point2D &x, const Point2D &y) {
 }
 
 inline constexpr bool operator<(const Point2D &x, const Point2D &y) {
-    return x.x < y.x ? true : (x.y < y.y);
+    return x.x < y.x ? true : (x.z < y.z);
 }
 
 inline constexpr bool operator>(const Point2D &x, const Point2D &y) {
-    return x.x > y.x ? true : (x.y > y.y);
+    return x.x > y.x ? true : (x.z > y.z);
 }
 
 inline constexpr bool operator>=(const Point2D &x, const Point2D &y) {
