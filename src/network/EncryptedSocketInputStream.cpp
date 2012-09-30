@@ -25,12 +25,7 @@ namespace MCServer {
 namespace Network {
 
 EncryptedSocketInputStream::EncryptedSocketInputStream(int socketfd, EVP_CIPHER_CTX *decryptor)
-#ifdef UPDATED_ESIS_READ
-    :socketfd(socketfd), decryptor(decryptor), input(CIPHER_BUFFER_LENGTH), output(CIPHER_BUFFER_LENGTH) {
-#else
-    :socketfd(socketfd), decryptor(decryptor), bufferPos(-1), bufferFullLength(0), outputBufferPos(0), outputBufferFullLength(0) {
-    outputBuffer.resize(CIPHER_BUFFER_LENGTH + decryptor->cipher->block_size);
-#endif
+:socketfd(socketfd), decryptor(decryptor), input(CIPHER_BUFFER_LENGTH), output(CIPHER_BUFFER_LENGTH) {
    cout << "EncryptedSocketInputStream(int, EVP_CIPHER_CTX *): input.fullSize() = " << input.fullSize() << ", output.fullSize() = " << output.fullSize() << '\n';
 }
 
@@ -228,9 +223,6 @@ void * EncryptedSocketInputStream::readRaw(size_t length) {
 }
 
 
-/*
- * FIXME: This method is bad and I should feel bad.
- */
 ssize_t EncryptedSocketInputStream::read(void *buf, size_t count) {
 #ifdef UPDATED_ESIS_READ
     cout << "read(): count = " << count << '\n'
@@ -262,63 +254,6 @@ ssize_t EncryptedSocketInputStream::read(void *buf, size_t count) {
         added += copy;
     }
     return added;
-#else
-    size_t addedToBuf = 0;
-    Logging::Logger &log = MinecraftServer::getServer().getLogger();
-    bool needMoreBytes = false; // To avoid unnecessary looping while waiting for reading.
-    while (addedToBuf < count) {
-        if (bufferPos > 0) { // There is space in the buffer.
-            memmove(encryptedBuffer, &encryptedBuffer[bufferPos], bufferFullLength);
-            bufferPos = 0;
-        }
-        else if (bufferPos < 0) {
-            bufferPos = 0;
-        }
-        if (bufferFullLength < (CIPHER_BUFFER_LENGTH - 1)) {
-            fd_set sockSet;
-            FD_ZERO(&sockSet);
-            FD_SET(socketfd, &sockSet);
-            struct timeval emptyTime;
-            memset(&emptyTime, 0, sizeof(emptyTime));
-            int selected = select(socketfd + 1, &sockSet, NULL, NULL, &emptyTime);
-            if ((selected == 1 && FD_ISSET(socketfd, &sockSet)) || needMoreBytes) {
-                int read = ::read(socketfd, &encryptedBuffer[bufferFullLength], CIPHER_BUFFER_LENGTH - bufferFullLength - 1);
-                if (read < 0) {
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        read = 0;
-                    }
-                    else {
-                        log << WARNING << "read < 0! Strerror = " << strerror(read) << '\n';
-                        read = 0;
-                    }
-                }
-                bufferFullLength += read;
-            }
-        }
-        if ((outputBufferFullLength * 2) < count && bufferFullLength > 0) { // If the outputBuffer is less than half empty.
-            if (outputBufferPos > 0) {
-                memmove(outputBuffer.data(), &outputBuffer[outputBufferPos], outputBufferFullLength);
-            }
-            outputBufferPos = 0;
-            int outLen;
-            int inLen = min(size_t(bufferFullLength), (outputBuffer.size() - outputBufferFullLength) - decryptor->cipher->block_size); // Length to read.
-            EVP_DecryptUpdate(decryptor, &outputBuffer[outputBufferFullLength], &outLen, &encryptedBuffer[bufferPos], inLen);
-            bufferPos += inLen; // increment bufferPos by the number of bytes taken and decrypted.
-            bufferFullLength -= outLen;
-            outputBufferFullLength += outLen;
-        }
-        int toWrite = min(outputBufferFullLength, count);
-        memcpy(buf, &outputBuffer[outputBufferPos], toWrite); // Move bytes from outputBuffer to output.
-        addedToBuf += toWrite;
-        outputBufferPos += toWrite;
-        outputBufferFullLength -= toWrite;
-        if (!outputBufferFullLength && !bufferFullLength) {
-            needMoreBytes = true;
-        }
-    }
-    return 0;
-#endif
-
 }
 
 void EncryptedSocketInputStream::populateInput() {

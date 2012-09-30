@@ -20,8 +20,6 @@ extern "C" ssize_t read(int fd, void *buf, size_t count);
 typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
 #endif
 
-#define UPDATED_ESIS_READ
-
 namespace MCServer {
 namespace Network {
 
@@ -83,18 +81,8 @@ private:
 
     int socketfd;
     EVP_CIPHER_CTX *decryptor;
-#ifdef UPDATED_ESIS_READ
     IOStream::Buffer input;
     IOStream::Buffer output;
-
-#else
-    uint8_t encryptedBuffer[CIPHER_BUFFER_LENGTH];
-    int bufferPos;
-    int bufferFullLength;
-    std::vector<uint8_t> outputBuffer;
-    int outputBufferPos;
-    size_t outputBufferFullLength;
-#endif
 };
 
 }
