@@ -20,7 +20,8 @@ install-sh
 missing
 aclocal.m4
 stamp-h1
-config.*
+config.h
+config.h.in
 autoscan.log
 configure.scan
 src/.deps
