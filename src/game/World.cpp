@@ -9,10 +9,11 @@
 #include <nbt/TagNotFound.hpp>
 #include <nbt/TagList.hpp>
 
-#include <IOStream/PlainInputStream.hpp>
+#include <IOStream/FileInputStream.hpp>
 #include <IOStream/GZipInputStream.hpp>
 #include <IOStream/DeflateInputStream.hpp>
 #include <IOStream/InputStream.hpp>
+#include <IOStream/ArrayInputStream.hpp>
 
 #include "World.hpp"
 #include "Point3D.hpp"
@@ -35,11 +36,12 @@ using NBT::Tag;
 using NBT::TagCompound;
 using NBT::TagList;
 
-using IOStream::PlainInputStream;
 using IOStream::GZipInputStream;
 using IOStream::DeflateInputStream;
 using IOStream::BIG;
 using IOStream::InputStream;
+using IOStream::FileInputStream;
+using IOStream::ArrayInputStream;
 
 USING_LOGGING_LEVEL
 
@@ -65,6 +67,7 @@ struct WorldData {
     long time;
 
     string generatorName;
+    string directory;
 };
 
 World::World()
@@ -85,6 +88,7 @@ Chunk & World::chunkAt(const Point2D &pt) {
 }
 
 void World::loadFrom(const std::string &directory) {
+    m->directory = directory;
     cout << "World::loadFrom()\n";
     string levelDatFile = directory + "/level.dat";
     if (!exists(levelDatFile)) {
@@ -132,7 +136,8 @@ void World::loadFrom(const std::string &directory) {
         cout << "Found region file " << *it << '\n';
 //        readRegionFile(*it);
     }
-    readRegionFile("world/region/r.0.0.mca");
+//    readRegionFile("world/region/r.0.0.mca");
+    loadChunk({0,0});
 }
 
 const std::string & World::getName() {
@@ -140,7 +145,7 @@ const std::string & World::getName() {
 }
 
 vector<string> printTag(Tag *tag) {
-    cout << "tag = " << tag << '\n';
+//    cout << "tag = " << tag << '\n';
     vector<string> strings;
     std::ostringstream ss;
     try {
@@ -170,7 +175,7 @@ vector<string> printTag(Tag *tag) {
         strings.push_back(ss.str());
         vector<Tag *> &m = list->getData();
         for (auto it = m.begin(); it != m.end(); ++it) {
-            cout << "it: " << *it << '\n';
+//            cout << "it: " << *it << '\n';
             if (!*it) {
                 strings.push_back("NULL");
                 continue;
@@ -190,16 +195,15 @@ vector<string> printTag(Tag *tag) {
 }
 
 void World::readRegionFile(const std::string &fileName) {
-    PlainInputStream _in(fileName);
-    InputStream in(_in, BIG);
+    FileInputStream fin(fileName);
+    InputStream in(fin, BIG);
     uint32_t i = in.readInt();
     uint8_t usedSectors = i & 0xFF;
     uint32_t chunkOffset = i >> 8;
     in.seek(chunkOffset * 4096, SEEK_SET);
     int length = in.readInt();
     uint8_t compression = in.readUByte();
-    DeflateInputStream _chunk(_in.fd());
-    InputStream chunk(_chunk, BIG);
+    InputStream chunk(new DeflateInputStream(fin), BIG);
     Tag *chunkRoot = NBT::readTag(chunk);
     cout << "Loaded chunkRoot: " << chunkRoot << "\n";
     TagCompound *compound = dynamic_cast<TagCompound *>(chunkRoot);
@@ -230,11 +234,47 @@ void World::readRegionFile(const std::string &fileName) {
 
 Chunk & World::loadChunk(const ChunkCoordinates &pos) {
     ostringstream filenameSs;
-    filenameSs << "r." << (pos.x / 32) << '.' << (pos.z / 32) << ".mca";
+    filenameSs << m->directory << "/region/" << "r." << (pos.x / 32) << '.' << (pos.z / 32) << ".mca";
     string filename = filenameSs.str();
-    InputStream plain(new PlainInputStream(filenameSs.str()), BIG);
+    cout << filename << '\n';
+    FileInputStream fin(filenameSs.str());
+    InputStream in(fin, BIG);
     size_t headerOffset = 4 * (pos.x + pos.z * 32); // Offset of chunk information from start of file.
-    plain.seek(headerOffset, SEEK_SET);
+    in.seek(headerOffset, SEEK_SET);
+    uint32_t chunkInfo = in.readInt();
+    uint8_t usedSectors = chunkInfo & 0xFF;
+    uint32_t chunkOffset = chunkInfo >> 8;
+    in.seek(chunkOffset * 4096, SEEK_SET);
+    int length = in.readInt();
+    off_t startPos = fin.seek(0, SEEK_CUR);
+    uint8_t version = in.readUByte();
+    cout << "length = " << length << ", version = " << uint16_t(version) << '\n';
+#define BUFFERED_IN
+
+#ifdef BUFFERED_IN
+    uint8_t *compressedData = new uint8_t[length - 1];
+    cout << "in.read(): " << in.read(compressedData, length - 1) << '\n';
+    DeflateInputStream din(new ArrayInputStream(compressedData, length - 1));
+    off_t endPos = fin.seek(0, SEEK_CUR);
+    cout << "startPos = " << startPos << ", endPos = " << endPos << ", diff = " << (endPos - startPos) << '\n';
+#else
+    DeflateInputStream din(fin);
+#endif
+    InputStream compIn(din, BIG);
+    TagCompound *chunkRoot = dynamic_cast<TagCompound *>(NBT::readTag(compIn));
+    din.finish();
+#ifndef BUFFERED_IN
+    off_t endPos = fin.seek(0, SEEK_CUR);
+    cout << "startPos = " << startPos << ", endPos = " << endPos << ", diff = " << (endPos - startPos) << '\n';
+#endif
+//    din.putBack();
+    vector<string> tree = printTag(chunkRoot);
+    for (size_t i=0; i < tree.size(); ++i) {
+        cout << tree[i];
+    }
+    m->chunks[{pos.x, pos.z}].loadFrom(*chunkRoot);
+    return m->chunks[{pos.x, pos.z}];
+    cout << "Meow\n";
 }
 
 }
