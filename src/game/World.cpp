@@ -249,24 +249,15 @@ Chunk & World::loadChunk(const ChunkCoordinates &pos) {
     off_t startPos = fin.seek(0, SEEK_CUR);
     uint8_t version = in.readUByte();
     cout << "length = " << length << ", version = " << uint16_t(version) << '\n';
-#define BUFFERED_IN
 
-#ifdef BUFFERED_IN
     uint8_t *compressedData = new uint8_t[length - 1];
     cout << "in.read(): " << in.read(compressedData, length - 1) << '\n';
     DeflateInputStream din(new ArrayInputStream(compressedData, length - 1));
     off_t endPos = fin.seek(0, SEEK_CUR);
     cout << "startPos = " << startPos << ", endPos = " << endPos << ", diff = " << (endPos - startPos) << '\n';
-#else
-    DeflateInputStream din(fin);
-#endif
     InputStream compIn(din, BIG);
     TagCompound *chunkRoot = dynamic_cast<TagCompound *>(NBT::readTag(compIn));
     din.finish();
-#ifndef BUFFERED_IN
-    off_t endPos = fin.seek(0, SEEK_CUR);
-    cout << "startPos = " << startPos << ", endPos = " << endPos << ", diff = " << (endPos - startPos) << '\n';
-#endif
 //    din.putBack();
     vector<string> tree = printTag(chunkRoot);
     for (size_t i=0; i < tree.size(); ++i) {
