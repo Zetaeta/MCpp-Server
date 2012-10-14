@@ -40,11 +40,16 @@ string demangle(const string &name) {
     }
 }
 
-double diffms(timespec start, timespec end) {
-    std::cout << start.tv_nsec << ' ' << end.tv_nsec << '\n';
-    long diff = end.tv_nsec - start.tv_nsec;
-    std::cout << diff << '\n';
-    return diff / 1000;
+long diffms(timespec start, timespec end) {
+    long nsdiff = end.tv_nsec - start.tv_nsec;
+    long sdiff = end.tv_sec - start.tv_sec;
+    return sdiff * 1000 + nsdiff / 1000;
+}
+
+long currentTimeMillis() {
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts.tv_sec * 1000 + ts.tv_nsec / 1000;
 }
 
 }

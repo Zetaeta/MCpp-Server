@@ -34,6 +34,7 @@ std::string UIHandler::timeString() {
     time(&currTime);
     struct tm *localTime = localtime(&currTime);
     strftime(timeStr, TIMELENGTH, "%H:%M:%S", localTime);
+    timeStr[TIMELENGTH - 1] = '\0';
     return timeStr;
 }
 

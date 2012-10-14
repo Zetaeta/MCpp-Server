@@ -1,20 +1,14 @@
 
-#ifndef PLAYERDATA_HPP
-#define PLAYERDATA_HPP
+#ifndef PLAYERWORLDDATA_HPP
+#define PLAYERWORLDDATA_HPP
 
-#include <string>
-
-#include "EntityData.hpp"
+#include "Point3D.hpp"
 
 namespace MCServer {
 
 enum GameMode : uint8_t;
 
-namespace Entities {
-
-struct PlayerData : public EntityData {
-    std::string name;
-
+struct PlayerWorldData {
     bool onGround;
     bool sleeping;
     short air;
@@ -37,7 +31,6 @@ struct PlayerData : public EntityData {
     Point3D position;
 };
 
-}
 }
 
 #endif

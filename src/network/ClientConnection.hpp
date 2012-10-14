@@ -41,6 +41,9 @@ protected:
 private:
 //    void handleEncryptionResponse();
     void setupCrypto(std::string);
+    void sendWorld();
+    // Login stuff after encryption has been enabled.
+    void finishLogin();
 
     ClientConnectionData *m;
 };

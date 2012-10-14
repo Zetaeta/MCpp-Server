@@ -7,6 +7,8 @@
 #include <utility>
 #include <typeinfo>
 #include <cxxabi.h>
+#include <string.h>
+#include <mcheck.h>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -16,9 +18,11 @@
 #include <openssl/x509v3.h>
 #include <openssl/rc4.h>
 
+#include <Util/StringUtils.hpp>
+
 #include "MinecraftServer.hpp"
 #include "int128.h"
-
+#include "SchedulerSimple.hpp"
 
 #include "logging/Logger.hpp"
 #include "logging/LoggerStreamBuf.hpp"
@@ -50,6 +54,8 @@ using std::map;
 using std::vector;
 using std::streambuf;
 
+using Util::demangle;
+
 using Network::NetworkServer;
 using Network::PacketHandler;
 using Logging::Logger;
@@ -79,6 +85,7 @@ struct MinecraftServerData {
     EntityManager *entityManager;
     PluginManager *pluginManager;
     UIManager *uiManager;
+    Scheduler *scheduler;
 
     // Crypto stuff
     RSA *rsa;
@@ -88,7 +95,8 @@ struct MinecraftServerData {
     string publicKey;
     string verifyToken;
 
-    map<string, World> worlds;
+    map<string, World *> worlds;
+    map<int, World *> worldsByDimension;
 
     MinecraftServerData(int &argc)
     :argc(argc) {}
@@ -121,6 +129,13 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     m->entityManager = new EntityManager(this);
     m->pluginManager = new PluginManager(this);
 
+    int schedulerThreadCount = 4;
+    auto stcit = options.find("scheduler-max-thread-count");
+    if (stcit != options.end()) {
+        schedulerThreadCount = atoi(stcit->second->c_str());
+    }
+    m->scheduler = new Scheduler(schedulerThreadCount);
+
     m->rsa = RSA_generate_key(1024, 17, 0, 0);
 
     m->x509 = X509_new();
@@ -139,8 +154,7 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     
     string encryptionByteCharacters = "abcedfghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
     string hexDigits = "0123456789abcdef";
-    char serverId_[17];
-    char *serverId = serverId_;
+    char serverId[17];
     char verifyToken[5];
     for (int i=0; i<16; ++i) { // Server ID random generation
         serverId[i] = hexDigits[rand() % hexDigits.size()];
@@ -151,11 +165,18 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     }
     verifyToken[4] = '\0';
     if (!userValidationEnabled()) {
-        serverId = (const char *) "-";
+//        serverId = (const char *) "-";
+        strcpy(serverId, "-");
     }
     *m->logger << INFO << "Server ID: " << serverId << '\n';
     m->serverId = serverId;
     m->verifyToken = verifyToken;
+
+    auto it = m->options.find("mtrace");
+    if (it != m->options.end()) {
+        setenv("MALLOC_TRACE", m->options["mtrace"]->c_str(), 1);
+        mtrace();
+    }
 
     PacketHandler::initialise(this);
 
@@ -249,7 +270,7 @@ void MinecraftServer::initUI() {
 }
 
 void MinecraftServer::tick() {
-//    sleep(1);
+    sleep(1);
 //    *m->logger << "Testing m->logger!\n";
 //    std::cout << "Testing cout!\n";
 }
@@ -288,15 +309,16 @@ void MinecraftServer::setupWorlds() {
 
 void MinecraftServer::loadWorld(const std::string &directory) {
 
-    World world;
+    World *world = new World;
     try {
-        world.loadFrom(directory);
+        world->loadFrom(directory);
     } catch (const WorldLoadingFailure &ex) {
         *m->logger << "Failed loading world in " << directory << ": " << ex.what() << '\n';
         return;
     }
     *m->logger << "Loaded world!\n";
-    m->worlds[world.getName()] = std::move(world);
+    m->worlds[world->getName()] = world;
+    m->worldsByDimension[world->getDimension()] = world;
 
 }
 
@@ -351,7 +373,8 @@ int MinecraftServer::getOnlinePlayerCount() {
 }
 
 string MinecraftServer::getServerId() {
-    return m->serverId;
+//    return m->serverId;
+    return "-";
 }
 
 string MinecraftServer::getLevelType() {
@@ -370,6 +393,11 @@ Difficulty MinecraftServer::getDifficulty() {
     return PEACEFUL;
 }
 
+World & MinecraftServer::getWorld(int dimension) {
+    return *m->worldsByDimension[dimension];
+}
+
+
 
 string MinecraftServer::getPublicKey() {
     return m->publicKey;
@@ -387,5 +415,6 @@ RSA * MinecraftServer::getRsa() {
 void MinecraftServer::dispatchConsoleCommand(const string &command) {
     m->logger->info("Dispatching command " + command);
 }
+
 
 } /* namespace MCServer */

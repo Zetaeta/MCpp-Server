@@ -8,12 +8,15 @@
 #include <nbt/TagCompound.hpp>
 #include <nbt/TagNotFound.hpp>
 #include <nbt/TagList.hpp>
+#include <nbt/TagDouble.hpp>
 
 #include <IOStream/FileInputStream.hpp>
 #include <IOStream/GZipInputStream.hpp>
 #include <IOStream/DeflateInputStream.hpp>
 #include <IOStream/InputStream.hpp>
 #include <IOStream/ArrayInputStream.hpp>
+
+#include <Util/StringUtils.hpp>
 
 #include "World.hpp"
 #include "Point3D.hpp"
@@ -25,6 +28,8 @@
 #include "logging/Logger.hpp"
 #include "WorldLoadingFailure.hpp"
 #include "util/Utils.hpp"
+//#include "PlayerWorldData.hpp"
+#include "entity/PlayerData.hpp"
 
 using std::string;
 using std::map;
@@ -35,6 +40,7 @@ using std::ostringstream;
 using NBT::Tag;
 using NBT::TagCompound;
 using NBT::TagList;
+using NBT::TagDouble;
 
 using IOStream::GZipInputStream;
 using IOStream::DeflateInputStream;
@@ -42,6 +48,10 @@ using IOStream::BIG;
 using IOStream::InputStream;
 using IOStream::FileInputStream;
 using IOStream::ArrayInputStream;
+
+using Util::demangle;
+
+using MCServer::Entities::PlayerData;
 
 USING_LOGGING_LEVEL
 
@@ -77,6 +87,21 @@ World::World()
 World::World(const string &name)
 :m(new WorldData) {
     m->name = name;
+}
+
+World::World(const World &other)
+:m(new WorldData(*other.m)) {
+}
+
+World::World(World &&other)
+:m(other.m) {
+    other.m = NULL;
+}
+
+World & World::operator=(World &&other){
+    m = other.m;
+    other.m = NULL;
+    return *this;
 }
 
 Chunk & World::chunkAt(int x, int y) {
@@ -140,8 +165,14 @@ void World::loadFrom(const std::string &directory) {
     loadChunk({0,0});
 }
 
-const std::string & World::getName() {
+std::string World::getName() const {
+    cout << "m = " << m << '\n';
+    cout << "World::getName(): " << m->name << '\n';
     return m->name;
+}
+
+int World::getDimension() const {
+    return 0;
 }
 
 vector<string> printTag(Tag *tag) {
@@ -253,19 +284,70 @@ Chunk & World::loadChunk(const ChunkCoordinates &pos) {
     uint8_t *compressedData = new uint8_t[length - 1];
     cout << "in.read(): " << in.read(compressedData, length - 1) << '\n';
     DeflateInputStream din(new ArrayInputStream(compressedData, length - 1));
-    off_t endPos = fin.seek(0, SEEK_CUR);
-    cout << "startPos = " << startPos << ", endPos = " << endPos << ", diff = " << (endPos - startPos) << '\n';
     InputStream compIn(din, BIG);
     TagCompound *chunkRoot = dynamic_cast<TagCompound *>(NBT::readTag(compIn));
-    din.finish();
+    din.close();
+    off_t endPos = fin.seek(0, SEEK_CUR);
+    cout << "startPos = " << startPos << ", endPos = " << endPos << ", diff = " << (endPos - startPos) << '\n';
 //    din.putBack();
     vector<string> tree = printTag(chunkRoot);
     for (size_t i=0; i < tree.size(); ++i) {
-        cout << tree[i];
+//        cout << tree[i];
     }
     m->chunks[{pos.x, pos.z}].loadFrom(*chunkRoot);
     return m->chunks[{pos.x, pos.z}];
-    cout << "Meow\n";
+}
+
+void World::loadPlayer(PlayerData *data) {
+    cout << "loadPlayer(): " << data->name << '\n';
+    cout << "World's directory: " << m->directory << '\n';
+    string filename = m->directory + "/players/" + data->name + ".dat";
+    InputStream in(new GZipInputStream(filename));
+    Tag *tag = NBT::readTag(in);
+//    Tag *tag = NBT::readFromFile(filename);
+
+//   for (int i=0; i<5; ++i) {
+//       in.readUByte();
+//   }
+
+    cout << "Player data: \n";
+    vector<string> stuff = printTag(tag);
+    for (string meow : stuff) {
+        cout << meow;
+    }
+
+    TagCompound *root = dynamic_cast<TagCompound *>(tag);
+    data->onGround = root->getByte("onGround");
+    data->sleeping = root->getByte("Sleeping");
+    data->air = root->getShort("Air");
+    data->attackTime = root->getShort("AttackTime");
+    data->deathTime = root->getShort("DeathTime");
+    data->fire = root->getShort("Fire");
+    data->health = root->getShort("Health");
+    data->hurtTime = root->getShort("HurtTime");
+    data->sleepTimer = root->getShort("SleepTimer");
+    data->dimension = root->getInt("Dimension");
+    data->foodLevel = root->getInt("foodLevel");
+    data->foodTickTimer = root->getInt("foodTickTimer");
+    data->playerGameType = GameMode(root->getInt("playerGameType"));
+    data->xpLevel = root->getInt("XpLevel");
+    data->xpTotal = root->getInt("XpTotal");
+    data->fallDistance = root->getFloat("FallDistance");
+    data->foodExhaustionLevel = root->getFloat("foodExhaustionLevel");
+    data->foodSaturationLevel = root->getFloat("foodSaturationLevel");
+    data->xpP = root->getFloat("XpP");
+    TagList position = root->getList("Pos");
+    data->position = Point3D{ dynamic_cast<TagDouble *>(position[0])->getData(),
+                      dynamic_cast<TagDouble *>(position[1])->getData(),
+                      dynamic_cast<TagDouble *>(position[2])->getData()};
+}
+
+vector<Chunk *> World::loadAll(const vector<ChunkCoordinates> &coords) {
+    vector<Chunk *> returned(coords.size());
+    for (size_t i=0; i<coords.size(); ++i) {
+        returned[i] = &loadChunk(coords[i]);
+    }
+    return returned;
 }
 
 }

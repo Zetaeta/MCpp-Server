@@ -6,7 +6,8 @@
 
 namespace MCServer {
 
-typedef int32_t Coordinate;
+//typedef int32_t Coordinate;
+typedef double Coordinate;
 
 }
 

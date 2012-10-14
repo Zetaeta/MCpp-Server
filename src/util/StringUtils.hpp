@@ -1,6 +1,6 @@
 
-#ifndef STRINGUTILS_HPP
-#define STRINGUTILS_HPP
+#ifndef MCS_STRINGUTILS_HPP
+#define MCS_STRINGUTILS_HPP
 
 #include <string>
 

@@ -5,19 +5,24 @@
 
 #include "Lock.hpp"
 
+using Util::MaybePointer;
+
 namespace MCServer {
 
 Lock::Lock()
-:locked(false) {
+:mutex(new pthread_mutex_t), locked(false) {
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-    pthread_mutex_init(&mutex, &attr);
+    pthread_mutex_init(mutex, &attr);
     pthread_mutexattr_destroy(&attr);
 }
 
+Lock::Lock(const MaybePointer<pthread_mutex_t> &mutex)
+:mutex(mutex), locked(false) {}
+
 void Lock::lock() {
-    if (pthread_mutex_lock(&mutex) == 0) {
+    if (pthread_mutex_lock(mutex) == 0) {
         locked = true;
     }
     else {
@@ -27,7 +32,7 @@ void Lock::lock() {
 }
 
 void Lock::unLock() {
-    if (pthread_mutex_unlock(&mutex) == 0) {
+    if (pthread_mutex_unlock(mutex) == 0) {
         locked = false;
     }
     else {
@@ -37,7 +42,7 @@ void Lock::unLock() {
 }
 
 bool Lock::tryLock() {
-    int ret = pthread_mutex_trylock(&mutex);
+    int ret = pthread_mutex_trylock(mutex);
     if (ret == EBUSY) {
         return false;
     }

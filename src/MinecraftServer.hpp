@@ -29,6 +29,9 @@ namespace Plugin {
 class PluginManager;
 }
 
+class World;
+class Scheduler;
+
 enum GameMode : unsigned char;
 enum Difficulty : unsigned char;
 enum WorldType : signed char;
@@ -53,16 +56,20 @@ public:
     UI::UIManager & getUIManager();
     EntityManager & getEntityManager();
     Plugin::PluginManager & getPluginManager();
+    Scheduler & getScheduler();
 
     std::string getVersion();
     std::string getMotd();
     int getMaxPlayers();
     int getOnlinePlayerCount();
-    bool userValidationEnabled() {return true;}
+    bool userValidationEnabled() {
+        return false;
+    }
     std::string getLevelType();
     GameMode getDefaultGameMode();
     WorldType getWorldType();
     Difficulty getDifficulty();
+    World & getWorld(int);
     
     std::string getSetting(const std::string &);
 

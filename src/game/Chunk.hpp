@@ -4,12 +4,17 @@
 
 #include "block/Block.hpp"
 #include "util/ArrayAccessor.hpp"
+#include "ChunkCoordinates.hpp"
 
 namespace NBT {
 class TagCompound;
 }
 
 namespace MCServer {
+
+namespace Network {
+class ClientConnection;
+}
 
 typedef ArrayAccessor<Block, 16, 16, 256> ChunkData, BlocksXZY, Blocks3D;
 typedef ArrayAccessor<Block, 16, 256> BlocksZY, Blocks2D;
@@ -29,12 +34,19 @@ public:
         return blocksAccess[index];
     }
 
+    ChunkCoordinates getCoordinates() const {
+        return coords;
+    }
+
     void loadFrom(const NBT::TagCompound &compound);
     void loadSection(const NBT::TagCompound &section);
+
+    friend class Network::ClientConnection;
 private:
 //    ChunkBlocks data;
     Block blocks[65536];
     ArrayAccessor<Block, 16, 16, 256> blocksAccess;
+    ChunkCoordinates coords;
 };
 
 }

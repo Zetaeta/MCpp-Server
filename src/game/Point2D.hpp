@@ -17,13 +17,20 @@ struct Point2D {
     :x(y), z(y) {
     }
 
-    Point2D(const std::initializer_list<int> &i)
+    // Works with initialiser_list of anything convertible to Coordinate.
+    template<class T>
+    Point2D(const std::initializer_list<T> &i)
     :Point2D(*i.begin(), *(i.end() - 1)) {
         assert(i.size() == 2);
     }
 
-    int x, z;
+    const Point2D operator=(const Point2D &p) {
+        x = p.x;
+        z = p.z;
+        return *this;
+    }
 
+    Coordinate x, z;
 };
 
 inline constexpr bool operator==(const Point2D &x, const Point2D &y) {

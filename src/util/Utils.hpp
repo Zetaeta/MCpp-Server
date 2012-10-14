@@ -38,9 +38,11 @@ extern std::string commandName;
 
 bool inUsrShare();
 
-std::string demangle(const std::string &);
+//std::string demangle(const std::string &);
 
-double diffms(timespec start, timespec end);
+long diffms(timespec start, timespec end);
+
+long currentTimeMillis();
 
 }
 

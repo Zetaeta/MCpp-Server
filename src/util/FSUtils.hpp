@@ -2,8 +2,7 @@
 #ifndef FSUTILS_HPP
 #define FSUTILS_HPP
 
-#include <string>
-#include <vector>
+#include <Util/stlfwd.hpp>
 
 namespace MCServer {
 

@@ -1,9 +1,3 @@
-/*
- * NetworkServer.cpp
- *
- *  Created on: 4 Aug 2012
- *      Author: daniel
- */
 
 #include <string>
 #include <iostream>
@@ -17,10 +11,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <IOStream/SocketOutputStream.hpp>
+
 #include "NetworkServer.hpp"
-#include "PlainSocketOutputStream.hpp"
 #include "logging/Logger.hpp"
 #include "ClientConnection.hpp"
+
+using IOStream::SocketOutputStream;
 
 namespace MCServer {
 namespace Network {
@@ -130,11 +127,14 @@ void NetworkServer::serverListPing(const Connection &connection) {
 //    string hello = "Hello World§64§32";
     Logging::Logger &logger = m->server->getLogger();
     logger.info("serverListPing()");
-    PlainSocketOutputStream out(connection.socketfd);
+    SocketOutputStream out(connection.socketfd);
     out << static_cast<uint8_t>(0xFF);
     std::ostringstream output;
     output << m->server->getMotd() << "§" << m->server->getOnlinePlayerCount() << "§" << m->server->getMaxPlayers();
     out << output.str();
+    logger << "Sending server list data: " << output.str() << '\n';
+    logger.info("serverListPing() ending.");
+    close(connection.socketfd);
 } 
 
 void NetworkServer::shutdown() {

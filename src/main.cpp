@@ -15,6 +15,7 @@ static option options[] = {
     {"gui", no_argument, 0, 'g'},
     {"ui", required_argument, 0, 'u'},
     {"cli", no_argument, 0, 'c'},
+    {"mtrace", optional_argument, 0, 'm'},
     {0, 0, 0, 0},
 };
 
@@ -33,6 +34,13 @@ int main(int argc, char **argv)
         case 'u':
             optionMap["ui"] = new string(optarg);
             break;
+        case 'm':
+            if (optarg) {
+                optionMap["mtrace"] = new string(optarg);
+            }
+            else {
+                optionMap["mtrace"] = new string("mtrace.log");
+            }
         }
     }
 

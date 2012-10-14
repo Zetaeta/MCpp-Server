@@ -17,6 +17,10 @@ Entity::Entity(EntityData *m)
     m->id = MinecraftServer::getServer().getEntityManager().getNewEntityId();
 }
 
+Point3D Entity::getPosition() const {
+    return m->position;
+}
+
 Entity::~Entity() {
     delete m;
 }

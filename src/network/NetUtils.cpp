@@ -8,7 +8,6 @@
 #include "NetUtils.hpp"
 
 using std::string;
-using std::vector;
 
 namespace MCServer {
 namespace Network {
