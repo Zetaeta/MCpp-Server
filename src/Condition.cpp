@@ -1,10 +1,12 @@
 
+#include <string.h>
+
 #include <Util/ErrorHandler.hpp>
 
 #include "Condition.hpp"
 
-using Util::throwException;
 using Util::getMessage;
+namespace ErrorType = Util::ErrorType;
 
 namespace MCServer {
 
@@ -36,7 +38,7 @@ void Condition::signal() {
 void Condition::broadcast() {
     int returned = pthread_cond_signal(cond);
 
-    if (!returned) {
+    if (returned) {
         throwException(returned);
     }
 }

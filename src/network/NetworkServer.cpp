@@ -10,12 +10,15 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 #include <IOStream/SocketOutputStream.hpp>
+#include <Util/ErrorHandler.hpp>
 
 #include "NetworkServer.hpp"
 #include "logging/Logger.hpp"
 #include "ClientConnection.hpp"
+#include "Scheduler.hpp"
 
 using IOStream::SocketOutputStream;
 
@@ -58,10 +61,13 @@ NetworkServer::NetworkServer(MinecraftServer *server)
     /*
     * Member initialisation here
     */
+    signal(SIGPIPE, SIG_IGN);
     m->server = server;
     
 
-    pthread_create(&m->thread, NULL, &startNetworkServer, this);
+//    pthread_create(&m->thread, NULL, &startNetworkServer, this);
+    std::function<void (NetworkServer *)> f = &NetworkServer::run;
+    server->getScheduler().startThread(&NetworkServer::run, this);
 }
 
 NetworkServer::~NetworkServer() {
@@ -96,7 +102,10 @@ void NetworkServer::init() {
     // Port number (INADDR_ANY = this machine's IP)
     m->serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-    bind(m->sockfd, reinterpret_cast<sockaddr *>(&m->serverAddress), sizeof(m->serverAddress));
+    int returned = bind(m->sockfd, reinterpret_cast<sockaddr *>(&m->serverAddress), sizeof(m->serverAddress));
+    if (returned != 0) {
+        throwException(errno);
+    }
     //            Size of connection queue (number of connections that can be waiting while server is handling one.
     listen(m->sockfd, 5);
 }

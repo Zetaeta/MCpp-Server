@@ -21,11 +21,15 @@ namespace MCServer {
 
 Chunk::Chunk()
 :blocksAccess(blocks) {
-    
 }
 
 Chunk::Chunk(const Chunk &other)
+#ifdef __GNUG___
 :blocks(other.blocks), blocksAccess(blocks) {
+#else
+:blocksAccess(blocks) {
+    memcpy(blocks, other.blocks, 65536);
+#endif
 }
 
 void Chunk::loadFrom(const TagCompound &compound) {
@@ -42,6 +46,7 @@ void Chunk::loadFrom(const TagCompound &compound) {
 void Chunk::loadSection(const TagCompound &section) {
     uint8_t height = section.getByte("Y");
     vector<uint8_t> blocks = section.getByteArray("Blocks");
+    cout << "blocks.size(): " << blocks.size() << '\n';
 
 
 //#define LOOP_COPY

@@ -34,7 +34,7 @@ Plugin * SOPluginLoader::loadPlugin(const std::string &file) {
     return (*getPlugin)();
 }
 
-Plugin * SOPluginLoader::loadCPlugin(void *handle) {
+Plugin * SOPluginLoader::loadCPlugin(void *) {
     return 0;
 }
 

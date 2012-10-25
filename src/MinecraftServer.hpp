@@ -29,6 +29,10 @@ namespace Plugin {
 class PluginManager;
 }
 
+namespace Command {
+class CommandManager;
+}
+
 class World;
 class Scheduler;
 

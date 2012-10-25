@@ -30,6 +30,8 @@
 #include "util/Utils.hpp"
 //#include "PlayerWorldData.hpp"
 #include "entity/PlayerData.hpp"
+#include "Lock.hpp"
+#include "AutoLock.hpp"
 
 using std::string;
 using std::map;
@@ -59,7 +61,8 @@ namespace MCServer {
 
 struct WorldData {
     string name;
-    map<ChunkCoordinates, Chunk> chunks;
+    map<ChunkCoordinates, Chunk *> chunks;
+    Lock chunksLock;
 
     bool hardcore;
     bool structures;
@@ -109,10 +112,12 @@ Chunk & World::chunkAt(int x, int y) {
 }
 
 Chunk & World::chunkAt(const Point2D &pt) {
-    return m->chunks[pt];
+    AutoLock al(m->chunksLock);
+    return *m->chunks[pt];
 }
 
 void World::loadFrom(const std::string &directory) {
+    AutoLock al(m->chunksLock);
     m->directory = directory;
     cout << "World::loadFrom()\n";
     string levelDatFile = directory + "/level.dat";
@@ -162,12 +167,10 @@ void World::loadFrom(const std::string &directory) {
 //        readRegionFile(*it);
     }
 //    readRegionFile("world/region/r.0.0.mca");
-    loadChunk({0,0});
+//    loadChunk({0,0});
 }
 
 std::string World::getName() const {
-    cout << "m = " << m << '\n';
-    cout << "World::getName(): " << m->name << '\n';
     return m->name;
 }
 
@@ -176,7 +179,6 @@ int World::getDimension() const {
 }
 
 vector<string> printTag(Tag *tag) {
-//    cout << "tag = " << tag << '\n';
     vector<string> strings;
     std::ostringstream ss;
     try {
@@ -259,20 +261,37 @@ void World::readRegionFile(const std::string &fileName) {
         uint8_t y = sectionC->getUByte("Y");
         cout << "Y: " << uint16_t(y) << '\n';
     }
-    m->chunks[{0, 0}].loadFrom(*compound);
+    m->chunks[{0, 0}]->loadFrom(*compound);
     
 }
 
 Chunk & World::loadChunk(const ChunkCoordinates &pos) {
+    AutoLock al(m->chunksLock);
+    auto mbFound = m->chunks.find(pos);
+    if (mbFound != m->chunks.end()) {
+        cout << "{" << pos.x << ", " << pos.z << "} already loaded!\n";
+        return *mbFound->second;
+    }
     ostringstream filenameSs;
     filenameSs << m->directory << "/region/" << "r." << (pos.x / 32) << '.' << (pos.z / 32) << ".mca";
     string filename = filenameSs.str();
+    if (!exists(filename)) {
+        return createChunk(pos);
+    }
     cout << filename << '\n';
     FileInputStream fin(filenameSs.str());
     InputStream in(fin, BIG);
     size_t headerOffset = 4 * (pos.x + pos.z * 32); // Offset of chunk information from start of file.
     in.seek(headerOffset, SEEK_SET);
     uint32_t chunkInfo = in.readInt();
+    if (chunkInfo == 0) {
+        cout << "Creating new chunk at {" << pos.x << ", " << pos.z << "}\n";
+//        for (const auto &pair : m->chunks) {
+//            cout << "m->chunks[{" << pair.first.x << ", " << pair.first.z << "} = " << pair.second << '\n';
+//        }
+        return createChunk(pos);
+    }
+
     uint8_t usedSectors = chunkInfo & 0xFF;
     uint32_t chunkOffset = chunkInfo >> 8;
     in.seek(chunkOffset * 4096, SEEK_SET);
@@ -290,12 +309,24 @@ Chunk & World::loadChunk(const ChunkCoordinates &pos) {
     off_t endPos = fin.seek(0, SEEK_CUR);
     cout << "startPos = " << startPos << ", endPos = " << endPos << ", diff = " << (endPos - startPos) << '\n';
 //    din.putBack();
-    vector<string> tree = printTag(chunkRoot);
-    for (size_t i=0; i < tree.size(); ++i) {
+//    vector<string> tree = printTag(chunkRoot);
+//    for (size_t i=0; i < tree.size(); ++i) {
 //        cout << tree[i];
-    }
-    m->chunks[{pos.x, pos.z}].loadFrom(*chunkRoot);
-    return m->chunks[{pos.x, pos.z}];
+//    }
+    Chunk *chunk = new Chunk;
+    m->chunks[pos] = chunk;
+//    for (const auto &pair : m->chunks) {
+//        cout << "m->chunks[{" << pair.first.x << ", " << pair.first.z << "} = " << pair.second << '\n';
+//    }
+    m->chunks[pos]->loadFrom(*chunkRoot);
+    return *m->chunks[pos];
+}
+
+Chunk & World::createChunk(const ChunkCoordinates &pos) {
+    AutoLock al(m->chunksLock);
+    Chunk *chunk = new Chunk;
+    m->chunks[pos] = chunk;
+    return *chunk;
 }
 
 void World::loadPlayer(PlayerData *data) {
@@ -345,6 +376,7 @@ void World::loadPlayer(PlayerData *data) {
 vector<Chunk *> World::loadAll(const vector<ChunkCoordinates> &coords) {
     vector<Chunk *> returned(coords.size());
     for (size_t i=0; i<coords.size(); ++i) {
+        cout << "World::loadAll(): loading " << coords[i] << '\n';
         returned[i] = &loadChunk(coords[i]);
     }
     return returned;

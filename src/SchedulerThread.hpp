@@ -11,10 +11,12 @@ namespace MCServer {
 
 class Scheduler;
 
+static int i = 0;
+
 class SchedulerThread {
 public:
     SchedulerThread()
-    :started(false), busy(false), functionReady(false) {
+    :started(false), actualStarted(false), busy(false), functionReady(false), i(MCServer::i++) {
     }
 
     void start(int id);
@@ -26,35 +28,43 @@ public:
     }
 
     bool isAvailable() const {
-        return started && !busy;
+        return actualStarted && !busy;
     }
 
     bool isStarted() const {
         return started;
     }
 
-    void execute(std::function<void ()> &function) {
-        toExecute = function;
-        functionReady = true;
-        cond.broadcast();
+    pthread_t getThreadId() const {
+        return threadId;
     }
+
+    void execute(const std::function<void ()> &function);
+
+    void execute(std::function<void ()> &&function);
 
     Condition & getCondition() {
         return cond;
     }
 
+
 private:
     void execute();
+    Lock lock;
 
     pthread_t threadId;
     std::string name;
     bool started;
+    bool actualStarted;
     volatile bool busy;
     bool functionReady;
     Scheduler *scheduler;
     Condition cond;
 
-    std::function<void ()> toExecute;
+    std::function<void ()> current;
+    std::function<void ()> next;
+public:
+    int i;
 };
 
 }

@@ -3,9 +3,11 @@
 #include <iostream>
 #include <algorithm>
 
-#include "Scheduler.hpp"
-
 #include <Util/StringUtils.hpp>
+
+#include "Scheduler.hpp"
+#include "logging/Logger.hpp"
+
 #include "util/Utils.hpp"
 
 using std::string;
@@ -15,6 +17,8 @@ using std::cerr;
 using Util::demangle;
 
 namespace MCServer {
+
+using Logging::log;
 
 Scheduler::Scheduler(int asyncThreadCount)
 :threads(asyncThreadCount) {
@@ -27,7 +31,7 @@ struct ThreadStartInfo {
     std::string name;
 };
 
-void * startThreadImpl(void *threadStartInfo) {
+void * startThreadBeginner(void *threadStartInfo) {
     ThreadStartInfo *info = static_cast<ThreadStartInfo *>(threadStartInfo);
     string &name = info->name;
     if (name == "") {
@@ -51,10 +55,11 @@ void * startThreadImpl(void *threadStartInfo) {
     return nullptr;
 }
 
-pthread_t Scheduler::startThread(void *(*function)(void *), void *arg, const string &name, pthread_attr_t *attributes) {
+pthread_t Scheduler::startThread(void *(*function)(void *), void *arg,
+                                 const string &name, pthread_attr_t *attributes) {
     pthread_t threadId;
     ThreadStartInfo *info = new ThreadStartInfo {function, arg, name};
-    pthread_create(&threadId, attributes, &startThreadImpl, info);
+    pthread_create(&threadId, attributes, &startThreadBeginner, info);
     return threadId;
 }
 
@@ -93,10 +98,11 @@ SchedulerThread * Scheduler::getThread() {
 
 void Scheduler::executeSync(long milliseconds) {
     long start = currentTimeMillis();
-    do {
+    while (syncFunctions.size() > 0 && 
+          (milliseconds < 0 || (currentTimeMillis() - start) < milliseconds)) {
         executeSync(syncFunctions.front());
         syncFunctions.pop();
-    } while (syncFunctions.size() > 0 && (milliseconds < 0 || currentTimeMillis() - start < milliseconds));
+    }
 }
 
 void Scheduler::executeSync(const std::function<void ()> &func) {

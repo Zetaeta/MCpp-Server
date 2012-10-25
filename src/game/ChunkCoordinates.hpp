@@ -4,6 +4,7 @@
 
 #include <initializer_list>
 #include <vector>
+#include <iostream>
 
 #include "Point2D.hpp"
 
@@ -13,11 +14,14 @@ struct ChunkCoordinates {
     constexpr ChunkCoordinates()
     :ChunkCoordinates(0, 0) {}
 
-    constexpr ChunkCoordinates(Coordinate x, Coordinate z)
+    constexpr ChunkCoordinates(int x, int z)
     :x(x), z(z) {}
 
     constexpr ChunkCoordinates(const Point2D &p)
     :x(p.x / 16), z(p.z / 16) {}
+
+    constexpr ChunkCoordinates(const ChunkCoordinates &c)
+    :x(c.x), z(c.z) {}
 
     constexpr ChunkCoordinates(Point2D &&p)
     :x(p.x / 16), z(p.z / 16) {}
@@ -74,6 +78,11 @@ struct ChunkCoordinates {
     }
 };
 
+template <typename T>
+inline T & operator<<(T& t, const ChunkCoordinates &c) {
+    return t << '{' << c.x << ", " << c.z << '}';
+}
+
 inline constexpr bool operator==(const ChunkCoordinates &x, const ChunkCoordinates &y) {
     return x.x == y.x && x.z == y.z;
 }
@@ -83,11 +92,11 @@ inline constexpr bool operator!=(const ChunkCoordinates &x, const ChunkCoordinat
 }
 
 inline constexpr bool operator<(const ChunkCoordinates &x, const ChunkCoordinates &y) {
-    return x.x < y.x ? true : (x.z < y.z);
+    return x.x < y.x || (!(y.x < x.x) &&(x.z < y.z));
 }
 
 inline constexpr bool operator>(const ChunkCoordinates &x, const ChunkCoordinates &y) {
-    return x.x > y.x ? true : (x.z > y.z);
+    return x.x > y.x || (!(y.x > x.x) &&(x.z > y.z));
 }
 
 inline constexpr bool operator>=(const ChunkCoordinates &x, const ChunkCoordinates &y) {

@@ -86,7 +86,7 @@ bool PluginManager::loadPlugin(const std::string &file) {
         }
     } */
 
-    Plugin *plugin;
+    Plugin *plugin = nullptr;
     #ifdef DEBUG
     vector<string> rulesTried;
     #endif

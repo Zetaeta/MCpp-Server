@@ -4,7 +4,7 @@
 
 namespace MCServer {
 
-class Point3D;
+struct Point3D;
 
 namespace Entities {
 

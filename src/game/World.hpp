@@ -1,6 +1,8 @@
 
 #ifndef WORLD_HPP
-#define WORLD_HPP #include <memory>
+#define WORLD_HPP
+
+#include <memory>
 
 #include <Util/stlfwd.hpp>
 #include "int128.h"
@@ -9,9 +11,9 @@
 namespace MCServer {
 
 class Chunk;
-class Point2D;
+struct Point2D;
 struct WorldData;
-class ChunkCoordinates;
+struct ChunkCoordinates;
 
 namespace Entities {
 struct PlayerData;
@@ -29,8 +31,11 @@ public:
     void loadFrom(const std::string &directory) throws(WorldLoadingFailure);
     void readRegionFile(const std::string &fileName);
 
+    Chunk & createChunk(const ChunkCoordinates &pos);
+
     Chunk & loadChunk(const ChunkCoordinates &);
     void unloadChunk(const ChunkCoordinates &);
+
     std::vector<Chunk *> loadAll(const std::vector<ChunkCoordinates> &coords);
     void loadPlayer(Entities::PlayerData *);
 

@@ -23,7 +23,6 @@ typedef ArrayAccessor<Block, 256> BlocksY, Blocks1D;
 class Chunk {
 public:
     Chunk();
-    Chunk(const Chunk &);
 //    const BlocksYZ & operator[](uint8_t) const;
 //    BlocksYZ & operator[](uint8_t);
     ArrayAccessor<Block, 16, 256> operator[](size_t index) {
@@ -43,6 +42,7 @@ public:
 
     friend class Network::ClientConnection;
 private:
+    Chunk(const Chunk &);
 //    ChunkBlocks data;
     Block blocks[65536];
     ArrayAccessor<Block, 16, 16, 256> blocksAccess;

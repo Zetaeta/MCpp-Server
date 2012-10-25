@@ -13,8 +13,8 @@ struct Point2D {
     constexpr Point2D()
     :x(0), z(0) {}
 
-    constexpr Point2D(Coordinate x, Coordinate y)
-    :x(y), z(y) {
+    constexpr Point2D(Coordinate x, Coordinate z)
+    :x(x), z(z) {
     }
 
     // Works with initialiser_list of anything convertible to Coordinate.

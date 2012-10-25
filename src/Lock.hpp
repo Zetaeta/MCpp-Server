@@ -10,7 +10,7 @@ namespace MCServer {
 
 class Lock {
 public:
-    Lock();
+    Lock(bool recursive = true);
     Lock(const Util::MaybePointer<pthread_mutex_t> &mutex);
 
     void lock();

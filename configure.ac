@@ -34,4 +34,13 @@ AC_TYPE_SSIZE_T
 AC_CHECK_FUNCS([memset memmove socket strerror])
 
 AC_CONFIG_FILES([Makefile])
+
+unused_but_set_variable='
+ifneq ($(CXX), clang++)
+	unused_but_set_variable=-Wno-error=unused-but-set-variable
+else
+	unused_but_set_variable=
+endif'
+AC_SUBST([unused_but_set_variable])
+
 AC_OUTPUT

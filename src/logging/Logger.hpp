@@ -9,11 +9,6 @@
 
 #include "Level.hpp"
 
-//namespace std {
-//template<size_t N> class bitset;
-//class ios_base;
-//}
-
 namespace MCServer {
 namespace Logging {
 
@@ -42,6 +37,9 @@ public:
     inline void destroy() {
         destroyLogger(*this);
     }
+
+    void lock();
+    void unLock();
 
     Logger & operator<<(Level);
     Logger & operator<<(const std::string &);
@@ -72,13 +70,15 @@ public:
     void resetLevel();
     ~Logger();
 
-    static Logger & getLogger(const std::string &name);
+    static Logger & getLogger(const std::string &name, bool init = true);
     static void destroyLogger(Logger &logger);
 private:
     Logger(const std::string &);
 
     LoggerData *m;
 };
+
+extern Logger &log;
 
 }
 }

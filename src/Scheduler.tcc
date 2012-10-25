@@ -13,10 +13,11 @@ using std::string;
 using std::unique_ptr;
 using std::function;
 using std::tie;
+using std::cout;
 
 template <typename R>
 struct GetSubmitReturnValue {
-    R * func(R &r) {
+    static R * func(R &r) {
         return new R(r);
     }
 
@@ -25,7 +26,7 @@ struct GetSubmitReturnValue {
 
 template <typename R>
 struct GetSubmitReturnValue<R &> {
-    R * func(R &r) {
+    static R * func(R &r) {
         return &r;
     }
 
@@ -48,7 +49,7 @@ struct ArgumentEnumerator<0, S...> {
 
 template <typename Ret, typename... Args, int... S>
 Ret callFunctionWithTupleImpl(const function<Ret (Args...)> &func, tuple<Args...> &&args, PlaceHolder<S...>) {
-    func(std::get<S>(args)...);
+    return func(std::get<S>(args)...);
 }
 
 template <typename Ret, typename... Args>
@@ -58,22 +59,109 @@ Ret callFunctionWithTuple(const function<Ret (Args...)> &func, tuple<Args...> &&
 
 
 template <typename Ret, typename... Args>
-Future<Ret> Scheduler::submitAsync(const function<Ret (Args...)> &func, Args&&... args) {
+Future<Ret> Scheduler::submitAsyncImpl(const function<Ret (Args...)> &func, Args&&... args) {
     tuple<Args...> arguments = tie(args...);
     Future<Ret> future;
-    asyncFunctions.push([=] () {
-        Ret returnVal = callFunctionWithTuple(func, arguments);
+    function<void ()> _func([=] () mutable {
+        Ret returnVal = callFunctionWithTuple(func, forward<tuple<Args...>>(arguments));
         typedef GetSubmitReturnValue<Ret> RetVal;
         future.set(RetVal::func(returnVal), RetVal::requiresDeletion);
     });
+
+    struct FuncWrapper {
+
+        FuncWrapper(const function<Ret (Args...)> &func, const Future<Ret> &future, const tuple<Args...> &arguments, int i)
+        :func(func), future(future), arguments(arguments), i(i) {
+            cout << "Scheduler::submitAsync()::FuncWrapper::FuncWrapper(Future<Ret>, tuple<Args...>): " << i << '\n';
+        }
+
+        FuncWrapper(const FuncWrapper &f)
+        :func(f.func), future(f.future), arguments(f.arguments), i(f.i) {
+            cout << "Scheduler::submitAsync()::FuncWrapper::FuncWrapper(const FuncWrapper &): " << i << '\n';
+        }
+
+        FuncWrapper(FuncWrapper &&f)
+        :func(f.func), future(f.future), arguments(f.arguments), i(f.i) {
+            cout << "Scheduler::submitAsync()::FuncWrapper::FuncWrapper(FuncWrapper &&): " << i << '\n';
+        }
+
+        ~FuncWrapper() {
+            cout << "Scheduler::submitAsync()::FuncWrapper::~FuncWrapper(): " << i << '\n';
+        }
+
+        void operator()() {
+            Ret returnVal = callFunctionWithTuple(func, forward<tuple<Args...>>(arguments));
+            typedef GetSubmitReturnValue<Ret> RetVal;
+            future.set(RetVal::func(returnVal), RetVal::requiresDeletion);
+        }
+    private:
+        function<Ret (Args...)> func;
+        Future<Ret> future;
+        tuple<Args...> arguments;
+        int i;
+    };
+
+    asyncFunctions.push(_func);
+//    static int i = 0;
+//    FuncWrapper func_(func, future, arguments, i++);
+//    asyncFunctions.push(func_);
+    return future;
+}
+
+
+template <typename... Args>
+Future<void> Scheduler::submitAsyncImpl(const function<void (Args...)> &func, Args&&... args) {
+    tuple<Args...> arguments = tie(args...);
+    Future<void> future;
+    function<void ()> _func([=] () mutable {
+        callFunctionWithTuple(func, forward<tuple<Args...>>(arguments));
+        future.set();
+    });
+
+    struct FuncWrapper {
+
+        FuncWrapper(const function<void (Args...)> &func, const Future<void> &future, const tuple<Args...> &arguments, int i)
+        :func(func), future(future), arguments(arguments), i(i) {
+            cout << "Scheduler::submitAsync()::FuncWrapper::FuncWrapper(Future<void>, tuple<Args...>): " << i << '\n';
+        }
+
+        FuncWrapper(const FuncWrapper &f)
+        :func(f.func), future(f.future), arguments(f.arguments), i(f.i) {
+            cout << "Scheduler::submitAsync()::FuncWrapper::FuncWrapper(const FuncWrapper &): " << i << '\n';
+        }
+
+        FuncWrapper(FuncWrapper &&f)
+        :func(f.func), future(f.future), arguments(f.arguments), i(f.i) {
+            cout << "Scheduler::submitAsync()::FuncWrapper::FuncWrapper(FuncWrapper &&): " << i << '\n';
+        }
+
+        ~FuncWrapper() {
+            cout << "Scheduler::submitAsync()::FuncWrapper::~FuncWrapper(): " << i << '\n';
+        }
+
+        void operator()() {
+            callFunctionWithTuple(func, forward<tuple<Args...>>(arguments));
+            future.set();
+        }
+    private:
+        function<void (Args...)> func;
+        Future<void> future;
+        tuple<Args...> arguments;
+        int i;
+    };
+
+    asyncFunctions.push(_func);
+//    static int i = 0;
+//    FuncWrapper func_(func, future, arguments, i++);
+//    asyncFunctions.push(func_);
     return future;
 }
 
 template <typename Ret, typename... Args>
-Future<Ret> Scheduler::submitSync(const function<Ret (Args...)> &func, Args&&... args) {
+Future<Ret> Scheduler::submitSyncImpl(const function<Ret (Args...)> &func, Args&&... args) {
     tuple<Args...> arguments = tie(args...);
     Future<Ret> future;
-    syncFunctions.push([=] () {
+    syncFunctions.push([=] () mutable {
         Ret returnVal = callFunctionWithTuple(forward(func), forward(arguments));
         typedef GetSubmitReturnValue<Ret> RetVal;
         future.set(RetVal::func(returnVal), RetVal::requiresDeletion);
@@ -81,12 +169,25 @@ Future<Ret> Scheduler::submitSync(const function<Ret (Args...)> &func, Args&&...
     return future;
 }
 
+template <typename... Args>
+Future<void> Scheduler::submitSyncImpl(const function<void (Args...)> &func, Args&&... args) {
+    tuple<Args...> arguments = tie(args...);
+    Future<void> future;
+    syncFunctions.push([=] () mutable {
+        callFunctionWithTuple(forward(func), forward(arguments));
+        future.set();
+    });
+    return future;
+}
+
+
 template <typename Ret, typename... Args>
 struct StartThreadData {
     std::function<Ret (Args...)> function;
     tuple<Args...> args;
     string name;
 };
+
 
 template <typename Ret, typename... Args>
 void * templateStartThreadImpl(void *arg) {
@@ -114,7 +215,7 @@ void * templateStartThreadImpl(void *arg) {
 }
 
 template <typename Ret, typename... Args>
-pthread_t Scheduler::startThread(const string &name, pthread_attr_t *attributes, const function<Ret (Args...)> &function, Args&&... args) {
+pthread_t Scheduler::startThreadImpl(const string &name, pthread_attr_t *attributes, const function<Ret (Args...)> &function, Args&&... args) {
     pthread_t threadId;
     pthread_create(&threadId, attributes, &templateStartThreadImpl<Ret, Args...>, new StartThreadData<Ret, Args...>{function, tie(args...), name});
     return threadId;

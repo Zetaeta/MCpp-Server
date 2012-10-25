@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <utility>
 #include <typeinfo>
-#include <cxxabi.h>
 #include <string.h>
 #include <mcheck.h>
 
@@ -22,10 +21,11 @@
 
 #include "MinecraftServer.hpp"
 #include "int128.h"
-#include "SchedulerSimple.hpp"
+#include "Scheduler.hpp"
 
 #include "logging/Logger.hpp"
 #include "logging/LoggerStreamBuf.hpp"
+#include "logging/UIHandler.hpp"
 
 #include "network/NetworkServer.hpp"
 #include "network/PacketHandler.hpp"
@@ -99,7 +99,7 @@ struct MinecraftServerData {
     map<int, World *> worldsByDimension;
 
     MinecraftServerData(int &argc)
-    :argc(argc) {}
+    :shutdown(false), argc(argc) {}
 };
 
 namespace {
@@ -123,8 +123,10 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     initUI();
 
     m->logger = &Logger::getLogger("Minecraft");
+    m->logger->addHandler(new Logging::UIHandler(this));
     cout.rdbuf(new LoggerStreamBuf(*m->logger, INFO));
     cerr.rdbuf(new LoggerStreamBuf(*m->logger, SEVERE));
+    Logging::log = *m->logger;
     
     m->entityManager = new EntityManager(this);
     m->pluginManager = new PluginManager(this);
@@ -231,6 +233,24 @@ void MinecraftServer::init() {
     m->pluginManager->loadPlugins(PLUGIN_DIR);
     m->networkServer = new NetworkServer(this);
     setupWorlds();
+    auto lambda = [&] {
+        m->logger->lock();
+        cout << "this = " << this << '\n';
+        *m->logger << "This is running asynchronously. Current thread id: " << pthread_self() << '\n';
+        m->logger->unLock();
+        return 42;
+    };
+
+    function<int ()> func = lambda;
+
+    Future<int> future = m->scheduler->submitAsync(func);
+    m->scheduler->submitAsync(func);
+    m->scheduler->submitAsync(func);
+    m->scheduler->submitAsync(func);
+
+    m->scheduler->tick();
+
+    cout << "future.get(): " << future.get() << '\n';
 }
 
 void MinecraftServer::initUI() {
@@ -271,6 +291,7 @@ void MinecraftServer::initUI() {
 
 void MinecraftServer::tick() {
     sleep(1);
+    m->scheduler->tick();
 //    *m->logger << "Testing m->logger!\n";
 //    std::cout << "Testing cout!\n";
 }
@@ -355,6 +376,10 @@ EntityManager & MinecraftServer::getEntityManager() {
     return *m->entityManager;
 }
 
+Scheduler & MinecraftServer::getScheduler() {
+    return *m->scheduler;
+}
+
 
 string MinecraftServer::getVersion() {
     return "0.1";
@@ -414,6 +439,7 @@ RSA * MinecraftServer::getRsa() {
 
 void MinecraftServer::dispatchConsoleCommand(const string &command) {
     m->logger->info("Dispatching command " + command);
+    
 }
 
 

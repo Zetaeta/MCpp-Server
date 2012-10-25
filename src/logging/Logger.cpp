@@ -56,14 +56,16 @@ void Logger::addHandler(Handler *handler) {
     m->handlers.push_back(handler->clone());
 }
 
-Logger & Logger::getLogger(const string &name) {
+Logger & Logger::getLogger(const string &name, bool init) {
     Logger *log;
     if ((log = LoggerData::loggers[name]) != 0) {
         return *log;
     }
     log = new Logger(name);
     LoggerData::loggers[name] = log;
-    log->addHandler(new UIHandler(&MinecraftServer::getServer()));
+    if (init) {
+        log->addHandler(new UIHandler(&MinecraftServer::getServer()));
+    }
     return *log;
 }
 
@@ -82,6 +84,14 @@ void Logger::setLevel(Level level) {
 
 void Logger::resetLevel() {
     m->currentLevel = m->defaultLevel;
+}
+
+void Logger::lock() {
+    m->lock.lock();
+}
+
+void Logger::unLock() {
+    m->lock.unLock();
 }
 
 Logger & Logger::operator<<(Level level) {
@@ -251,6 +261,8 @@ Logger::~Logger() {
         delete *it;
     }
 }
+
+Logger &log = Logger::getLogger("Minecraft", false);
 
 }
 }

@@ -5,12 +5,19 @@
 
 #include "SchedulerThread.hpp"
 #include "Scheduler.hpp"
+#include "AutoLock.hpp"
+#include "logging/Logger.hpp"
 
 using std::cerr;
 
 namespace MCServer {
 
+using Logging::log;
+
 void SchedulerThread::start(int id) {
+    started = true;
+    log.lock();
+    log.unLock();
     std::ostringstream oss;
     oss << "Scheduler-worker-";
     oss << id;
@@ -19,20 +26,42 @@ void SchedulerThread::start(int id) {
 }
 
 void SchedulerThread::actualStart() {
+    actualStarted = true;
     while (true) {
-        if (functionReady) {
+        while (functionReady) {
             busy = true;
-            toExecute();
-            busy = false;
             functionReady = false;
+            execute();
+            busy = false;
         }
         cond.wait();
     }
 }
 
+void SchedulerThread::execute(const std::function<void ()> &function) {
+    AutoLock a(lock);
+    // New function is created around `function`
+    // New function is swapped with `toExecute`
+    // Both functions now have pointer to original func.
+    // function reaches end of scope.
+    // original func is deleted.
+    next = function;
+    functionReady = true;
+    cond.broadcast();
+}
+
+void SchedulerThread::execute(std::function<void ()> &&function) {
+    AutoLock a(lock);
+    next = std::move(function);
+    functionReady = true;
+    cond.broadcast();
+}
+
 void SchedulerThread::execute() {
+    AutoLock a(lock);
+    swap(current, next);
     try {
-        toExecute();
+        current();
     }
     catch (std::exception &e) {
         cerr << "Unhandled exception in asynchronous scheduler task, (thread = " << name << "): " << Util::demangle(typeid(e).name()) << ": "<< e.what() << '\n';

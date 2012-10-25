@@ -170,9 +170,17 @@ Packet & Packet::operator<<(double d) {
 Packet & Packet::operator<<(const std::string &s) {
     vector<uint16_t> ucs2 = utf8ToUcs2(s);
     operator<<(static_cast<uint16_t>(ucs2.size()));
-    for (auto it = ucs2.begin(); it != ucs2.end(); ++it) {
-        buffer.addByte(*it);
-        buffer.addByte(*it >> 8);
+    if (bigEndian) {
+        for (auto it = ucs2.begin(); it != ucs2.end(); ++it) {
+            buffer.addByte(*it);
+            buffer.addByte(*it >> 8);
+        }
+    }
+    else {
+        for (auto it = ucs2.begin(); it != ucs2.end(); ++it) {
+            buffer.addByte(*it >> 8);
+            buffer.addByte(*it);
+        }
     }
     return *this;
 }

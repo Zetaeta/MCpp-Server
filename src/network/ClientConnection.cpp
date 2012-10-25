@@ -30,6 +30,7 @@
 
 using std::string;
 using std::vector;
+using std::cout;
 
 using IOStream::ArrayOutputStream;
 using IOStream::DeflateOutputStream;
@@ -215,39 +216,69 @@ void ClientConnection::finishLogin() {
     meow:
 
     Packet login;
+    login << PACKET_LOGIN_REQUEST;
     login << m->player->getId();
-    login << m->server.getLevelType() << m->server.getDefaultGameMode() << m->server.getWorldType() << m->server.getDifficulty();
+    login << m->server.getLevelType() << uint8_t(m->server.getDefaultGameMode());
+    login << uint8_t(m->server.getWorldType()) << uint8_t(m->server.getDifficulty());
     login << uint8_t(0) << uint8_t(m->server.getMaxPlayers());
     ss << login;
     m->player->loadData();
 
     m->server.getLogger() << "About to send world!\n";
     sendWorld();
+    sendSpawnPosition();
 }
 
 void ClientConnection::sendWorld() {
     ChunkCoordinates playerChunk = m->player->getPosition();
-    vector<ChunkCoordinates> loadingArea = playerChunk.getSurroundingChunks(7, true);
+    vector<ChunkCoordinates> loadingArea = playerChunk.getSurroundingChunks(3, true);
     World &world = m->player->getWorld();
+    cout << "About to load all chunks!\n";
     vector<Chunk *> chunks = world.loadAll(loadingArea);
+    cout << "Got chunks, about to send...\n";
     for (auto it=chunks.begin(); it != chunks.end(); ++it) {
         Packet pack;
         ChunkCoordinates coords = (*it)->getCoordinates();
         pack << PACKET_CHUNK_DATA << coords.x << coords.z;
-        pack << true; // Ground-up continuous?
-        pack << ~uint16_t(0); // All 16 bits 1.
-        pack << ~uint16_t(0);
-        uint8_t chunkData[(4096 + 2048 + 2048 + 2048 + 2048 + 256) * 16];
+        pack << uint8_t(true); // Ground-up continuous?
+        pack << uint16_t(0xFFFF); // All 16 bits 1.
+        pack << uint16_t(0xFFFF); // All 16 bits 1.
+
+        uint8_t chunkData[(4096 + 2048 + 2048 + 2048 /*+ 2048 add bytes. */) * 16 + 256];
+        cout << "about to copy chunk data\n";
         memcpy(chunkData, (*it)->blocks, 65536);
+        cout << "About to memset\n";
         memset(&chunkData[65536], 0, sizeof(chunkData) - 65536);
-        ArrayOutputStream out(32768);
+        cout << "memset'd\n";
+        ArrayOutputStream out(256);
         DeflateOutputStream dout(out);
+        cout << "about to write chunk data\n";
         dout.write(chunkData, sizeof(chunkData));
+        cout << "written chunk data\n";
         dout.close();
         pack << static_cast<int>(out.size());
+        cout << "out.size() = " << out.size() << '\n';
         pack.add(out.data(), out.size());
         m->ss << pack;
+        cout << "Sent chunk!\n";
     }
+    cout << "Finished sending chunks!\n";
+}
+
+void ClientConnection::sendSpawnPosition() {
+    Packet sp;
+    sp << PACKET_SPAWN_POSITION;
+    Point3D pos = m->player->getPosition();
+    sp << int(pos.x) << int(pos.y) << int(pos.z);
+    m->ss << sp;
+
+    Packet pl;
+    pl << PACKET_PLAYER_POSITION_AND_LOOK;
+    pl << pos.x << double(0) << pos.y << pos.z;
+    pl << float(0) << float(0) << uint8_t(1);
+    m->ss << pl;
+
+    cout << "Sent spawn position!\n";
 }
 
 /**

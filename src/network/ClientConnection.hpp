@@ -42,6 +42,7 @@ private:
 //    void handleEncryptionResponse();
     void setupCrypto(std::string);
     void sendWorld();
+    void sendSpawnPosition();
     // Login stuff after encryption has been enabled.
     void finishLogin();
 
