@@ -35,12 +35,12 @@ AC_CHECK_FUNCS([memset memmove socket strerror])
 
 AC_CONFIG_FILES([Makefile])
 
-unused_but_set_variable='
+compiler_specifics='
 ifneq ($(CXX), clang++)
-	unused_but_set_variable=-Wno-error=unused-but-set-variable
+    compiler_specifics=-Wno-error=unused-but-set-variable
 else
-	unused_but_set_variable=
+    compiler_specifics=-Wno-error=lambda-extensions
 endif'
-AC_SUBST([unused_but_set_variable])
+AC_SUBST([compiler_specifics])
 
 AC_OUTPUT

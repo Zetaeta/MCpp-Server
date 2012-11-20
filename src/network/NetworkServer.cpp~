@@ -1,0 +1,13 @@
+#include "NetworkServer.hpp"
+#include "Scheduler.hpp"
+namespace MCServer
+{
+  namespace Network
+  {
+    NetworkServer::NetworkServer ( MinecraftServer * server )
+    {
+      server->getScheduler (  ).startImportantThread ( &NetworkServer::run,
+						       this );
+    }
+  }				/*   */
+}				/*   */

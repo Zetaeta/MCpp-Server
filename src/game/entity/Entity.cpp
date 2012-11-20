@@ -21,6 +21,34 @@ Point3D Entity::getPosition() const {
     return m->position;
 }
 
+void Entity::setPosition(const Point3D &pos) {
+    m->position = pos;
+}
+
+double Entity::getYaw() {
+    return m->yaw;
+}
+
+void Entity::setYaw(double yaw) {
+    m->yaw = yaw;
+}
+
+double Entity::getPitch() {
+    return m->pitch;
+}
+
+void Entity::setPitch(double pitch) {
+    m->pitch = pitch;
+}
+
+double Entity::getStance() {
+    return m->stance;
+}
+
+void Entity::setStance(double stance) {
+    m->stance = stance;
+}
+
 Entity::~Entity() {
     delete m;
 }

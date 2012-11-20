@@ -1,0 +1,19 @@
+#!/bin/bash
+
+sedToTemp() {
+    sed -r 's|^\s*//.*$||' $1 | sed -n '/[^[:space:]]/p' >/tmp/mc++-server-loc/$1
+    echo /tmp/mc++-server-loc/$1
+};
+
+if [[ $1 == "-v" ]]; then
+    mkdir /tmp/mc++-server-loc
+    find ../libNBT/src/ ../libIOStream/src/ ../libZUtil/src/ ../MC++-Server/src/ \
+        \( -name "*.cpp" -o -name "*.hpp" -o -name "*.tcc" \) | grep -v moc_ \
+        | xargs -n 1 ./sedToTemp | xargs wc -l | sed 's|/tmp/mc++-server-loc/||' | sort -n
+    rm -r /tmp/mc++-server-loc;
+else
+    find ../libNBT/src/ ../libIOStream/src/ ../libZUtil/src/ ../MC++-Server/src/ \
+        \( -name "*.cpp" -o -name "*.hpp" -o -name "*.tcc" \) | grep -v moc_ \
+        | xargs sed -r 's|^\s*//.*$||' | sed -n '/[^[:space:]]/p' | wc -l \
+        | sed 's|../||' | sort -n;
+fi

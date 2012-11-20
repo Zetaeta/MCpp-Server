@@ -36,7 +36,7 @@ public:
 
     template <typename Ret, typename... Args>
     inline pthread_t startThread(const string &name, pthread_attr_t *attr, const function<Ret (Args...)> &func, Args&&... args) {
-        return startThreadImpl(name, func, forward<Args>(args)...);
+        return startThreadImpl(name, attr, func, forward<Args>(args)...);
     }
     
     template <typename Ret, typename... Args>
@@ -124,6 +124,98 @@ public:
         return startThreadImpl<ReturnType, Class *, Args...>(name, attr, function<ReturnType (Args...)>(func), std::move(obj), forward<Args>(args)...);
     }
 
+
+    template <typename Ret, typename... Args>
+    inline pthread_t startImportantThread(const string &name, pthread_attr_t *attr, const function<Ret (Args...)> &func, Args&&... args) {
+        return startImportantThreadImpl(name, attr, func, forward<Args>(args)...);
+    }
+    
+    template <typename Ret, typename... Args>
+    inline pthread_t startImportantThread(const function<Ret (Args...)> &func, Args&&... args) {
+        return startImportantThreadImpl("", nullptr, func, forward<Args>(args)...);
+    }
+
+    template <typename Ret, typename... Args>
+    inline pthread_t startImportantThread(const string &name, const function<Ret (Args...)> &func, Args&&... args) {
+        return startImportantThreadImpl(name, nullptr, func, forward<Args>(args)...);
+    }
+
+    template <typename Func, typename... Args>
+    inline auto startImportantThread(Func &&func, Args&&... args) ->
+        typename enable_if<
+            is_convertible<
+                Func, function<decltype(func(args...)) (Args...)>
+            >::value, pthread_t
+        >::type {
+        typedef decltype(func(args...)) ReturnType;
+        return startImportantThreadImpl(function<ReturnType (Args...)>(func), forward<Args>(args)...);
+    }
+
+    template <typename Func, typename... Args>
+    inline auto startImportantThread(const string &name, Func &&func, Args&&... args) ->
+        typename enable_if<
+            is_convertible<
+                Func, function<decltype(func(args...)) (Args...)>
+            >::value, pthread_t
+        >::type {
+        typedef decltype(func(args...)) ReturnType;
+        return startImportantThreadImpl(name, function<ReturnType (Args...)>(func), forward<Args>(args)...);
+    }
+
+    template <typename Func, typename... Args>
+    inline auto startImportantThread(const string &name, pthread_attr_t *attr, Func &&func, Args&&... args) ->
+        typename enable_if<
+            is_convertible<
+                Func, function<decltype(func(args...)) (Args...)>
+            >::value, pthread_t
+        >::type {
+        typedef decltype(func(args...)) ReturnType;
+        return startImportantThreadImpl(name, attr, function<ReturnType (Args...)>(func), forward<Args>(args)...);
+    }
+
+    template <typename MemberFunc, typename Class, typename... Args>
+    inline auto startImportantThread(MemberFunc &&func, Class *obj, Args&&... args) ->
+        typename enable_if<
+            __and_<
+                is_convertible<
+                    MemberFunc, function<decltype((obj->*func)(args...)) (Args...)>
+                >,
+                is_member_function_pointer<MemberFunc>
+            >::value, pthread_t
+        >::type {
+        typedef decltype((obj->*func)(args...)) ReturnType;
+        return startImportantThreadImpl<ReturnType, Class *, Args...>(function<ReturnType (Class *, Args...)>(func), std::move(obj), forward<Args>(args)...);
+    }
+
+    template <typename MemberFunc, typename Class, typename... Args>
+    inline auto startImportantThread(const string &name, MemberFunc &&func, Class *obj, Args&&... args) ->
+        typename enable_if<
+            __and_<
+                is_convertible<
+                    MemberFunc, function<decltype((obj->*func)(args...)) (Args...)>
+                >,
+                is_member_function_pointer<MemberFunc>
+            >::value, pthread_t
+        >::type {
+        typedef decltype((obj->*func)(args...)) ReturnType;
+        return startImportantThreadImpl<ReturnType, Class *, Args...>(name, function<ReturnType (Class *, Args...)>(func), std::move(obj), forward<Args>(args)...);
+    }
+
+    template <typename MemberFunc, typename Class, typename... Args>
+    inline auto startImportantThread(const string &name, pthread_attr_t *attr, MemberFunc &&func, Class *obj, Args&&... args) ->
+        typename enable_if<
+            __and_<
+                is_convertible<
+                    MemberFunc, function<decltype((obj->*func)(args...)) (Args...)>
+                >,
+                is_member_function_pointer<MemberFunc>
+            >::value, pthread_t
+        >::type {
+        typedef decltype((obj->*func)(args...)) ReturnType;
+        return startImportantThreadImpl<ReturnType, Class *, Args...>(name, attr, function<ReturnType (Class *, Args...)>(func), std::move(obj), forward<Args>(args)...);
+    }
+
+
     template <typename Ret, typename... Args>
     Future<Ret> submitAsync(const function<Ret (Args...)> &func, Args&&... args) {
         return submitAsync(func, forward<Args>(args)...);
@@ -206,6 +298,20 @@ private:
     template <typename Ret, typename... Args>
     inline pthread_t startThreadImpl(const string &name, const function<Ret (Args...)> &func, Args&&... args) {
         return startThreadImpl(name, nullptr, func, forward<Args>(args)...);
+    }
+
+
+    template <typename Ret, typename... Args>
+    inline pthread_t startImportantThreadImpl(const string &name, pthread_attr_t *, const function<Ret (Args...)> &func, Args&&... args);
+    
+    template <typename Ret, typename... Args>
+    inline pthread_t startImportantThreadImpl(const function<Ret (Args...)> &func, Args&&... args) {
+        return startImportantThreadImpl("", nullptr, func, forward<Args>(args)...);
+    }
+
+    template <typename Ret, typename... Args>
+    inline pthread_t startImportantThreadImpl(const string &name, const function<Ret (Args...)> &func, Args&&... args) {
+        return startImportantThreadImpl(name, nullptr, func, forward<Args>(args)...);
     }
 
 

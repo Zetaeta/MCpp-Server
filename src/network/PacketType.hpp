@@ -1,11 +1,11 @@
 
-#ifndef PACKETS_HPP
-#define PACKETS_HPP
+#ifndef PACKETTYPE_HPP
+#define PACKETTYPE_HPP
 
 namespace MCServer {
 namespace Network {
 
-enum Packets {
+enum PacketType : uint8_t {
     PACKET_KEEP_ALIVE = 0x00,
     PACKET_LOGIN_REQUEST = 0x01,
     PACKET_HANDSHAKE = 0x02,
@@ -74,7 +74,7 @@ enum Packets {
     PACKET_PLAYER_LIST_ITEM = 0xC9,
     PACKET_PLAYER_ABILITIES = 0xCA,
     PACKET_TAB_COMPLETE = 0xCB,
-    PACKET_LOCALE_AND_VIEW_DISTANCE = 0xCC,
+    PACKET_CLIENT_SETTINGS = 0xCC,
     PACKET_CLIENT_STATUS = 0xCD,
     PACKET_PLUGIN_MESSAGE = 0xFA,
     PACKET_ENCRYPTION_KEY_RESPONSE = 0xFC,
@@ -82,6 +82,20 @@ enum Packets {
     PACKET_SERVER_LIST_PING = 0xFE,
     PACKET_DISCONNECT_KICK = 0xFF,
 };
+
+template <class Stream>
+inline Stream & operator>>(Stream &strm, PacketType &type) {
+    uint8_t val;
+    strm >> val;
+    type = static_cast<PacketType>(val);
+    return strm;
+}
+
+template <class Stream>
+inline Stream & operator<<(Stream &strm, PacketType type) {
+    strm << static_cast<uint8_t>(type);
+    return strm;
+}
 
 }
 }

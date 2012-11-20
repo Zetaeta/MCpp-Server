@@ -1,15 +1,18 @@
 
+#include <map>
+#include <vector>
+#include <string>
+
 #include <sys/types.h>
 #include <dirent.h>
 #include <dlfcn.h>
-#include <map>
-#include <vector>
+
+#include <Util/StringUtils.hpp>
 
 #include "PluginManager.hpp"
 #include "MinecraftServer.hpp"
 #include "util/FSUtils.hpp"
 #include "logging/Logger.hpp"
-#include "util/StringUtils.hpp"
 #include "SOPluginLoader.hpp"
 #include "Plugin.hpp"
 
@@ -31,7 +34,7 @@ PluginManager::PluginManager(MinecraftServer *server)
 :m(new PluginManagerData) {
     m->server = server;
 
-    registerRule(endsWithTemplate<_so>, new SOPluginLoader);
+    registerRule(Util::endsWithTemplate<_so>, new SOPluginLoader);
 }
 
 PluginManager::~PluginManager() {

@@ -12,36 +12,22 @@ namespace ErrorType = Util::ErrorType;
 
 namespace MCServer {
 
-Lock::Lock(bool recursive)
-:mutex(new pthread_mutex_t(PTHREAD_MUTEX_INITIALIZER)), locked(false) {
-    if (recursive) {
-        pthread_mutexattr_t attr;
-        pthread_mutexattr_init(&attr);
-        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-        pthread_mutex_init(mutex, &attr);
-        pthread_mutexattr_destroy(&attr);
-    }
-}
+Lock::Lock()
+:mutex(new pthread_mutex_t(PTHREAD_MUTEX_INITIALIZER)) {}
 
 Lock::Lock(const MaybePointer<pthread_mutex_t> &mutex)
-:mutex(mutex), locked(false) {}
+:mutex(mutex) {}
 
 void Lock::lock() {
     int returned = pthread_mutex_lock(mutex);
-    if (returned == 0) {
-        locked = true;
-    }
-    else {
+    if (returned != 0) {
         throwException(returned, ErrorType::PTHREAD_LOCK);
     }
 }
 
 void Lock::unLock() {
     int returned = pthread_mutex_unlock(mutex);
-    if (returned == 0) {
-        locked = false;
-    }
-    else {
+    if (returned != 0) {
         throwException(returned, ErrorType::PTHREAD_LOCK);
     }
 }
@@ -52,12 +38,29 @@ bool Lock::tryLock() {
         return false;
     }
     else if (ret == 0) {
-        locked = true;
         return true;
     }
     else {
         throwException(ret, ErrorType::PTHREAD_LOCK);
         return false;
+    }
+}
+
+bool Lock::isLocked() {
+    int ret = pthread_mutex_trylock(mutex);
+    if (ret == EBUSY) {
+        return true;
+    }
+    else if (ret == 0) {
+        if (int ret2 = pthread_mutex_unlock(mutex)) {
+            throwException(ret2, ErrorType::PTHREAD_LOCK);
+            return false;
+        }
+        return false;
+    }
+    else {
+        throwException(ret, ErrorType::PTHREAD_LOCK);
+        return true;
     }
 }
 

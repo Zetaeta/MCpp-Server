@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <signal.h>
 
 #include <openssl/rsa.h>
 #include <openssl/x509v3.h>
@@ -22,6 +23,8 @@
 #include "MinecraftServer.hpp"
 #include "int128.h"
 #include "Scheduler.hpp"
+#include "ChatServer.hpp"
+#include "game/ChunkLoader.hpp"
 
 #include "logging/Logger.hpp"
 #include "logging/LoggerStreamBuf.hpp"
@@ -29,6 +32,7 @@
 
 #include "network/NetworkServer.hpp"
 #include "network/PacketHandler.hpp"
+#include "network/ClientConnection.hpp"
 
 #include "plugin/PluginManager.hpp"
 #include "ui/UIManager.hpp"
@@ -39,10 +43,14 @@
 #include "game/EntityManager.hpp"
 #include "game/World.hpp"
 #include "game/WorldLoadingFailure.hpp"
+#include "game/entity/Entity.hpp"
+#include "game/entity/Player.hpp"
 
 #include "util/StringUtils.hpp"
 #include "util/Utils.hpp"
 #include "util/FSUtils.hpp"
+
+#include "command/CommandManager.hpp"
 
 namespace MCServer {
 
@@ -53,8 +61,12 @@ using std::string;
 using std::map;
 using std::vector;
 using std::streambuf;
+using std::shared_ptr;
+using std::dynamic_pointer_cast;
+using std::pair;
 
 using Util::demangle;
+using Util::toLower;
 
 using Network::NetworkServer;
 using Network::PacketHandler;
@@ -64,12 +76,15 @@ using Logging::LoggerStreamBuf;
 USING_LOGGING_LEVEL
 using Plugin::PluginManager;
 using UI::UIManager;
+using Entities::Entity;
+using Entities::Player;
+using Command::CommandManager;
 
 #ifndef PLUGIN_DIR
 #define PLUGIN_DIR "plugins/"
 #endif
 
-MinecraftServer *MinecraftServer::_server = 0;
+MinecraftServer *MinecraftServer::instance = 0;
 
 struct MinecraftServerData {
     bool shutdown;
@@ -86,6 +101,9 @@ struct MinecraftServerData {
     PluginManager *pluginManager;
     UIManager *uiManager;
     Scheduler *scheduler;
+    CommandManager *commandManager;
+    ChatServer *chatServer;
+    ChunkLoader *chunkLoader;
 
     // Crypto stuff
     RSA *rsa;
@@ -97,6 +115,7 @@ struct MinecraftServerData {
 
     map<string, World *> worlds;
     map<int, World *> worldsByDimension;
+    vector<shared_ptr<Player>> players;
 
     MinecraftServerData(int &argc)
     :shutdown(false), argc(argc) {}
@@ -113,12 +132,13 @@ void shutdownServer() {
 MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc, char **argv)
 :m(new MinecraftServerData(argc)) {
 
-    _server = this;
+    instance = this;
     m->argv = argv;
     atexit(&shutdownServer);
     m->options = options;
     m->realStdout = cout.rdbuf();
     m->realStderr = cerr.rdbuf();
+    signal(SIGPIPE, SIG_IGN);
 
     initUI();
 
@@ -130,6 +150,9 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     
     m->entityManager = new EntityManager(this);
     m->pluginManager = new PluginManager(this);
+    m->commandManager = new CommandManager();
+    m->chatServer = new ChatServer;
+    m->chunkLoader = new ChunkLoader();
 
     int schedulerThreadCount = 4;
     auto stcit = options.find("scheduler-max-thread-count");
@@ -167,7 +190,6 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     }
     verifyToken[4] = '\0';
     if (!userValidationEnabled()) {
-//        serverId = (const char *) "-";
         strcpy(serverId, "-");
     }
     *m->logger << INFO << "Server ID: " << serverId << '\n';
@@ -233,24 +255,8 @@ void MinecraftServer::init() {
     m->pluginManager->loadPlugins(PLUGIN_DIR);
     m->networkServer = new NetworkServer(this);
     setupWorlds();
-    auto lambda = [&] {
-        m->logger->lock();
-        cout << "this = " << this << '\n';
-        *m->logger << "This is running asynchronously. Current thread id: " << pthread_self() << '\n';
-        m->logger->unLock();
-        return 42;
-    };
 
-    function<int ()> func = lambda;
-
-    Future<int> future = m->scheduler->submitAsync(func);
-    m->scheduler->submitAsync(func);
-    m->scheduler->submitAsync(func);
-    m->scheduler->submitAsync(func);
-
-    m->scheduler->tick();
-
-    cout << "future.get(): " << future.get() << '\n';
+    m->chunkLoader->start();
 }
 
 void MinecraftServer::initUI() {
@@ -292,17 +298,47 @@ void MinecraftServer::initUI() {
 void MinecraftServer::tick() {
     sleep(1);
     m->scheduler->tick();
+
+    std::for_each(m->players.begin(), m->players.end(), [] (shared_ptr<Player> player) {
+        try {
+            player->sendKeepAlive();
+        }
+        catch (...) {
+            cout << "Disconnecting player " << player->getName() << '\n';
+            player->getConnection().shutdown();
+        }
+    });
+/*    std::for_each(m->worlds.begin(), m->worlds.end(), [] (std::pair<const string, World *> &p) {
+        vector<shared_ptr<Entity>> &entities = p.second->getEntities();
+        std::for_each(entities.begin(), entities.end(), [] (shared_ptr<Entity> e) {
+            shared_ptr<Player> player;
+            if ( (player = dynamic_pointer_cast<Player>(e)) ) {
+                try {
+                    player->sendKeepAlive();
+                }
+                catch (...) {
+                    cout << "Disconnecting player " << player->getName() << '\n';
+                    player->getConnection().shutdown();
+                }
+            }
+        });
+    });*/
 //    *m->logger << "Testing m->logger!\n";
 //    std::cout << "Testing cout!\n";
 }
 
 void MinecraftServer::shutdown() {
     m->shutdown = true;
+    m->networkServer->shutdown();
     exit(0);
 }
 
 bool MinecraftServer::isShutdown() {
     return m->shutdown;
+}
+
+bool MinecraftServer::isRunning() {
+    return !m->shutdown;
 }
 
 namespace {
@@ -315,7 +351,7 @@ struct isntWorldFolder {
 }
 
 void MinecraftServer::setupWorlds() {
-    vector<string> entries;
+/*    vector<string> entries;
     getEntries(".", entries);
     if (!inUsrShare()) {
         getEntries("/usr/share/mc++-server", entries);
@@ -326,6 +362,8 @@ void MinecraftServer::setupWorlds() {
         *m->logger << "Going to load " << *it << '\n';
         loadWorld(*it);
     }
+    */
+    loadWorld("world");
 }
 
 void MinecraftServer::loadWorld(const std::string &directory) {
@@ -341,6 +379,19 @@ void MinecraftServer::loadWorld(const std::string &directory) {
     m->worlds[world->getName()] = world;
     m->worldsByDimension[world->getDimension()] = world;
 
+}
+
+
+string MinecraftServer::getPublicKey() {
+    return m->publicKey;
+}
+
+string MinecraftServer::getVerifyToken() {
+    return m->verifyToken;
+}
+
+RSA * MinecraftServer::getRsa() {
+    return m->rsa;
 }
 
 
@@ -378,6 +429,14 @@ EntityManager & MinecraftServer::getEntityManager() {
 
 Scheduler & MinecraftServer::getScheduler() {
     return *m->scheduler;
+}
+
+CommandManager & MinecraftServer::getCommandManager() {
+    return *m->commandManager;
+}
+
+ChatServer & MinecraftServer::getChatServer() {
+    return *m->chatServer;
 }
 
 
@@ -422,24 +481,33 @@ World & MinecraftServer::getWorld(int dimension) {
     return *m->worldsByDimension[dimension];
 }
 
-
-
-string MinecraftServer::getPublicKey() {
-    return m->publicKey;
+vector<World *> MinecraftServer::getWorlds() {
+    vector<World *> returned;
+    for (pair<int, World *> p : m->worldsByDimension) {
+        returned.push_back(p.second);
+    }
+    return returned;
 }
 
-string MinecraftServer::getVerifyToken() {
-    return m->verifyToken;
-}
-
-RSA * MinecraftServer::getRsa() {
-    return m->rsa;
+const vector<shared_ptr<Player>> & MinecraftServer::getPlayers() {
+    return m->players;
 }
 
 
 void MinecraftServer::dispatchConsoleCommand(const string &command) {
     m->logger->info("Dispatching command " + command);
     
+}
+
+void MinecraftServer::addPlayer(shared_ptr<Player> &player) {
+    m->players.push_back(player);
+}
+
+void MinecraftServer::removePlayer(shared_ptr<Player> &player) {
+    auto it = find(m->players.begin(), m->players.end(), player);
+    if (it != m->players.end()) {
+        m->players.erase(it);
+    }
 }
 
 

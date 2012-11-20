@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <pthread.h>
+#include <atomic>
 
 #include "Condition.hpp"
 
@@ -54,10 +55,10 @@ private:
 
     pthread_t threadId;
     std::string name;
-    bool started;
-    bool actualStarted;
-    volatile bool busy;
-    bool functionReady;
+    std::atomic<bool> started;
+    std::atomic<bool> actualStarted;
+    std::atomic<bool> busy;
+    std::atomic<bool> functionReady;
     Scheduler *scheduler;
     Condition cond;
 

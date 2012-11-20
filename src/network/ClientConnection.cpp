@@ -3,6 +3,7 @@
 #include <string>
 #include <string.h>
 #include <vector>
+#include <algorithm>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -13,6 +14,8 @@
 
 #include <IOStream/ArrayOutputStream.hpp>
 #include <IOStream/DeflateOutputStream.hpp>
+#include <IOStream/ArrayInputStream.hpp>
+#include <IOStream/DeflateInputStream.hpp>
 #include <IOStream/SocketStream.hpp>
 #include <IOStream/EncryptedInputStream.hpp>
 #include <IOStream/EncryptedOutputStream.hpp>
@@ -21,7 +24,10 @@
 #include "logging/Logger.hpp"
 #include "MinecraftServer.hpp"
 #include "PacketHandler.hpp"
-#include "Packets.hpp"
+#include "PacketType.hpp"
+#include "Scheduler.hpp"
+#include "ChatServer.hpp"
+
 #include "game/entity/Player.hpp"
 #include "game/ChunkCoordinates.hpp"
 #include "game/World.hpp"
@@ -31,9 +37,14 @@
 using std::string;
 using std::vector;
 using std::cout;
+using std::make_shared;
+using std::shared_ptr;
+using std::for_each;
 
 using IOStream::ArrayOutputStream;
 using IOStream::DeflateOutputStream;
+using IOStream::ArrayInputStream;
+using IOStream::DeflateInputStream;
 using IOStream::SocketStream;
 using IOStream::EncryptedInputStream;
 using IOStream::EncryptedOutputStream;
@@ -59,8 +70,10 @@ void * startClientConnection(void * cc_) {
 
 struct ClientConnectionData {
     MinecraftServer &server;
-    Player *player;
+    shared_ptr<Player> player;
     int socketfd;
+    uint8_t protocolVersion;
+    ChunkCoordinates sentWorldCentre;
     
     pthread_t threadId;
     bool shutdown;
@@ -87,7 +100,8 @@ ClientConnection::ClientConnection(int socketfd)
         log << "Loaded crypto strings!\n";
     }
     log << "About to start thread\n";
-    pthread_create(&m->threadId, NULL, &startClientConnection, this);
+//    pthread_create(&m->threadId, NULL, &startClientConnection, this);
+    MinecraftServer::server().getScheduler().startThread(&ClientConnection::run, this);
 }
 
 ClientConnection::~ClientConnection() {
@@ -112,16 +126,17 @@ void ClientConnection::init() {
     if (packetHeader != 0x02) {
         shutdown();
     }
-    uint8_t protocolVersion;
     log << "About to read packet\n";
     
-    ss >> protocolVersion >> username >> serverHost >> serverPort;
+    ss >> m->protocolVersion >> username >> serverHost >> serverPort;
     log << "Read packet!\n";
-    m->player = new Player(username);
-    m->server.getLogger() << "User " << username << " attempting to log into " << serverHost << ":" << serverPort << " with protocol version " << static_cast<int>(protocolVersion) << '\n';
+//    m->player = new Player(username, *this);
+    m->player = make_shared<Player>(username, *this);
+//    m->player = player.get();
+    m->server.getLogger() << "User " << username << " attempting to log into " << serverHost << ":" << serverPort << " with protocol version " << static_cast<int>(m->protocolVersion) << '\n';
 
     m->server.getLogger() << "About to send encryption request!\n";
-    Packet p = PacketHandler::encryptionRequest();
+    Packet &p = PacketHandler::encryptionRequest();
     ss << p;
     m->server.getLogger() << "Sent encryption request!\n";
 
@@ -185,10 +200,33 @@ void ClientConnection::init() {
     m->server.getLogger() << "About to decrypt shard secret!\n";
     int secretLen = RSA_private_decrypt(ssLength, sharedSecret, buffer, m->server.getRsa(), RSA_PKCS1_PADDING);
     m->server.getLogger() << "Decrypted shared secret length: " << secretLen << '\n';
-    m->server.getLogger() << INFO << "Decrypted shared secret from user " << username << ": " << string(reinterpret_cast<const char *>(buffer), secretLen) << '\n';
+//    m->server.getLogger() << INFO << "Decrypted shared secret from user " << username << ": " << string(reinterpret_cast<const char *>(buffer), secretLen) << '\n';
 
     setupCrypto(string(reinterpret_cast<const char *>(buffer), secretLen));
     finishLogin();
+}
+
+void ClientConnection::run() {
+    m->server.getLogger() << "ClientConnection::run\n";
+    init();
+
+    while (!m->shutdown) {
+        PacketType packetType;
+        m->ss >> packetType;
+        handlePacket(packetType);
+    }
+    // Read-handle loop here.
+}
+
+/**
+ * Shuts down the connection, freeing any resources and removing any references to it.
+ */
+void ClientConnection::shutdown() {
+    cout << "ClientConnection::shutdown()\n";
+    MinecraftServer::server().removePlayer(m->player);
+//    m->player->getWorld().removeEntity(m->player);
+    m->shutdown = true;
+    close(m->socketfd);
 }
 
 void ClientConnection::finishLogin() {
@@ -197,23 +235,24 @@ void ClientConnection::finishLogin() {
     SocketStream &ss = m->ss;
     uint8_t clientStatusId;
     uint8_t payload;
-    ss >> clientStatusId;
+    clientStatusId = ss.readUByte();
     if (clientStatusId != PACKET_CLIENT_STATUS) {
         log << WARNING << "Invalid client status header: 0x" << std::hex << static_cast<uint16_t>(clientStatusId) << '\n' << std::dec;
 //        shutdown();
 //        return;
-        if (clientStatusId == 0) {
-            goto meow;
-        }
+//        if (clientStatusId == 0) {
+//            goto meow;
+//        }
     }
+    cout << "Read client status header\n";
     ss >> payload;
     if (payload) {
         log << WARNING << "Invalid client status payload: 0x" << std::hex << static_cast<uint16_t>(payload) << '\n' << std::dec;
         shutdown();
         return;
     }
+    cout << "Read client status\n";
     log << INFO << "Read client status packet!\n";
-    meow:
 
     Packet login;
     login << PACKET_LOGIN_REQUEST;
@@ -223,10 +262,22 @@ void ClientConnection::finishLogin() {
     login << uint8_t(0) << uint8_t(m->server.getMaxPlayers());
     ss << login;
     m->player->loadData();
+//    m->player->getWorld().addEntity(m->player);
+    MinecraftServer::server().addPlayer(m->player);
 
     m->server.getLogger() << "About to send world!\n";
     sendWorld();
     sendSpawnPosition();
+    return;
+
+    Packet p;
+    p << PACKET_CHAT_MESSAGE;
+    p << "Hello World!";
+    ss << p;
+    Packet p2;
+    p2 << PACKET_CHAT_MESSAGE;
+    p2 << ("*Hugs " + m->player->getName() + "*");
+    ss << p2;
 }
 
 void ClientConnection::sendWorld() {
@@ -234,33 +285,47 @@ void ClientConnection::sendWorld() {
     vector<ChunkCoordinates> loadingArea = playerChunk.getSurroundingChunks(3, true);
     World &world = m->player->getWorld();
     cout << "About to load all chunks!\n";
-    vector<Chunk *> chunks = world.loadAll(loadingArea);
+    vector<shared_ptr<Chunk>> chunks = world.loadAll(loadingArea);
     cout << "Got chunks, about to send...\n";
     for (auto it=chunks.begin(); it != chunks.end(); ++it) {
-        Packet pack;
+        sendChunk(**it);
+/*        Packet pack;
         ChunkCoordinates coords = (*it)->getCoordinates();
         pack << PACKET_CHUNK_DATA << coords.x << coords.z;
         pack << uint8_t(true); // Ground-up continuous?
         pack << uint16_t(0xFFFF); // All 16 bits 1.
-        pack << uint16_t(0xFFFF); // All 16 bits 1.
+        pack << uint16_t(0x0); // All 16 bits 1.
 
-        uint8_t chunkData[(4096 + 2048 + 2048 + 2048 /*+ 2048 add bytes. */) * 16 + 256];
-        cout << "about to copy chunk data\n";
-        memcpy(chunkData, (*it)->blocks, 65536);
-        cout << "About to memset\n";
-        memset(&chunkData[65536], 0, sizeof(chunkData) - 65536);
-        cout << "memset'd\n";
-        ArrayOutputStream out(256);
+        uint8_t chunkData[(4096 + 2048 + 2048 + 2048 / *+ 2048 add bytes. * /) * 16 + 256];
+        memset(chunkData, 0, sizeof(chunkData));
+        for (uint32_t i = 0; i<65536; ++i) {
+            chunkData[i] = (*it)->blocks[i].id;
+        }
+        for (uint32_t i=65536 + 65536 / 2; i<(65536 * 2 + 65536 / 2); ++i) {
+            chunkData[i] = 0xFF;
+        }
+        for (uint32_t i = sizeof(chunkData) - 256; i<sizeof(chunkData); ++i) {
+            chunkData[i] = 6;
+        }
+
+        ArrayOutputStream out(512);
         DeflateOutputStream dout(out);
-        cout << "about to write chunk data\n";
         dout.write(chunkData, sizeof(chunkData));
-        cout << "written chunk data\n";
         dout.close();
-        pack << static_cast<int>(out.size());
-        cout << "out.size() = " << out.size() << '\n';
-        pack.add(out.data(), out.size());
+        uint32_t size = out.size();
+        pack << size;
+        pack.add(out.data(), size);
+        ArrayInputStream in(out.data(), size);
+        DeflateInputStream din(in);
+        uint8_t meow;
+        size_t blockLen = 0;
+        while (din.read(&meow, 1) == 1) {
+            ++blockLen;
+        }
+        
         m->ss << pack;
-        cout << "Sent chunk!\n";
+        cout << "Sent chunk " << coords << "!\n";
+        */
     }
     cout << "Finished sending chunks!\n";
 }
@@ -274,11 +339,16 @@ void ClientConnection::sendSpawnPosition() {
 
     Packet pl;
     pl << PACKET_PLAYER_POSITION_AND_LOOK;
-    pl << pos.x << double(0) << pos.y << pos.z;
+    pl << pos.x << pos.y << pos.y << pos.z;
     pl << float(0) << float(0) << uint8_t(1);
     m->ss << pl;
 
     cout << "Sent spawn position!\n";
+    cout << "pos = " << pos << '\n';
+
+//    uint8_t header = m->ss.readUByte();
+//    cout << "header = 0x" << std::hex << uint16_t(header) << std::dec << '\n';
+//    shutdown();
 }
 
 /**
@@ -308,20 +378,6 @@ void ClientConnection::setupCrypto(std::string sharedSecret) {
 //    setBlocking(false);
 }
 
-void ClientConnection::run() {
-    m->server.getLogger() << "ClientConnection::run\n";
-    init();
-    // Read-handle loop here.
-}
-
-
-/**
- * Shuts down the connection, freeing any resources and removing any references to it.
- */
-void ClientConnection::shutdown() {
-    m->shutdown = true;
-    close(m->socketfd);
-}
 
 bool ClientConnection::isBlocking() {
     return !(fcntl(m->socketfd, F_GETFL) & O_NONBLOCK);
@@ -336,6 +392,159 @@ void ClientConnection::setBlocking(bool blocking) {
         fl |= O_NONBLOCK;
     }
     fcntl(m->socketfd, F_SETFL, fl);
+}
+
+void ClientConnection::sendChunk(const Chunk &ch) {
+        Packet pack;
+        ChunkCoordinates coords = ch.getCoordinates();
+        pack << PACKET_CHUNK_DATA << coords.x << coords.z;
+        pack << uint8_t(true); // Ground-up continuous?
+        pack << uint16_t(0xFFFF); // All 16 bits 1.
+        pack << uint16_t(0x0); // All 16 bits 1.
+
+        uint8_t chunkData[(4096 + 2048 + 2048 + 2048 /*+ 2048 add bytes. */) * 16 + 256];
+        memset(chunkData, 0, sizeof(chunkData));
+        for (uint32_t i = 0; i<65536; ++i) {
+            chunkData[i] = ch.blocks[i].id;
+        }
+        for (uint32_t i=65536 + 65536 / 2; i<(65536 * 2 + 65536 / 2); ++i) {
+            chunkData[i] = 0xFF;
+        }
+        for (uint32_t i = sizeof(chunkData) - 256; i<sizeof(chunkData); ++i) {
+            chunkData[i] = 6;
+        }
+
+        ArrayOutputStream out(512);
+        DeflateOutputStream dout(out);
+        dout.write(chunkData, sizeof(chunkData));
+        dout.close();
+        uint32_t size = out.size();
+        pack << size;
+        pack.add(out.data(), size);
+        
+        m->ss << pack;
+}
+
+void ClientConnection::handlePacket(PacketType type) {
+    static bool meow = false;
+    if (meow) return;
+    cout << "ClientConnection::handlePacket(0x" << std::hex << uint16_t(type) << std::dec << ")\n";
+    switch (type) {
+    case PACKET_KEEP_ALIVE: {
+        int keepAliveId = m->ss.readInt();
+        break;
+    }
+    case PACKET_DISCONNECT_KICK: {
+//        cout << "case PACKET_DISCONNECT_KICK\n";
+//        m->ss.readString();
+        shutdown();
+        break;
+    }
+    case PACKET_PLAYER_POSITION_AND_LOOK: {
+        receivePlayerPositionAndLook();
+        break;
+    }
+    case PACKET_CLIENT_SETTINGS:
+        receiveClientSettings();
+        break;
+    case PACKET_PLAYER_POSITION:
+        receivePlayerPosition();
+        break;
+    case PACKET_PLAYER_ABILITIES:
+        receivePlayerAbilities();
+        break;
+    case PACKET_PLAYER_LOOK:
+        receivePlayerLook();
+        break;
+    case PACKET_CHAT_MESSAGE:
+        receiveChatMessage();
+        break;
+    default:
+        cout << "default\n";
+        meow = true;
+//        shutdown();
+        return;
+    }
+}
+
+void ClientConnection::receiveClientSettings() {
+    cout << "Player " << m->player->getName() << " has settings:\n";
+    cout << "Locale: " << m->ss.readString() << '\n';
+    cout << "View distance: " << uint16_t(m->ss.readUByte()) << '\n';
+    cout << "Chat flags: " << uint16_t(m->ss.readUByte()) << '\n';
+    cout << "Difficulty: " << uint16_t(m->ss.readUByte()) << '\n';
+    if (m->protocolVersion >= 40) {
+        cout << "Show cape: " << uint16_t(m->ss.readUByte()) << '\n';
+    }
+}
+
+void ClientConnection::receivePlayerPositionAndLook() {
+    Point3D pos;
+    m->ss >> pos.x >> pos.y;
+    double stance = m->ss.readDouble();
+    m->ss >> pos.z;
+    float yaw = m->ss.readFloat();
+    float pitch = m->ss.readFloat();
+    m->ss.readByte();
+
+    m->player->setPosition(pos);
+    updatePosition();
+}
+
+void ClientConnection::receivePlayerPosition() {
+    Point3D pos;
+    m->ss >> pos.x;
+    m->ss >> pos.y;
+    double stance = m->ss.readDouble();
+    m->ss >> pos.z;
+    m->player->setPosition(pos);
+    m->ss.readByte();
+    updatePosition();
+}
+
+void ClientConnection::receivePlayerAbilities() {
+    uint8_t flags = m->ss.readUByte();
+    uint8_t flySpeed = m->ss.readUByte();
+    uint8_t walkSpeed = m->ss.readUByte();
+    cout << "flags = 0x" << std::hex << uint16_t(flags) << std::dec << '\n';
+    cout << "flySpeed = " << uint16_t(flySpeed) << '\n';
+    cout << "walkSpeed = " << uint16_t(walkSpeed) << '\n';
+}
+
+void ClientConnection::receivePlayerLook() {
+    m->player->setYaw(m->ss.readFloat());
+    m->player->setPitch(m->ss.readFloat());
+    cout << "onGround: " << uint16_t(m->ss.readByte()) << '\n';
+}
+
+void ClientConnection::receiveChatMessage() {
+    string message = m->ss.readString();
+    MinecraftServer::server().getChatServer().handleChatMessage(message, m->player);
+}
+
+void ClientConnection::updatePosition() {
+    ChunkCoordinates pos = m->player->getPosition();
+    if (pos != m->sentWorldCentre) {
+        vector<ChunkCoordinates> loadingArea = pos.getSurroundingChunks(3, true);
+        World &world = m->player->getWorld();
+        vector<shared_ptr<Chunk>> chunks = world.loadAll(loadingArea);
+        for_each(chunks.begin(), chunks.end(), [&] (const shared_ptr<Chunk> ch) {
+            sendChunk(*ch);
+        });
+    }
+    m->sentWorldCentre = pos;
+}
+
+void ClientConnection::sendKeepAlive() {
+    Packet ka;
+    ka << PACKET_KEEP_ALIVE << int(0);
+    m->ss << ka;
+}
+
+void ClientConnection::sendMessage(const std::string &message) {
+    Packet pk;
+    pk << PACKET_CHAT_MESSAGE << message;
+    m->ss << pk;
 }
 
 }

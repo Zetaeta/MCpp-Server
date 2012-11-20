@@ -3,6 +3,10 @@
 #include <typeinfo>
 #include <iostream>
 #include <sstream>
+#include <memory>
+#include <algorithm>
+#include <stdexcept>
+#include <math.h>
 
 #include <nbt/NBT.hpp>
 #include <nbt/TagCompound.hpp>
@@ -17,6 +21,7 @@
 #include <IOStream/ArrayInputStream.hpp>
 
 #include <Util/StringUtils.hpp>
+#include <Util/Rounding.hpp>
 
 #include "World.hpp"
 #include "Point3D.hpp"
@@ -28,9 +33,8 @@
 #include "logging/Logger.hpp"
 #include "WorldLoadingFailure.hpp"
 #include "util/Utils.hpp"
-//#include "PlayerWorldData.hpp"
 #include "entity/PlayerData.hpp"
-#include "Lock.hpp"
+#include "ReentrantLock.hpp"
 #include "AutoLock.hpp"
 
 using std::string;
@@ -38,6 +42,11 @@ using std::map;
 using std::vector;
 using std::cout;
 using std::ostringstream;
+using std::shared_ptr;
+using std::weak_ptr;
+using std::find;
+using std::make_shared;
+using std::pair;
 
 using NBT::Tag;
 using NBT::TagCompound;
@@ -52,6 +61,7 @@ using IOStream::FileInputStream;
 using IOStream::ArrayInputStream;
 
 using Util::demangle;
+using Util::roundDownToNeg;
 
 using MCServer::Entities::PlayerData;
 
@@ -59,10 +69,15 @@ USING_LOGGING_LEVEL
 
 namespace MCServer {
 
+using Entities::Entity;
+
 struct WorldData {
     string name;
-    map<ChunkCoordinates, Chunk *> chunks;
-    Lock chunksLock;
+    map<ChunkCoordinates, shared_ptr<Chunk>> chunks;
+    ReentrantLock chunksLock;
+    vector<shared_ptr<Entity>> entities;
+    map<ChunkCoordinates, weak_ptr<Chunk>> unloadingChunks;
+    ReentrantLock unloadingChunksLock;
 
     bool hardcore;
     bool structures;
@@ -107,19 +122,43 @@ World & World::operator=(World &&other){
     return *this;
 }
 
-Chunk & World::chunkAt(int x, int y) {
+shared_ptr<Chunk> World::chunkAt(int x, int y) const {
     return chunkAt(Point2D(x, y));
 }
 
-Chunk & World::chunkAt(const Point2D &pt) {
-    AutoLock al(m->chunksLock);
-    return *m->chunks[pt];
+shared_ptr<Chunk> World::chunkAt(const Point2D &pt) const {
+    AUTOLOCK(m->chunksLock);
+    auto it = m->chunks.find(pt);
+    if (it != m->chunks.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void World::addEntity(const shared_ptr<Entity> &entity) {
+    m->entities.push_back(entity);
+}
+
+void World::removeEntity(const shared_ptr<Entity> &entity) {
+    auto it = find(m->entities.begin(), m->entities.end(), entity);
+    if (it == m->entities.end()) {
+        throw std::runtime_error("Entity is not there to remove!");
+    }
+    m->entities.erase(it);
+}
+
+vector<std::shared_ptr<Entity>> & World::getEntities() {
+    return m->entities;
+}
+
+const vector<std::shared_ptr<Entity>> & World::getEntities() const {
+    return m->entities;
 }
 
 void World::loadFrom(const std::string &directory) {
-    AutoLock al(m->chunksLock);
+    AUTOLOCK(m->chunksLock);
     m->directory = directory;
-    cout << "World::loadFrom()\n";
+//    cout << "World::loadFrom()\n";
     string levelDatFile = directory + "/level.dat";
     if (!exists(levelDatFile)) {
         MinecraftServer::getServer().getLogger() << "Error: missing level.dat file in " << directory << '\n';
@@ -208,7 +247,6 @@ vector<string> printTag(Tag *tag) {
         strings.push_back(ss.str());
         vector<Tag *> &m = list->getData();
         for (auto it = m.begin(); it != m.end(); ++it) {
-//            cout << "it: " << *it << '\n';
             if (!*it) {
                 strings.push_back("NULL");
                 continue;
@@ -248,9 +286,9 @@ void World::readRegionFile(const std::string &fileName) {
     cout << "compound's members: \n";
     cout << "    compound: " << compound << '\n';
     vector<string> tree = printTag(compound);
-    for (size_t i=0; i < tree.size(); ++i) {
-        cout << tree[i];
-    }
+//    for (size_t i=0; i < tree.size(); ++i) {
+//        cout << tree[i];
+//    }
 
 
     TagCompound &level = compound->getCompound("Level");
@@ -261,34 +299,45 @@ void World::readRegionFile(const std::string &fileName) {
         uint8_t y = sectionC->getUByte("Y");
         cout << "Y: " << uint16_t(y) << '\n';
     }
-    m->chunks[{0, 0}]->loadFrom(*compound);
+//    m->chunks[{0, 0}]->loadFrom(*compound);
     
 }
 
-Chunk & World::loadChunk(const ChunkCoordinates &pos) {
-    AutoLock al(m->chunksLock);
+shared_ptr<Chunk> World::loadChunk(const ChunkCoordinates &pos) {
+    AUTOLOCK(m->chunksLock);
     auto mbFound = m->chunks.find(pos);
     if (mbFound != m->chunks.end()) {
         cout << "{" << pos.x << ", " << pos.z << "} already loaded!\n";
-        return *mbFound->second;
+        return mbFound->second;
+    }
+    auto ulFound = m->unloadingChunks.find(pos);
+    if (ulFound != m->unloadingChunks.end() && !ulFound->second.expired()) {
+        auto locked = ulFound->second.lock();
+        m->unloadingChunksLock.lock();
+        m->unloadingChunks.erase(ulFound);
+        m->unloadingChunksLock.unLock();
+        m->chunksLock.lock();
+        m->chunks[pos] = locked;
+        m->chunksLock.unLock();
+        return locked;
     }
     ostringstream filenameSs;
-    filenameSs << m->directory << "/region/" << "r." << (pos.x / 32) << '.' << (pos.z / 32) << ".mca";
+    filenameSs << m->directory << "/region/" << "r." << (roundDownToNeg<int, 32>(pos.x) / 32) << '.' << (roundDownToNeg<int, 32>(pos.z) / 32) << ".mca";
     string filename = filenameSs.str();
+//    cout << filename << '\n';
     if (!exists(filename)) {
+        cout << filename << " does not exist. Creating new chunk at {" << pos.x << ", " << pos.z << "}\n";
         return createChunk(pos);
     }
-    cout << filename << '\n';
     FileInputStream fin(filenameSs.str());
     InputStream in(fin, BIG);
-    size_t headerOffset = 4 * (pos.x + pos.z * 32); // Offset of chunk information from start of file.
+    size_t xOffset = pos.x & 31;
+    size_t zOffset = pos.z & 31;
+    size_t headerOffset = 4 * (xOffset + zOffset * 32); // Offset of chunk information from start of file.
     in.seek(headerOffset, SEEK_SET);
     uint32_t chunkInfo = in.readInt();
     if (chunkInfo == 0) {
         cout << "Creating new chunk at {" << pos.x << ", " << pos.z << "}\n";
-//        for (const auto &pair : m->chunks) {
-//            cout << "m->chunks[{" << pair.first.x << ", " << pair.first.z << "} = " << pair.second << '\n';
-//        }
         return createChunk(pos);
     }
 
@@ -298,54 +347,83 @@ Chunk & World::loadChunk(const ChunkCoordinates &pos) {
     int length = in.readInt();
     off_t startPos = fin.seek(0, SEEK_CUR);
     uint8_t version = in.readUByte();
-    cout << "length = " << length << ", version = " << uint16_t(version) << '\n';
 
     uint8_t *compressedData = new uint8_t[length - 1];
-    cout << "in.read(): " << in.read(compressedData, length - 1) << '\n';
+/*    cout << "in.read(): " << */ in.read(compressedData, length - 1);// << '\n';
     DeflateInputStream din(new ArrayInputStream(compressedData, length - 1));
     InputStream compIn(din, BIG);
     TagCompound *chunkRoot = dynamic_cast<TagCompound *>(NBT::readTag(compIn));
     din.close();
+    fin.close();
     off_t endPos = fin.seek(0, SEEK_CUR);
-    cout << "startPos = " << startPos << ", endPos = " << endPos << ", diff = " << (endPos - startPos) << '\n';
-//    din.putBack();
-//    vector<string> tree = printTag(chunkRoot);
-//    for (size_t i=0; i < tree.size(); ++i) {
-//        cout << tree[i];
-//    }
-    Chunk *chunk = new Chunk;
+    auto chunk = make_shared<Chunk>(pos);
     m->chunks[pos] = chunk;
-//    for (const auto &pair : m->chunks) {
-//        cout << "m->chunks[{" << pair.first.x << ", " << pair.first.z << "} = " << pair.second << '\n';
-//    }
-    m->chunks[pos]->loadFrom(*chunkRoot);
-    return *m->chunks[pos];
+    chunk->loadFrom(*chunkRoot);
+    return chunk;
 }
 
-Chunk & World::createChunk(const ChunkCoordinates &pos) {
-    AutoLock al(m->chunksLock);
-    Chunk *chunk = new Chunk;
+shared_ptr<Chunk> World::createChunk(const ChunkCoordinates &pos) {
+    AUTOLOCK(m->chunksLock);
+    auto chunk = make_shared<Chunk>(pos);
     m->chunks[pos] = chunk;
-    return *chunk;
+    return chunk;
+}
+
+void World::unloadChunk(const ChunkCoordinates &pos) {
+    auto it = m->chunks.find(pos);
+    if (it == m->chunks.end()) {
+        throw std::runtime_error("That chunk is not loaded"); 
+    }
+    unloadChunk(it->second);
+}
+
+void World::unloadChunk(const shared_ptr<Chunk> &chunk) {
+    AUTOLOCK(m->chunksLock);
+    weak_ptr<Chunk> weak(chunk);
+    auto coords = chunk->getCoordinates();
+    auto it = m->chunks.find(coords);
+    if (it != m->chunks.end()) {
+        m->chunks.erase(it);
+    }
+    if (!weak.expired()) {
+        m->unloadingChunksLock.lock();
+        m->unloadingChunks[coords] = weak;
+        m->unloadingChunksLock.unLock();
+    }
+}
+
+void World::saveChunk(const ChunkCoordinates &coords) {
+    auto it = m->chunks.find(coords);
+    if (it == m->chunks.end()) {
+        throw std::runtime_error("That chunk is not loaded"); 
+    }
+    saveChunk(it->second);
+}
+
+void World::saveChunk(const shared_ptr<Chunk> &chunk) {
+    AUTOLOCK(m->chunksLock);
+    ChunkCoordinates coords = chunk->getCoordinates();
+    ostringstream filenameSs;
+    filenameSs << m->directory << "/region/r." << (roundDownToNeg<int, 32>(coords.x) / 32)
+        << '.' << (roundDownToNeg<int, 32>(coords.z) / 32) << ".mca";
+    string filename = filenameSs.str();
+    if (!exists(filename)) {
+        
+    }
 }
 
 void World::loadPlayer(PlayerData *data) {
     cout << "loadPlayer(): " << data->name << '\n';
     cout << "World's directory: " << m->directory << '\n';
     string filename = m->directory + "/players/" + data->name + ".dat";
+    if (!exists(filename)) {
+        return;
+    }
     InputStream in(new GZipInputStream(filename));
     Tag *tag = NBT::readTag(in);
-//    Tag *tag = NBT::readFromFile(filename);
-
-//   for (int i=0; i<5; ++i) {
-//       in.readUByte();
-//   }
 
     cout << "Player data: \n";
     vector<string> stuff = printTag(tag);
-    for (string meow : stuff) {
-        cout << meow;
-    }
 
     TagCompound *root = dynamic_cast<TagCompound *>(tag);
     data->onGround = root->getByte("onGround");
@@ -373,13 +451,47 @@ void World::loadPlayer(PlayerData *data) {
                       dynamic_cast<TagDouble *>(position[2])->getData()};
 }
 
-vector<Chunk *> World::loadAll(const vector<ChunkCoordinates> &coords) {
-    vector<Chunk *> returned(coords.size());
+template <typename T, typename Stream>
+Stream & operator<<(Stream &strm, const vector<T> &vec) {
+    strm << '{';
+    for_each(vec.begin(), vec.end(), [&] (const T &t) {
+        strm << t << ", ";
+    });
+    strm << '}';
+    return strm;
+}
+
+vector<shared_ptr<Chunk>> World::loadAll(const vector<ChunkCoordinates> &coords) {
+    cout << "World::loadAll():\n" << coords << '\n';
+    vector<shared_ptr<Chunk>> returned(coords.size());
     for (size_t i=0; i<coords.size(); ++i) {
-        cout << "World::loadAll(): loading " << coords[i] << '\n';
-        returned[i] = &loadChunk(coords[i]);
+        returned[i] = loadChunk(coords[i]);
     }
     return returned;
+}
+
+vector<shared_ptr<Chunk>> World::getLoadedChunks() const {
+    vector<shared_ptr<Chunk>> returned;
+    for (const pair<ChunkCoordinates, shared_ptr<Chunk>> pair : m->chunks) {
+        returned.push_back(pair.second);
+    }
+    return returned;
+}
+
+map<ChunkCoordinates, weak_ptr<Chunk>> & World::getUnloadingChunks() {
+    return m->unloadingChunks;
+}
+
+const map<ChunkCoordinates, weak_ptr<Chunk>> & World::getUnloadingChunks() const {
+    return m->unloadingChunks;
+}
+
+ReentrantLock & World::getChunksLock() {
+    return m->chunksLock;
+}
+
+ReentrantLock & World::getUnloadingChunksLock() {
+    return m->unloadingChunksLock;
 }
 
 }

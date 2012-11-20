@@ -50,12 +50,9 @@ Packet & Packet::operator<<(uint8_t i) {
 }
 
 Packet & Packet::operator<<(int16_t i) {
-    cout << "Packet::operator<<(int16_t)\n";
-    cout << "Before swapping endian: " << i << '\n';
     if (!bigEndian) {
         swapEndian(i);
     }
-    cout << "After swapping endian: " << i << '\n';
 //    buffer.addByte(i);
 //    buffer.addByte(i >> 8);
     buffer.add(&i, sizeof(i));
@@ -63,12 +60,9 @@ Packet & Packet::operator<<(int16_t i) {
 }
 
 Packet & Packet::operator<<(uint16_t i) {
-    cout << "Packet::operator<<(uint16_t)\n";
-    cout << "Before swapping endian: " << i << '\n';
     if (!bigEndian) {
         swapEndian(i);
     }
-    cout << "After swapping endian: " << i << '\n';
 
 //    abcdefgh ijklmnop
 //    buffer.addByte(i);
@@ -185,7 +179,7 @@ Packet & Packet::operator<<(const std::string &s) {
     return *this;
 }
 
-Packet & Packet::operator<<(Packets packetType) {
+Packet & Packet::operator<<(PacketType packetType) {
     return operator<<(static_cast<uint8_t>(packetType));
 }
 
@@ -316,10 +310,10 @@ Packet & Packet::operator>>(std::string &s) {
     return *this;
 }
 
-Packet & Packet::operator>>(Packets &p) {
+Packet & Packet::operator>>(PacketType &p) {
     uint8_t b;
     operator>>(b);
-    p = static_cast<Packets>(b);
+    p = static_cast<PacketType>(b);
     return *this;
 }
 

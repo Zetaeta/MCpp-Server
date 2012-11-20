@@ -9,7 +9,7 @@
 #include "Handler.hpp"
 #include "UIHandler.hpp"
 #include "MinecraftServer.hpp"
-#include "Lock.hpp"
+#include "ReentrantLock.hpp"
 
 using std::vector;
 using std::string;
@@ -26,7 +26,7 @@ struct LoggerData {
     Level currentLevel;
     vector<Handler *> handlers;
     ostringstream oss;
-    Lock lock;
+    ReentrantLock lock;
 
     static map<string, Logger *> loggers;
 };

@@ -1,16 +1,10 @@
-/*
- * NetworkServer.hpp
- *
- *  Created on: 4 Aug 2012
- *      Author: daniel
- */
 
 #ifndef NETWORKSERVER_HPP_
 #define NETWORKSERVER_HPP_
 
 struct sockaddr_in;
 
-#include "../MinecraftServer.hpp"
+#include "MinecraftServer.hpp"
 
 namespace MCServer {
 namespace Network {

@@ -1,4 +1,4 @@
 #!/bin/bash
-find ../libNBT/src/ ../libIOStream/src/ ../libendian/src/ ../MC++-Server/src/ \
-     \( -name *.cpp -o -name *.hpp -o -name *.tcc \) | grep -v moc_ \
+find ../libNBT/src/ ../libIOStream/src/ ../libZUtil/src/ ../MC++-Server/src/ \
+     \( -name "*.cpp" -o -name "*.hpp" -o -name "*.tcc" \) | grep -v moc_ \
      | xargs sed -n '/[^[:space:]]/p' | wc -l | sort -n

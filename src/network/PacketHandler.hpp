@@ -20,7 +20,7 @@ class PacketHandler {
 public:
     static void initialise(MinecraftServer *server);
 
-    static Packet encryptionRequest();
+    static Packet & encryptionRequest();
 //    static void handleEncryptionResponse(SocketInputStream &);
 private:
     PacketHandler();

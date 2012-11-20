@@ -39,7 +39,7 @@ void SchedulerThread::actualStart() {
 }
 
 void SchedulerThread::execute(const std::function<void ()> &function) {
-    AutoLock a(lock);
+    auto a = autoLock(lock);
     // New function is created around `function`
     // New function is swapped with `toExecute`
     // Both functions now have pointer to original func.
@@ -51,14 +51,14 @@ void SchedulerThread::execute(const std::function<void ()> &function) {
 }
 
 void SchedulerThread::execute(std::function<void ()> &&function) {
-    AutoLock a(lock);
+    auto a = autoLock(lock);
     next = std::move(function);
     functionReady = true;
     cond.broadcast();
 }
 
 void SchedulerThread::execute() {
-    AutoLock a(lock);
+    auto a = autoLock(lock);
     swap(current, next);
     try {
         current();

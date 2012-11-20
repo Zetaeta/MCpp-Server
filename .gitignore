@@ -36,3 +36,9 @@ core.*
 countLines
 countEmptyLines
 testMemErr
+.clang_complete
+vgcore.*
+meow
+g++segfault.sh
+server.log*
+

@@ -2,17 +2,19 @@
 #ifndef MCS_STRINGUTILS_HPP
 #define MCS_STRINGUTILS_HPP
 
-#include <string>
+//#include <Util/stlfwd.hpp>
 
 namespace MCServer {
 
-bool endsWith(const std::string &string, const std::string &ending);
-std::string toLower(const std::string &string);
+//bool endsWith(const std::string &string, const std::string &ending);
+//std::string toLower(const std::string &string);
 
 // Template function to check ending, useful for "Plugins::PluginLoaderRule"'s
-template<const char *Ending> bool endsWithTemplate(const char *string) {
-    return endsWith(string, Ending);
-}
+//template<const char *Ending> bool endsWithTemplate(const char *string) {
+//    return endsWith(string, Ending);
+//}
+
+//std::vector<std::string> split(const std::string &string, const std::string &splitter);
 
 //typedef bool(_endsWithFunction)(const char *);
 

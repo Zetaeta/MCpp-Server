@@ -6,6 +6,7 @@
 
 #include <nbt/TagCompound.hpp>
 #include <nbt/TagList.hpp>
+#include <nbt/TagNotFound.hpp>
 
 #include "Chunk.hpp"
 #include "util/Utils.hpp"
@@ -19,8 +20,8 @@ using NBT::Tag;
 
 namespace MCServer {
 
-Chunk::Chunk()
-:blocksAccess(blocks) {
+Chunk::Chunk(const ChunkCoordinates &coords)
+:blocksAccess(blocks), coords(coords) {
 }
 
 Chunk::Chunk(const Chunk &other)
@@ -36,7 +37,7 @@ void Chunk::loadFrom(const TagCompound &compound) {
     const TagCompound &level = compound.getCompound("Level");
     const TagList &sections = level.getList("Sections");
     const vector<Tag *> sectionsV = sections.getData();
-    cout << "Chunk::loadFrom: sectionsV.size() = " << sectionsV.size() << '\n';
+//    cout << "Chunk::loadFrom: sectionsV.size() = " << sectionsV.size() << '\n';
     for (Tag *section : sectionsV) {
         const TagCompound *sectionC = dynamic_cast<const TagCompound *>(section);
         loadSection(*sectionC);
@@ -45,8 +46,18 @@ void Chunk::loadFrom(const TagCompound &compound) {
 
 void Chunk::loadSection(const TagCompound &section) {
     uint8_t height = section.getByte("Y");
-    vector<uint8_t> blocks = section.getByteArray("Blocks");
-    cout << "blocks.size(): " << blocks.size() << '\n';
+//    if (height != 3 || height != 2) {
+//        return;
+//    }
+    vector<uint8_t> blocks;
+    try {
+        blocks = section.getByteArray("Blocks");
+    }
+    catch (const NBT::TagNotFound &) {
+        return;
+    }
+//    cout << "Chunk::loadSection: Y = " << uint16_t(height) << '\n';
+//    cout << "blocks.size(): " << blocks.size() << '\n';
 
 
 //#define LOOP_COPY
@@ -62,12 +73,12 @@ void Chunk::loadSection(const TagCompound &section) {
         }
     }
 #else
-    Block *bOut = &this->blocks[height * 256];
+    Block *bOut = &this->blocks[height * 4096];
     uint8_t *bIn = blocks.data();
-//    memcpy(&this->blocks[height * 256], blocks.data(), blocks.size());
     for (int i=0; i<4096; ++i) {
         bOut[i].id = bIn[i];
     }
+//    cout << "bOut - blocks = " << (bOut - this->blocks) << '\n';
 #endif
 
 }

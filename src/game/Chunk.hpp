@@ -22,7 +22,7 @@ typedef ArrayAccessor<Block, 256> BlocksY, Blocks1D;
 
 class Chunk {
 public:
-    Chunk();
+    Chunk(const ChunkCoordinates &);
 //    const BlocksYZ & operator[](uint8_t) const;
 //    BlocksYZ & operator[](uint8_t);
     ArrayAccessor<Block, 16, 256> operator[](size_t index) {

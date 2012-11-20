@@ -31,12 +31,14 @@ public:
 
     ArrayAccessor<T, Dimensions...> operator[](size_t index) {
         CHECK_RANGE(N, index)
-        return ArrayAccessor<T, Dimensions...>(array, offset + (index * multiplier), GenericFirst<int>::First<Dimensions...>::value);
+        return ArrayAccessor<T, Dimensions...>(array, offset + (index * multiplier),
+                                            GenericFirst<int>::First<Dimensions...>::value);
     }
 
     ArrayAccessor<const_type, Dimensions...> operator[](size_t index) const {
         CHECK_RANGE(N, index)
-        return ArrayAccessor<const_type, Dimensions...>(array, offset + (index * multiplier), GenericFirst<int>::First<Dimensions...>::value);
+        return ArrayAccessor<const_type, Dimensions...>(array, offset + (index * multiplier),
+                                             GenericFirst<int>::First<Dimensions...>::value);
     }
 private:
     ArrayAccessor(T *array, size_t offset, size_t multiplier)

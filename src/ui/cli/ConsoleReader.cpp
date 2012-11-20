@@ -39,13 +39,14 @@ struct ConsoleReaderData {
 };
 
 ConsoleReader::ConsoleReader(MinecraftServer *server)
- :m(new ConsoleReaderData(server)) {
+:m(new ConsoleReaderData(server)) {
     m->server = server;
     pthread_create(&m->thread, NULL, &startConsoleReader, this);
 }
 
 void ConsoleReader::run() {
     init();
+#ifndef NOINPUT
     while (m->running) {
         const char *line = readline(">");
         if (!line) {
@@ -54,12 +55,14 @@ void ConsoleReader::run() {
         m->server->dispatchConsoleCommand(line);
     }
     exit(0);
+#endif
 }
 
 void ConsoleReader::init() {
 }
 
 void ConsoleReader::println(const string &s) {
+#ifndef NOINPUT
     m->lock.lock();
     int savedPoint = rl_point;
     char *savedLine = rl_copy_text(0, rl_end);
@@ -72,6 +75,9 @@ void ConsoleReader::println(const string &s) {
     rl_point = savedPoint;
     rl_redisplay();
     m->lock.unLock();
+#else
+    puts(s.c_str());
+#endif
 }
 
 void ConsoleReader::clearLine() {

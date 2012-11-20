@@ -3,11 +3,12 @@
 #define PACKET_HPP
 
 #include <stdint.h>
+#include <iostream>
 
 #include <IOStream/Buffer.hpp>
 
 #include <Util/stlfwd.hpp>
-#include "Packets.hpp"
+#include "PacketType.hpp"
 
 namespace MCServer {
 namespace Network {
@@ -29,7 +30,7 @@ public:
     Packet & operator<<(float);
     Packet & operator<<(double);
     Packet & operator<<(const std::string &);
-    Packet & operator<<(Packets);
+    Packet & operator<<(PacketType);
 
     Packet & operator>>(int8_t &);
     Packet & operator>>(uint8_t &);
@@ -42,7 +43,7 @@ public:
     Packet & operator>>(float &);
     Packet & operator>>(double &);
     Packet & operator>>(std::string &);
-    Packet & operator>>(Packets &);
+    Packet & operator>>(PacketType &);
 
     template<class T>
     void add(T *data, size_t length) {
@@ -57,6 +58,7 @@ private:
 
 template<class T>
 T & operator<<(T &stream, const Packet &p) {
+//    std::cout << "p.size() = " << p.size() << '\n';
     stream.write(p.getBytes(), p.size());
     return stream;
 }

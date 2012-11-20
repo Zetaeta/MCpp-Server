@@ -10,6 +10,7 @@ namespace Entities {
 struct EntityData {
     int id;
     Point3D position;
+    double pitch, yaw, stance;
 };
 
 }

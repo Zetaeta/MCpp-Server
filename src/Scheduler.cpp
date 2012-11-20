@@ -3,6 +3,8 @@
 #include <iostream>
 #include <algorithm>
 
+#include <signal.h>
+
 #include <Util/StringUtils.hpp>
 
 #include "Scheduler.hpp"
@@ -39,6 +41,8 @@ void * startThreadBeginner(void *threadStartInfo) {
         oss << pthread_self();
         name = oss.str();
     }
+
+//    signal(SIGPIPE, SIG_IGN);
 
     try {
         (*info->function)(info->argument);

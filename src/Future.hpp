@@ -44,7 +44,7 @@ public:
     }
 
     void set(T *object, bool toDelete) {
-        AutoLock lock(impl->objectLock);
+        auto lock = autoLock(impl->objectLock);
 /*        cout << "\tFuture::set(): impl.use_count() = " << impl.use_count() << ", i = " << i << '\n';
         std::cout << "Future::set: impl = " << &*impl << '\n';
         std::cout << "Future::set: impl->object = " << impl->object << '\n';
@@ -56,7 +56,7 @@ public:
     }
 
     bool available() {
-        AutoLock lock(impl->objectLock);
+        auto lock = autoLock(impl->objectLock);
         return impl->exists;
     }
 
@@ -66,7 +66,7 @@ public:
             impl->cond.wait();
         }
 
-        AutoLock lock(impl->objectLock);
+        auto lock = autoLock(impl->objectLock);
         const T &t = *impl->object;
         return t;
     }
@@ -80,7 +80,7 @@ private:
 //        Lock lock;
 
         Impl()
-        :object(nullptr), toDelete(false) {
+        :object(nullptr), toDelete(false), exists(false) {
 //            cout << "\tFuture::Impl::Impl()\n";
         }
 

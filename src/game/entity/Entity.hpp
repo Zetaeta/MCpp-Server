@@ -16,6 +16,13 @@ public:
 
     int getId();
     Point3D getPosition() const;
+    void setPosition(const Point3D &);
+    double getYaw();
+    double getPitch();
+    void setYaw(double);
+    void setPitch(double);
+    double getStance();
+    void setStance(double);
 protected:
     Entity(EntityData *, int id);
     Entity(EntityData *);

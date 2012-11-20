@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sstream>
 #include <errno.h>
+#include <vector>
 
 #include <unistd.h>
 #include <pthread.h>
@@ -34,7 +35,6 @@ void * startNetworkServer(void *serverPtr) {
 }
 
 }
-
 
 using std::string;
 USING_LOGGING_LEVEL
@@ -67,7 +67,7 @@ NetworkServer::NetworkServer(MinecraftServer *server)
 
 //    pthread_create(&m->thread, NULL, &startNetworkServer, this);
     std::function<void (NetworkServer *)> f = &NetworkServer::run;
-    server->getScheduler().startThread(&NetworkServer::run, this);
+    server->getScheduler().startImportantThread(&NetworkServer::run, this);
 }
 
 NetworkServer::~NetworkServer() {
@@ -96,6 +96,8 @@ void NetworkServer::init() {
     //              not local, stream (TCP), default protocol (TCP)
     m->portNum = 25565;
     m->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int optval = 1;
+    setsockopt(m->sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
     memset(&m->serverAddress, 0, sizeof(m->serverAddress));
     m->serverAddress.sin_family = AF_INET;
     m->serverAddress.sin_port = htons(m->portNum);
@@ -146,9 +148,11 @@ void NetworkServer::serverListPing(const Connection &connection) {
     close(connection.socketfd);
 } 
 
+
 void NetworkServer::shutdown() {
     m->shutdown = true;
 }
 
 } /* namespace Network */
 } /* namespace MCServer */
+

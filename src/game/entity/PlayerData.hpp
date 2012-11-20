@@ -10,9 +10,15 @@ namespace MCServer {
 
 enum GameMode : uint8_t;
 
+namespace Network {
+class ClientConnection;
+}
+
 namespace Entities {
 
 struct PlayerData : public EntityData {
+    Network::ClientConnection *connection;
+
     std::string name;
 
     bool onGround;
@@ -34,7 +40,6 @@ struct PlayerData : public EntityData {
     float foodExhaustionLevel;
     float foodSaturationLevel;
     float xpP;
-    Point3D position;
 };
 
 }

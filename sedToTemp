@@ -1,0 +1,8 @@
+#!/bin/bash
+
+FILE=${1/..\//}
+
+mkdir -p /tmp/mc++-server-loc/$(echo $FILE | sed -r 's|/[^/]+$||')
+
+sed -r 's|^\s*//.*$||' $1 | sed -n '/[^[:space:]]/p' >/tmp/mc++-server-loc/$FILE
+echo /tmp/mc++-server-loc/$FILE

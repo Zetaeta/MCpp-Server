@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <streambuf>
+#include <Util/stlfwd.hpp>
 
 
 #ifndef HEADER_OPENSSL_TYPES_H
@@ -33,8 +34,14 @@ namespace Command {
 class CommandManager;
 }
 
+namespace Entities {
+class Player;
+};
+
 class World;
 class Scheduler;
+class ChatServer;
+class ChunkLoader;
 
 enum GameMode : unsigned char;
 enum Difficulty : unsigned char;
@@ -49,6 +56,7 @@ public:
     void run();
     void shutdown();
 
+    bool isRunning();
     bool isShutdown();
 
     int & argc();
@@ -61,6 +69,9 @@ public:
     EntityManager & getEntityManager();
     Plugin::PluginManager & getPluginManager();
     Scheduler & getScheduler();
+    Command::CommandManager & getCommandManager();
+    ChatServer & getChatServer();
+    ChunkLoader & getChunkLoader();
 
     std::string getVersion();
     std::string getMotd();
@@ -74,6 +85,7 @@ public:
     WorldType getWorldType();
     Difficulty getDifficulty();
     World & getWorld(int);
+    std::vector<World *> getWorlds();
     
     std::string getSetting(const std::string &);
 
@@ -82,16 +94,21 @@ public:
     std::string getVerifyToken();
     std::string getServerId();
     std::string getPublicKey();
+    const std::vector<std::shared_ptr<Entities::Player>> & getPlayers();
 
     void dispatchConsoleCommand(const std::string &command);
+    void addPlayer(std::shared_ptr<Entities::Player> &);
+    void removePlayer(std::shared_ptr<Entities::Player> &);
     
     static inline MinecraftServer & getServer() {
-        return *_server;
+        return *instance;
     }
 
     static inline MinecraftServer & server() {
-        return *_server;
+        return *instance;
     }
+
+    static MinecraftServer *instance;
 
 protected:
     MinecraftServerData *m; // PIMPL
@@ -103,7 +120,6 @@ protected:
     void loadWorld(const std::string &directory);
 
 private:
-    static MinecraftServer *_server;
     // Inaccessible copy constructor.
     MinecraftServer(const MinecraftServer &);
 };

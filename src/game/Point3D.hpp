@@ -66,6 +66,12 @@ inline constexpr bool operator<=(const Point3D &x, const Point3D &y) {
     return !(x > y);
 }
 
+template <typename T>
+inline T & operator<<(T &stream, const Point3D &p) {
+    stream << '{' << p.x << ", " << p.y << ", " << p.z << '}';
+    return stream;
+}
+
 }
 
 #endif
