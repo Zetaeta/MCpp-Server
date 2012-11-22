@@ -451,6 +451,7 @@ void World::loadPlayer(PlayerData *data) {
                       dynamic_cast<TagDouble *>(position[2])->getData()};
 }
 
+
 template <typename T, typename Stream>
 Stream & operator<<(Stream &strm, const vector<T> &vec) {
     strm << '{';
@@ -460,6 +461,7 @@ Stream & operator<<(Stream &strm, const vector<T> &vec) {
     strm << '}';
     return strm;
 }
+
 
 vector<shared_ptr<Chunk>> World::loadAll(const vector<ChunkCoordinates> &coords) {
     cout << "World::loadAll():\n" << coords << '\n';

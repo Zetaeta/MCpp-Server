@@ -6,26 +6,22 @@
 
 namespace MCServer {
 
-namespace Entities {
-class Player;
-}
-
 using std::function;
 using std::string;
 using std::vector;
 using std::shared_ptr;
 
-using Entities::Player;
+class CommandSender;
 
 namespace Command {
 
 class Command {
 public:
-    Command(const function<void (const string &, const shared_ptr<Player> &, const vector<string> &)> &);
-    function<void (const string &, const shared_ptr<Player> &, const vector<string> &)>
+    Command(const function<void (const string &, const shared_ptr<CommandSender> &, const vector<string> &)> &);
+    function<void (const string &, const shared_ptr<CommandSender> &, const vector<string> &)>
         getHandler();
 private:
-    function<void (const string &, const shared_ptr<Player> &, const vector<string> &)> handler;
+    function<void (const string &, const shared_ptr<CommandSender> &, const vector<string> &)> handler;
 };
 
 }

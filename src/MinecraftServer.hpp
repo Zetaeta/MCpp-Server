@@ -38,6 +38,10 @@ namespace Entities {
 class Player;
 };
 
+namespace Events {
+class EventManager;
+}
+
 class World;
 class Scheduler;
 class ChatServer;
@@ -72,6 +76,7 @@ public:
     Command::CommandManager & getCommandManager();
     ChatServer & getChatServer();
     ChunkLoader & getChunkLoader();
+    Events::EventManager & getEventManager();
 
     std::string getVersion();
     std::string getMotd();

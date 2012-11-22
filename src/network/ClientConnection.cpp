@@ -435,7 +435,6 @@ void ClientConnection::handlePacket(PacketType type) {
         break;
     }
     case PACKET_DISCONNECT_KICK: {
-//        cout << "case PACKET_DISCONNECT_KICK\n";
 //        m->ss.readString();
         shutdown();
         break;

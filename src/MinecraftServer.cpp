@@ -24,6 +24,8 @@
 #include "int128.h"
 #include "Scheduler.hpp"
 #include "ChatServer.hpp"
+#include "CommandSender.hpp"
+
 #include "game/ChunkLoader.hpp"
 
 #include "logging/Logger.hpp"
@@ -46,11 +48,14 @@
 #include "game/entity/Entity.hpp"
 #include "game/entity/Player.hpp"
 
-#include "util/StringUtils.hpp"
 #include "util/Utils.hpp"
 #include "util/FSUtils.hpp"
 
 #include "command/CommandManager.hpp"
+
+#include "event/EventManager.hpp"
+#include "event/Event.hpp"
+#include "event/entity/player/PlayerChatEvent.hpp"
 
 namespace MCServer {
 
@@ -79,6 +84,9 @@ using UI::UIManager;
 using Entities::Entity;
 using Entities::Player;
 using Command::CommandManager;
+using Events::EventManager;
+using Events::Event;
+using Events::PlayerChatEvent;
 
 #ifndef PLUGIN_DIR
 #define PLUGIN_DIR "plugins/"
@@ -104,6 +112,7 @@ struct MinecraftServerData {
     CommandManager *commandManager;
     ChatServer *chatServer;
     ChunkLoader *chunkLoader;
+    EventManager *eventManager;
 
     // Crypto stuff
     RSA *rsa;
@@ -153,6 +162,7 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     m->commandManager = new CommandManager();
     m->chatServer = new ChatServer;
     m->chunkLoader = new ChunkLoader();
+    m->eventManager = new EventManager;
 
     int schedulerThreadCount = 4;
     auto stcit = options.find("scheduler-max-thread-count");
@@ -255,6 +265,18 @@ void MinecraftServer::init() {
     m->pluginManager->loadPlugins(PLUGIN_DIR);
     m->networkServer = new NetworkServer(this);
     setupWorlds();
+
+    m->commandManager->registerCommand("meow", [] (const string &cmd, const shared_ptr<CommandSender> &sender, const vector<string> &args) {
+        sender->sendMessage("Hello there! I'm a cat too!");
+        std::ostringstream oss;
+        oss << "Your command was: " << cmd << args << "!";
+        sender->sendMessage(oss.str());
+    });
+
+    m->eventManager->registerListener(Events::EventType::PLAYER_CHAT, [] (Event &event) {
+        auto evt = dynamic_cast<PlayerChatEvent &>(event);
+        cout << "Chat event!\n" << evt.getPlayer()->getName() << "said " << evt.getMessage() << '\n';
+    });
 
     m->chunkLoader->start();
 }
@@ -437,6 +459,10 @@ CommandManager & MinecraftServer::getCommandManager() {
 
 ChatServer & MinecraftServer::getChatServer() {
     return *m->chatServer;
+}
+
+EventManager & MinecraftServer::getEventManager() {
+    return *m->eventManager;
 }
 
 

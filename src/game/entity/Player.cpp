@@ -33,7 +33,7 @@ World & Player::getWorld() const {
     return MinecraftServer::server().getWorld(m->dimension);
 }
 
-string Player::getName() {
+string Player::getName() const {
     D(Player);
     return m->name;
 }

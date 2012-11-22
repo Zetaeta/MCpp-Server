@@ -25,16 +25,18 @@ network = src/network/NetworkServer.cpp src/network/ClientConnection.cpp \
 logging = src/logging/Logger.cpp src/logging/UIHandler.cpp \
     src/logging/LoggerStreamBuf.cpp
 util = src/util/FSUtils.cpp \
-    src/util/StringUtils.cpp src/util/Utils.cpp
+    src/util/Utils.cpp
 plugin = src/plugin/PluginManager.cpp src/plugin/SOPluginLoader.cpp \
     src/plugin/PluginLoader.cpp
 command = src/command/CommandManager.cpp src/command/Command.cpp
 ui = src/ui/cli/CliUIManager.cpp src/ui/cli/ConsoleReader.cpp src/ui/UIManager.cpp
+event = src/event/EventManager.cpp src/event/Event.cpp \
+    src/event/entity/player/PlayerEvent.cpp src/event/entity/player/PlayerChatEvent.cpp
 
 entity = src/game/entity/Entity.cpp src/game/entity/Player.cpp
 block = src/game/block/Block.cpp
 game = $(entity) $(block) src/game/Chunk.cpp src/game/World.cpp \
     src/game/EntityManager.cpp src/game/ChunkLoader.cpp
 
-mc___server_SOURCES= $(main) $(network) $(logging) $(util) $(game) $(plugin) $(command) $(ui)
+mc___server_SOURCES= $(main) $(network) $(logging) $(util) $(game) $(plugin) $(command) $(ui) $(event)
 
