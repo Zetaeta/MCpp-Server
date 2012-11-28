@@ -28,11 +28,6 @@ void Player::loadData() {
     defaultWorld.loadPlayer(static_cast<PlayerData *>(m));
 }
 
-World & Player::getWorld() const {
-    D(Player);
-    return MinecraftServer::server().getWorld(m->dimension);
-}
-
 string Player::getName() const {
     D(Player);
     return m->name;
@@ -56,6 +51,14 @@ void Player::sendMessage(const string &message) {
 ClientConnection & Player::getConnection() {
     D(Player);
     return *m->connection;
+}
+
+void Player::setDigging(int x, uint8_t y, int z, uint8_t face) {
+
+}
+
+void Player::setDigging(bool) {
+
 }
 
 }

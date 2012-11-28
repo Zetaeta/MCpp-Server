@@ -33,6 +33,7 @@
 #include "game/World.hpp"
 #include "game/Chunk.hpp"
 #include "game/Point3D.hpp"
+#include "game/EntityManager.hpp"
 
 using std::string;
 using std::vector;
@@ -458,6 +459,12 @@ void ClientConnection::handlePacket(PacketType type) {
     case PACKET_CHAT_MESSAGE:
         receiveChatMessage();
         break;
+    case PACKET_ANIMATION:
+        receiveAnimation();
+        break;
+    case PACKET_PLAYER_DIGGING:
+        receivePlayerDigging();
+        break;
     default:
         cout << "default\n";
         meow = true;
@@ -519,6 +526,39 @@ void ClientConnection::receivePlayerLook() {
 void ClientConnection::receiveChatMessage() {
     string message = m->ss.readString();
     MinecraftServer::server().getChatServer().handleChatMessage(message, m->player);
+}
+
+void ClientConnection::receiveAnimation() {
+    int eid = m->ss.readInt();
+    uint8_t animation = m->ss.readUByte();
+    cout << "receiveAnimation: eid = " << eid << ", animation = " << uint16_t(animation) << '\n';
+    MinecraftServer::server().getEntityManager().sendAnimation(eid, animation);
+}
+
+void ClientConnection::receivePlayerDigging() {
+    uint8_t status = m->ss.readUByte();
+    int x = m->ss.readInt();
+    uint8_t y = m->ss.readUByte();
+    int z = m->ss.readInt();
+    uint8_t face = m->ss.readUByte();
+
+    switch (status) {
+    case 0:
+        m->player->setDigging(x, y, z, face);
+        break;
+    case 1:
+        m->player->setDigging(false);
+        break;
+    case 2:
+        m->player->setDigging(false);
+        break;
+    case 3:
+        break;
+    case 4:
+        break;
+    case 5:
+        break;
+    }
 }
 
 void ClientConnection::updatePosition() {

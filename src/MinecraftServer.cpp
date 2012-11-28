@@ -24,9 +24,8 @@
 #include "int128.h"
 #include "Scheduler.hpp"
 #include "ChatServer.hpp"
-#include "CommandSender.hpp"
+#include "ServerCommandSender.hpp"
 
-#include "game/ChunkLoader.hpp"
 
 #include "logging/Logger.hpp"
 #include "logging/LoggerStreamBuf.hpp"
@@ -39,6 +38,7 @@
 #include "plugin/PluginManager.hpp"
 #include "ui/UIManager.hpp"
 
+#include "game/ChunkLoader.hpp"
 #include "game/GameMode.hpp"
 #include "game/WorldType.hpp"
 #include "game/Difficulty.hpp"
@@ -47,6 +47,8 @@
 #include "game/WorldLoadingFailure.hpp"
 #include "game/entity/Entity.hpp"
 #include "game/entity/Player.hpp"
+#include "game/ChunkCoordinates.hpp"
+#include "game/Point3D.hpp"
 
 #include "util/Utils.hpp"
 #include "util/FSUtils.hpp"
@@ -69,6 +71,7 @@ using std::streambuf;
 using std::shared_ptr;
 using std::dynamic_pointer_cast;
 using std::pair;
+using std::make_shared;
 
 using Util::demangle;
 using Util::toLower;
@@ -113,6 +116,7 @@ struct MinecraftServerData {
     ChatServer *chatServer;
     ChunkLoader *chunkLoader;
     EventManager *eventManager;
+    shared_ptr<ServerCommandSender> serverCommandSender;
 
     // Crypto stuff
     RSA *rsa;
@@ -163,6 +167,7 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
     m->chatServer = new ChatServer;
     m->chunkLoader = new ChunkLoader();
     m->eventManager = new EventManager;
+    m->serverCommandSender = make_shared<ServerCommandSender>();
 
     int schedulerThreadCount = 4;
     auto stcit = options.find("scheduler-max-thread-count");
@@ -269,7 +274,18 @@ void MinecraftServer::init() {
     m->commandManager->registerCommand("meow", [] (const string &cmd, const shared_ptr<CommandSender> &sender, const vector<string> &args) {
         sender->sendMessage("Hello there! I'm a cat too!");
         std::ostringstream oss;
-        oss << "Your command was: " << cmd << args << "!";
+        oss << "Your command was: " << cmd << "!";
+        sender->sendMessage(oss.str());
+    });
+
+    m->commandManager->registerCommand("chunk", [] (const string &cmd, const shared_ptr<CommandSender> &sender, const vector<string> &args) {
+        auto player = dynamic_pointer_cast<Player>(sender);
+        if (!player) {
+            return;
+        }
+        std::ostringstream oss;
+        auto coords = static_cast<ChunkCoordinates>(player->getPosition());
+        oss << "You are in chunk {" << coords.x << ", " << coords.z << "}.";
         sender->sendMessage(oss.str());
     });
 
@@ -465,6 +481,14 @@ EventManager & MinecraftServer::getEventManager() {
     return *m->eventManager;
 }
 
+shared_ptr<CommandSender> MinecraftServer::getCommandSender() {
+    return m->serverCommandSender;
+}
+
+const shared_ptr<ServerCommandSender> & MinecraftServer::getServerCommandSender() {
+    return m->serverCommandSender;
+}
+
 
 string MinecraftServer::getVersion() {
     return "0.1";
@@ -520,9 +544,9 @@ const vector<shared_ptr<Player>> & MinecraftServer::getPlayers() {
 }
 
 
-void MinecraftServer::dispatchConsoleCommand(const string &command) {
-    m->logger->info("Dispatching command " + command);
-    
+void MinecraftServer::dispatchConsoleCommand(const string &command,
+                                             const std::shared_ptr<CommandSender> &sender) {
+    m->commandManager->dispatchCommand(command, sender);
 }
 
 void MinecraftServer::addPlayer(shared_ptr<Player> &player) {

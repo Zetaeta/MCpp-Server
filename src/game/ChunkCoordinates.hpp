@@ -6,9 +6,13 @@
 #include <vector>
 #include <iostream>
 
+#include <Util/Rounding.hpp>
+
 #include "Point2D.hpp"
 
 namespace MCServer {
+
+using Util::roundDownToNeg;
 
 struct ChunkCoordinates {
     constexpr ChunkCoordinates()
@@ -17,8 +21,8 @@ struct ChunkCoordinates {
     constexpr ChunkCoordinates(int x, int z)
     :x(x), z(z) {}
 
-    constexpr ChunkCoordinates(const Point2D &p)
-    :x(p.x / 16), z(p.z / 16) {}
+    ChunkCoordinates(const Point2D &p)
+    :x(roundDownToNeg<int, 16>(p.x)), z(roundDownToNeg<int, 16>(p.z)) {}
 
     constexpr ChunkCoordinates(const ChunkCoordinates &c)
     :x(c.x), z(c.z) {}

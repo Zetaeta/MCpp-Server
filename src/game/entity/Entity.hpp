@@ -2,9 +2,12 @@
 #ifndef ENTITY_HPP
 #define ENTITY_HPP
 
+#include <memory>
+
 namespace MCServer {
 
 struct Point3D;
+class World;
 
 namespace Entities {
 
@@ -23,6 +26,10 @@ public:
     void setPitch(double);
     double getStance();
     void setStance(double);
+    World & getWorld() const;
+
+    void setReference(const std::shared_ptr<Entity> &);
+    std::shared_ptr<Entity> getReference();
 protected:
     Entity(EntityData *, int id);
     Entity(EntityData *);

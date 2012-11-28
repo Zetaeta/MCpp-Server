@@ -451,6 +451,9 @@ void World::loadPlayer(PlayerData *data) {
                       dynamic_cast<TagDouble *>(position[2])->getData()};
 }
 
+void World::entityMoved(Entity &entity, Point3D from, Point3D to) {
+
+}
 
 template <typename T, typename Stream>
 Stream & operator<<(Stream &strm, const vector<T> &vec) {

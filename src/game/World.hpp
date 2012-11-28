@@ -12,6 +12,7 @@ namespace MCServer {
 
 class Chunk;
 struct Point2D;
+struct Point3D;
 struct WorldData;
 struct ChunkCoordinates;
 class ReentrantLock;
@@ -20,6 +21,8 @@ namespace Entities {
 class Entity;
 struct PlayerData;
 }
+
+using Entities::Entity;
 
 class World {
 public:
@@ -58,10 +61,12 @@ public:
     std::shared_ptr<Chunk> chunkAt(const Point2D &pt) const;
     std::shared_ptr<Chunk> chunkAt(const ChunkCoordinates &) const;
 
-    void addEntity(const std::shared_ptr<Entities::Entity> &);
-    void removeEntity(const std::shared_ptr<Entities::Entity> &);
-    std::vector<std::shared_ptr<Entities::Entity>> & getEntities();
-    const std::vector<std::shared_ptr<Entities::Entity>> & getEntities() const;
+    void addEntity(const std::shared_ptr<Entity> &);
+    void removeEntity(const std::shared_ptr<Entity> &);
+    std::vector<std::shared_ptr<Entity>> & getEntities();
+    const std::vector<std::shared_ptr<Entity>> & getEntities() const;
+
+    void entityMoved(Entity &, Point3D from, Point3D to);
 private:
 
     WorldData *m;

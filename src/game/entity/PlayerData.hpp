@@ -30,7 +30,6 @@ struct PlayerData : public EntityData {
     short health;
     short hurtTime;
     short sleepTimer;
-    int dimension;
     int foodLevel;
     int foodTickTimer;
     GameMode playerGameType;

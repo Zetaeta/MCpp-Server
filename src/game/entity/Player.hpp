@@ -2,6 +2,8 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+#include <stdint.h>
+
 #include <Util/stlfwd.hpp>
 
 #include "Entity.hpp"
@@ -23,13 +25,15 @@ public:
     ~Player();
 
     void loadData();
-    World & getWorld() const;
     std::string getName() const;
     void sendKeepAlive();
     void sendMessage(const std::string &);
     Network::ClientConnection & getConnection();
 
-    friend class MCServer::Network::ClientConnection;
+    void setDigging(int x, uint8_t y, int z, uint8_t face);
+    void setDigging(bool);
+
+    friend /* with benefits */ class MCServer::Network::ClientConnection;
 };
 
 }

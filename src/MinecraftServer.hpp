@@ -46,6 +46,8 @@ class World;
 class Scheduler;
 class ChatServer;
 class ChunkLoader;
+class CommandSender;
+class ServerCommandSender;
 
 enum GameMode : unsigned char;
 enum Difficulty : unsigned char;
@@ -77,6 +79,8 @@ public:
     ChatServer & getChatServer();
     ChunkLoader & getChunkLoader();
     Events::EventManager & getEventManager();
+    std::shared_ptr<CommandSender> getCommandSender();
+    const std::shared_ptr<ServerCommandSender> & getServerCommandSender();
 
     std::string getVersion();
     std::string getMotd();
@@ -101,7 +105,8 @@ public:
     std::string getPublicKey();
     const std::vector<std::shared_ptr<Entities::Player>> & getPlayers();
 
-    void dispatchConsoleCommand(const std::string &command);
+    void dispatchConsoleCommand(const std::string &command,
+                                const std::shared_ptr<CommandSender> &);
     void addPlayer(std::shared_ptr<Entities::Player> &);
     void removePlayer(std::shared_ptr<Entities::Player> &);
     

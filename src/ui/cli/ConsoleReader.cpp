@@ -1,6 +1,8 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
+
 #include <stdlib.h>
 #include <readline/readline.h>
 
@@ -48,17 +50,20 @@ void ConsoleReader::run() {
     init();
 #ifndef NOINPUT
     while (m->running) {
-        const char *line = readline(">");
+        const char *line = readline("");
         if (!line) {
            break;
         }
-        m->server->dispatchConsoleCommand(line);
+        rl_set_prompt("");
+        rl_replace_line("", 0);
+        m->server->dispatchConsoleCommand(line, m->server->getCommandSender());
     }
     exit(0);
 #endif
 }
 
 void ConsoleReader::init() {
+    rl_set_prompt(">");
 }
 
 void ConsoleReader::println(const string &s) {

@@ -9,6 +9,7 @@
 
 #include "CommandManager.hpp"
 #include "Command.hpp"
+#include "CommandSender.hpp"
 
 namespace MCServer {
 namespace Command {
@@ -22,7 +23,7 @@ using std::shared_ptr;
 
 using Util::split;
 
-void CommandManager::dispatchCommand(const string &command, const shared_ptr<CommandSender> &player) {
+void CommandManager::dispatchCommand(const string &command, const shared_ptr<CommandSender> &sender) {
     size_t firstSpace = command.find(' ');
     string actualCmd = command.substr(0, firstSpace);
     auto it = commands.find(actualCmd);
@@ -30,19 +31,32 @@ void CommandManager::dispatchCommand(const string &command, const shared_ptr<Com
         size_t firstSpace = command.find(' ');
         if (firstSpace != string::npos) {
             vector<string> args = split(command.substr(firstSpace + 1), " ");
-            it->second->getHandler()(actualCmd, player, args);
+            it->second->getHandler()(actualCmd, sender, args);
         }
         else {
-            it->second->getHandler()(command, player, {});
+            it->second->getHandler()(command, sender, {});
         }
         return;
     }
-    for_each(commandRules.begin(), commandRules.end(),
-            [&] (const pair<function<bool (const string &)>, Command *> rule) {
+#ifdef MULTIPLE_COMMAND_RULES
+    bool ruleFound = false;
+#endif
+    for (const pair<function<bool (const string &)>, Command *> &rule : commandRules) {
         if (rule.first(command)) {
-            rule.second->getHandler()(command, player, {});
+            rule.second->getHandler()(command, sender, {});
+#ifdef MULTIPLE_COMMAND_RULES
+            ruleFound = true;
+#else
+            return;
+#endif
         }
-    });
+    }
+
+#ifdef MULTIPLE_COMMAND_RULES
+    if (ruleFound) return;
+#endif
+
+    sender->sendMessage("Command not found!");
 }
 
 void CommandManager::registerCommand(const string &command,

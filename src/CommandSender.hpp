@@ -10,7 +10,7 @@ class CommandSender {
 public:
     virtual void sendMessage(const std::string &) = 0;
     virtual std::string getName() const = 0;
-    virtual ~CommandSender() = default;
+    virtual ~CommandSender() {}
 };
 
 }

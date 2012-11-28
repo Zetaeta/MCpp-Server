@@ -29,5 +29,9 @@ int EntityManager::getNewEntityId() {
     return m->lastUsedId++;
 }
 
+void EntityManager::sendAnimation(int entityId, uint8_t animation) {
+
+}
+
 
 }

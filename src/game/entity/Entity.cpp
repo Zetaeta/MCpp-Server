@@ -3,10 +3,13 @@
 #include "EntityData.hpp"
 #include "MinecraftServer.hpp"
 #include "game/EntityManager.hpp"
+#include "game/World.hpp"
 
 namespace MCServer {
 namespace Entities {
 
+using std::shared_ptr;
+using std::weak_ptr;
 
 Entity::Entity(EntityData *m, int id)
 :m(m) {
@@ -22,7 +25,9 @@ Point3D Entity::getPosition() const {
 }
 
 void Entity::setPosition(const Point3D &pos) {
+    auto orig = m->position;
     m->position = pos;
+    getWorld().entityMoved(*this, orig, pos);
 }
 
 double Entity::getYaw() {
@@ -49,6 +54,10 @@ void Entity::setStance(double stance) {
     m->stance = stance;
 }
 
+World & Entity::getWorld() const {
+    return MinecraftServer::server().getWorld(m->dimension);
+}
+
 Entity::~Entity() {
     delete m;
 }
@@ -56,6 +65,14 @@ Entity::~Entity() {
 
 int Entity::getId() {
     return m->id;
+}
+
+void Entity::setReference(const shared_ptr<Entity> &ref) {
+    m->reference = ref;
+}
+
+shared_ptr<Entity> Entity::getReference() {
+    return m->reference.lock();
 }
 
 }

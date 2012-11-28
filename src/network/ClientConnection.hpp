@@ -68,6 +68,8 @@ private:
     void receivePlayerAbilities();
     void receivePlayerLook();
     void receiveChatMessage();
+    void receiveAnimation();
+    void receivePlayerDigging();
 
     void updatePosition();
 
