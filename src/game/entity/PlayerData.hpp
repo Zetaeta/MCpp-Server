@@ -5,6 +5,7 @@
 #include <string>
 
 #include "EntityData.hpp"
+#include "src/game/PlayerInventory.hpp"
 
 namespace MCServer {
 
@@ -39,6 +40,8 @@ struct PlayerData : public EntityData {
     float foodExhaustionLevel;
     float foodSaturationLevel;
     float xpP;
+
+    PlayerInventory inventory;
 };
 
 }

@@ -18,7 +18,7 @@ mc___server_LDADD = -lreadline -lpthread -lssl -lcrypto -ldl -lNBT -lIOStream -l
 
 main = src/main.cpp src/MinecraftServer.cpp src/Lock.cpp src/ReentrantLock.cpp \
     src/Condition.cpp src/Scheduler.cpp src/SchedulerThread.cpp src/Future.cpp \
-    src/ChatServer.cpp
+    src/ChatServer.cpp src/ServerCommandSender.cpp
 packets = 
 network = src/network/NetworkServer.cpp src/network/ClientConnection.cpp \
     src/network/Packet.cpp src/network/PacketHandler.cpp $(packets)
@@ -36,7 +36,7 @@ event = src/event/EventManager.cpp src/event/Event.cpp \
 entity = src/game/entity/Entity.cpp src/game/entity/Player.cpp
 block = src/game/block/Block.cpp
 game = $(entity) $(block) src/game/Chunk.cpp src/game/World.cpp \
-    src/game/EntityManager.cpp src/game/ChunkLoader.cpp
+    src/game/EntityManager.cpp src/game/ChunkLoader.cpp src/game/PlayerInventory.cpp
 
 mc___server_SOURCES= $(main) $(network) $(logging) $(util) $(game) $(plugin) $(command) $(ui) $(event)
 

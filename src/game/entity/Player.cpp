@@ -61,6 +61,16 @@ void Player::setDigging(bool) {
 
 }
 
+PlayerInventory & Player::getInventory() {
+    D(Player);
+    return m->inventory;
+}
+
+const PlayerInventory & Player::getInventory() const {
+    D(Player);
+    return m->inventory;
+}
+
 }
 }
 

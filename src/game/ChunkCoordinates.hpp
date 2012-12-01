@@ -54,8 +54,8 @@ struct ChunkCoordinates {
     }
 
     inline ChunkCoordinates operator=(const Point2D &p) {
-        x = p.x / 16;
-        z = p.z / 16;
+        x = roundDownToNeg<int, 16>(p.x);
+        z = roundDownToNeg<int, 16>(p.z);
         return *this;
     }
 

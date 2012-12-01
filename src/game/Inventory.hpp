@@ -8,8 +8,15 @@ class ItemStack;
 
 class Inventory {
 public:
-    ItemStack * begin();
-    ItemStack * end();
+    virtual ItemStack * begin() = 0;
+    virtual ItemStack * end() = 0;
+
+    virtual const ItemStack * begin() const = 0;
+    virtual const ItemStack * end() const = 0;
+
+    virtual ItemStack & operator[](int) = 0;
+    virtual const ItemStack & operator[](int) const = 0;
+    virtual ~Inventory() {}
 };
 
 }

@@ -81,6 +81,13 @@ void Chunk::loadSection(const TagCompound &section) {
 //    cout << "bOut - blocks = " << (bOut - this->blocks) << '\n';
 #endif
 
+    const vector<uint8_t> data = section.getByteArray("Data");
+
+    cout << "data.size() = " << data.size() << '\n';
+    for (int i=0; i<2048; ++i) {
+        bOut[i * 2].metadata = data[i] >> 8;
+        bOut[i * 2 + 1].metadata = data[i] & 0xFF;
+    }
 }
 
 }

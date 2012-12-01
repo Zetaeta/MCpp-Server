@@ -12,6 +12,7 @@
 namespace MCServer {
 
 class World;
+class PlayerInventory;
 
 namespace Network {
 class ClientConnection;
@@ -32,6 +33,9 @@ public:
 
     void setDigging(int x, uint8_t y, int z, uint8_t face);
     void setDigging(bool);
+
+    PlayerInventory & getInventory();
+    const PlayerInventory & getInventory() const;
 
     friend /* with benefits */ class MCServer::Network::ClientConnection;
 };

@@ -396,34 +396,40 @@ void ClientConnection::setBlocking(bool blocking) {
 }
 
 void ClientConnection::sendChunk(const Chunk &ch) {
-        Packet pack;
-        ChunkCoordinates coords = ch.getCoordinates();
-        pack << PACKET_CHUNK_DATA << coords.x << coords.z;
-        pack << uint8_t(true); // Ground-up continuous?
-        pack << uint16_t(0xFFFF); // All 16 bits 1.
-        pack << uint16_t(0x0); // All 16 bits 1.
+    Packet pack;
+    ChunkCoordinates coords = ch.getCoordinates();
+    pack << PACKET_CHUNK_DATA << coords.x << coords.z;
+    pack << uint8_t(true); // Ground-up continuous?
+    pack << uint16_t(0xFFFF); // All 16 bits 1.
+    pack << uint16_t(0x0); // All 16 bits 1.
 
-        uint8_t chunkData[(4096 + 2048 + 2048 + 2048 /*+ 2048 add bytes. */) * 16 + 256];
-        memset(chunkData, 0, sizeof(chunkData));
-        for (uint32_t i = 0; i<65536; ++i) {
-            chunkData[i] = ch.blocks[i].id;
-        }
-        for (uint32_t i=65536 + 65536 / 2; i<(65536 * 2 + 65536 / 2); ++i) {
-            chunkData[i] = 0xFF;
-        }
-        for (uint32_t i = sizeof(chunkData) - 256; i<sizeof(chunkData); ++i) {
-            chunkData[i] = 6;
-        }
+    uint8_t chunkData[(4096 + 2048 + 2048 + 2048 /*+ 2048 add bytes. */) * 16 + 256];
+    memset(chunkData, 0, sizeof(chunkData));
+    for (uint32_t i = 0; i<65536; ++i) {
+        chunkData[i] = ch.blocks[i].id;
+    }
 
-        ArrayOutputStream out(512);
-        DeflateOutputStream dout(out);
-        dout.write(chunkData, sizeof(chunkData));
-        dout.close();
-        uint32_t size = out.size();
-        pack << size;
-        pack.add(out.data(), size);
-        
-        m->ss << pack;
+    uint8_t *chunkMetaData = chunkData + 65536;
+    for (int i=0; i < (65536 / 2); ++i) {
+        chunkMetaData[i] = ch.blocks[i * 2].metadata << 8 | (ch.blocks[i * 2 + 1].metadata & 0xFF);
+    }
+
+    for (uint32_t i=65536 + 65536 / 2; i<(65536 * 2 + 65536 / 2); ++i) {
+        chunkData[i] = 0xFF;
+    }
+    for (uint32_t i = sizeof(chunkData) - 256; i<sizeof(chunkData); ++i) {
+        chunkData[i] = 6;
+    }
+
+    ArrayOutputStream out(512);
+    DeflateOutputStream dout(out);
+    dout.write(chunkData, sizeof(chunkData));
+    dout.close();
+    uint32_t size = out.size();
+    pack << size;
+    pack.add(out.data(), size);
+    
+    m->ss << pack;
 }
 
 void ClientConnection::handlePacket(PacketType type) {
