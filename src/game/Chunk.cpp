@@ -21,16 +21,16 @@ using NBT::Tag;
 namespace MCServer {
 
 Chunk::Chunk(const ChunkCoordinates &coords)
-:blocksAccess(blocks), coords(coords) {
+:coords(coords) {
 }
 
 Chunk::Chunk(const Chunk &other)
 #ifdef __GNUG___
-:blockIds(other.blockIds), blockMetaData(other.blockMetaData), blocksAccess(blocks) {
+:blockIds(other.blockIds), blockMetadata(other.blockMetadata) {
 #else
-:blocksAccess(blocks) {
+{
     memcpy(blockIds, other.blockIds, 65536);
-    memcpy(blockMetaData, other.blockMetaData, 65536);
+    memcpy(blockMetadata, other.blockMetadata, 65536);
 #endif
 }
 
@@ -56,14 +56,14 @@ void Chunk::loadSection(const TagCompound &section) {
     }
 
 
-    memcpy(&blockIds[height * 4096], blocks.data(), 4096)
+    memcpy(&blockIds[height * 4096], blocks.data(), 4096);
 
     const vector<uint8_t> data = section.getByteArray("Data");
 
     cout << "data.size() = " << data.size() << '\n';
     for (int i=0; i<2048; ++i) {
-        blockMetaData[i * 2] = data[i] >> 8;
-        blockMetaData[i * 2 + 1] = data[i] & 0xFF;
+        blockMetadata[i * 2] = data[i] >> 8;
+        blockMetadata[i * 2 + 1] = data[i] & 0xFF;
     }
 }
 

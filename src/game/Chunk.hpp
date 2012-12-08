@@ -44,6 +44,7 @@ public:
     void loadSection(const NBT::TagCompound &section);
 
     friend class Network::ClientConnection;
+    friend class Block;
 private:
     Chunk(const Chunk &);
 //    ChunkBlocks data;
@@ -51,7 +52,7 @@ private:
      * The index of a block at x,y,z is x + z * 16 + y * 256
      */
     uint8_t blockIds[65536];
-    uint8_t blockMetaData[65536 / 2];
+    uint8_t blockMetadata[65536 / 2];
     ChunkCoordinates coords;
 };
 

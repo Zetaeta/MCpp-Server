@@ -405,14 +405,11 @@ void ClientConnection::sendChunk(const Chunk &ch) {
 
     uint8_t chunkData[(4096 + 2048 + 2048 + 2048 /*+ 2048 add bytes. */) * 16 + 256];
     memset(chunkData, 0, sizeof(chunkData));
-    for (uint32_t i = 0; i<65536; ++i) {
-        chunkData[i] = ch.blocks[i].id;
-    }
+
+    memcpy(chunkData, ch.blockIds, 65536);
 
     uint8_t *chunkMetaData = chunkData + 65536;
-    for (int i=0; i < (65536 / 2); ++i) {
-        chunkMetaData[i] = ch.blocks[i * 2].metadata << 8 | (ch.blocks[i * 2 + 1].metadata & 0xFF);
-    }
+    memcpy(chunkMetaData, ch.blockMetadata, 65536 / 2);
 
     for (uint32_t i=65536 + 65536 / 2; i<(65536 * 2 + 65536 / 2); ++i) {
         chunkData[i] = 0xFF; // TODO: Implement proper extra block info stuff.

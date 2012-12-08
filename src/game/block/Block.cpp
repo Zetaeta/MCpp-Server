@@ -1,5 +1,6 @@
 
 #include "Block.hpp"
+#include "../Chunk.hpp"
 
 namespace MCServer {
 

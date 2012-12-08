@@ -5,6 +5,7 @@
 namespace MCServer {
 
 class Block;
+class Chunk;
 
 /**
  * operator[]-based access to blocks in a chunk.

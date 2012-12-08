@@ -6,6 +6,8 @@
 
 namespace MCServer {
 
+class Chunk;
+
 class Block {
 public:
     Block(Chunk &chunk, uint8_t x, uint8_t y, uint8_t z);
@@ -14,10 +16,10 @@ public:
     uint16_t getId();
     uint8_t getMetadata();
 
-//private:
+private:
+    Chunk &chunk;
     uint8_t x, y, z;
     uint8_t &id, &metadata;
-    Chunk &chunk;
 };
 
 }
