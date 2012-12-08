@@ -346,23 +346,8 @@ void MinecraftServer::tick() {
             player->getConnection().shutdown();
         }
     });
-/*    std::for_each(m->worlds.begin(), m->worlds.end(), [] (std::pair<const string, World *> &p) {
-        vector<shared_ptr<Entity>> &entities = p.second->getEntities();
-        std::for_each(entities.begin(), entities.end(), [] (shared_ptr<Entity> e) {
-            shared_ptr<Player> player;
-            if ( (player = dynamic_pointer_cast<Player>(e)) ) {
-                try {
-                    player->sendKeepAlive();
-                }
-                catch (...) {
-                    cout << "Disconnecting player " << player->getName() << '\n';
-                    player->getConnection().shutdown();
-                }
-            }
-        });
-    });*/
-//    *m->logger << "Testing m->logger!\n";
-//    std::cout << "Testing cout!\n";
+
+    // TODO: Entity updating, physics handling etc.
 }
 
 void MinecraftServer::shutdown() {

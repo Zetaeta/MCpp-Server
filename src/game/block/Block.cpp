@@ -3,8 +3,8 @@
 
 namespace MCServer {
 
-Block::Block(uint8_t id, uint8_t metadata)
-:id(id), metadata(metadata) {
+Block::Block(Chunk &chunk, uint8_t x, uint8_t y, uint8_t z)
+:chunk(chunk), x(x), y(y), z(z) {
     
 }
 

@@ -26,10 +26,11 @@ Chunk::Chunk(const ChunkCoordinates &coords)
 
 Chunk::Chunk(const Chunk &other)
 #ifdef __GNUG___
-:blocks(other.blocks), blocksAccess(blocks) {
+:blockIds(other.blockIds), blockMetaData(other.blockMetaData), blocksAccess(blocks) {
 #else
 :blocksAccess(blocks) {
-    memcpy(blocks, other.blocks, 65536);
+    memcpy(blockIds, other.blockIds, 65536);
+    memcpy(blockMetaData, other.blockMetaData, 65536);
 #endif
 }
 
@@ -46,9 +47,6 @@ void Chunk::loadFrom(const TagCompound &compound) {
 
 void Chunk::loadSection(const TagCompound &section) {
     uint8_t height = section.getByte("Y");
-//    if (height != 3 || height != 2) {
-//        return;
-//    }
     vector<uint8_t> blocks;
     try {
         blocks = section.getByteArray("Blocks");
@@ -56,37 +54,16 @@ void Chunk::loadSection(const TagCompound &section) {
     catch (const NBT::TagNotFound &) {
         return;
     }
-//    cout << "Chunk::loadSection: Y = " << uint16_t(height) << '\n';
-//    cout << "blocks.size(): " << blocks.size() << '\n';
 
 
-//#define LOOP_COPY
-#ifdef LOOP_COPY
-    ArrayAccessor<uint8_t, 16, 16, 16> blocksIn = blocks.data();
-    ArrayAccessor<Block, 16, 16, 16> blocksOut = &this->blocks[height * 256];
-
-    for (int x=0; x<16; ++x) {
-        for (int z=0; z<16; ++z) {
-            for (int y=0; y<16; ++y) {
-                blocksOut[x][y][z] = blocksIn[x][y][z];
-            }
-        }
-    }
-#else
-    Block *bOut = &this->blocks[height * 4096];
-    uint8_t *bIn = blocks.data();
-    for (int i=0; i<4096; ++i) {
-        bOut[i].id = bIn[i];
-    }
-//    cout << "bOut - blocks = " << (bOut - this->blocks) << '\n';
-#endif
+    memcpy(&blockIds[height * 4096], blocks.data(), 4096)
 
     const vector<uint8_t> data = section.getByteArray("Data");
 
     cout << "data.size() = " << data.size() << '\n';
     for (int i=0; i<2048; ++i) {
-        bOut[i * 2].metadata = data[i] >> 8;
-        bOut[i * 2 + 1].metadata = data[i] & 0xFF;
+        blockMetaData[i * 2] = data[i] >> 8;
+        blockMetaData[i * 2 + 1] = data[i] & 0xFF;
     }
 }
 

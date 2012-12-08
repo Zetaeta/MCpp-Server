@@ -23,10 +23,9 @@ typedef ArrayAccessor<Block, 256> BlocksY, Blocks1D;
 class Chunk {
 public:
     Chunk(const ChunkCoordinates &);
-//    const BlocksYZ & operator[](uint8_t) const;
-//    BlocksYZ & operator[](uint8_t);
     ArrayAccessor<Block, 16, 256> operator[](size_t index) {
-        return blocksAccess[index];
+//        return blocksAccess[index];
+        
     }
 
     ArrayAccessor<const Block, 16, 256> operator[](size_t index) const {
@@ -44,8 +43,10 @@ public:
 private:
     Chunk(const Chunk &);
 //    ChunkBlocks data;
-    Block blocks[65536];
-    ArrayAccessor<Block, 16, 16, 256> blocksAccess;
+    uint8_t blockIds[65536];
+    uint8_t blockMetaData[65536 / 2];
+    ArrayAccessor<uint8_t, 16, 16, 256> blockIdAccess;
+    ArrayAccessor<uint8_t, 16, 16, 256> blockMetaDataAccess;
     ChunkCoordinates coords;
 };
 

@@ -415,10 +415,10 @@ void ClientConnection::sendChunk(const Chunk &ch) {
     }
 
     for (uint32_t i=65536 + 65536 / 2; i<(65536 * 2 + 65536 / 2); ++i) {
-        chunkData[i] = 0xFF;
+        chunkData[i] = 0xFF; // TODO: Implement proper extra block info stuff.
     }
     for (uint32_t i = sizeof(chunkData) - 256; i<sizeof(chunkData); ++i) {
-        chunkData[i] = 6;
+        chunkData[i] = 6; // TODO: Implement biomes
     }
 
     ArrayOutputStream out(512);
@@ -549,7 +549,7 @@ void ClientConnection::receivePlayerDigging() {
     uint8_t face = m->ss.readUByte();
 
     switch (status) {
-    case 0:
+    case 0: // Start digging
         m->player->setDigging(x, y, z, face);
         break;
     case 1:
