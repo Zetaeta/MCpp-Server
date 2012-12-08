@@ -5,6 +5,7 @@
 #include "block/Block.hpp"
 #include "util/ArrayAccessor.hpp"
 #include "ChunkCoordinates.hpp"
+#include "BlockAccess.hpp"
 
 namespace NBT {
 class TagCompound;
@@ -16,20 +17,23 @@ namespace Network {
 class ClientConnection;
 }
 
-typedef ArrayAccessor<Block, 16, 16, 256> ChunkData, BlocksXZY, Blocks3D;
-typedef ArrayAccessor<Block, 16, 256> BlocksZY, Blocks2D;
-typedef ArrayAccessor<Block, 256> BlocksY, Blocks1D;
 
 class Chunk {
 public:
     Chunk(const ChunkCoordinates &);
-    ArrayAccessor<Block, 16, 256> operator[](size_t index) {
-//        return blocksAccess[index];
-        
+
+    /**
+     * Returns a BlockAccess that can be further indexed to to get a particular block.
+     * Usage:
+     *     To get a block at {x,y,z}:
+     *     Block b = chunk[x][z][y];
+     */
+    BlockAccess<2> operator[](size_t x) {
+        return BlockAccess<2>(*this, x);
     }
 
-    ArrayAccessor<const Block, 16, 256> operator[](size_t index) const {
-        return blocksAccess[index];
+    ConstBlockAccess<2> operator[](size_t x) const {
+        return ConstBlockAccess<2>(*this, x);
     }
 
     ChunkCoordinates getCoordinates() const {
@@ -43,12 +47,17 @@ public:
 private:
     Chunk(const Chunk &);
 //    ChunkBlocks data;
+    /**
+     * The index of a block at x,y,z is x + z * 16 + y * 256
+     */
     uint8_t blockIds[65536];
     uint8_t blockMetaData[65536 / 2];
-    ArrayAccessor<uint8_t, 16, 16, 256> blockIdAccess;
-    ArrayAccessor<uint8_t, 16, 16, 256> blockMetaDataAccess;
     ChunkCoordinates coords;
 };
+
+inline constexpr int index(uint8_t x, uint8_t y, uint8_t z) {
+    return x + (z << 4) + (y << 8);
+}
 
 }
 

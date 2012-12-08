@@ -16,6 +16,7 @@ public:
 
 //private:
     uint8_t x, y, z;
+    uint8_t &id, &metadata;
     Chunk &chunk;
 };
 
