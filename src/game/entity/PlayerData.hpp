@@ -5,7 +5,9 @@
 #include <string>
 
 #include "EntityData.hpp"
-#include "src/game/PlayerInventory.hpp"
+#include "game/PlayerInventory.hpp"
+#include "game/Block.hpp"
+#include "game/GameMode.hpp"
 
 namespace MCServer {
 
@@ -42,6 +44,14 @@ struct PlayerData : public EntityData {
     float xpP;
 
     PlayerInventory inventory;
+
+    unsigned long diggingTime; // Time digging was started.
+    Block diggingTarget;
+
+    PlayerData()
+    :onGround(true), sleeping(false), air(0), attackTime(0), deathTime(0), fire(0), health(0), hurtTime(0), sleepTimer(0),
+    foodLevel(0), foodTickTimer(0), playerGameType(SURVIVAL), xpLevel(0), xpTotal(0), fallDistance(0),
+    foodExhaustionLevel(0), foodSaturationLevel(0), xpP(0), diggingTime(0) {}
 };
 
 }

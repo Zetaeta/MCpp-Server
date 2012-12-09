@@ -55,7 +55,8 @@ void Entity::setStance(double stance) {
 }
 
 World & Entity::getWorld() const {
-    return MinecraftServer::server().getWorld(m->dimension);
+//    return MinecraftServer::server().getWorld(m->dimension);
+    return MinecraftServer::server().getMainWorld(); // TODO: Get world properly.
 }
 
 Entity::~Entity() {

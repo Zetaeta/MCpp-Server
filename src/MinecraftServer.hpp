@@ -94,6 +94,7 @@ public:
     WorldType getWorldType();
     Difficulty getDifficulty();
     World & getWorld(int);
+    World & getMainWorld();
     std::vector<World *> getWorlds();
     
     std::string getSetting(const std::string &);

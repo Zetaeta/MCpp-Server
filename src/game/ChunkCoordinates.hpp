@@ -22,13 +22,15 @@ struct ChunkCoordinates {
     :x(x), z(z) {}
 
     ChunkCoordinates(const Point2D &p)
-    :x(roundDownToNeg<int, 16>(p.x)), z(roundDownToNeg<int, 16>(p.z)) {}
+    :x(roundDownToNeg<int, 16>(p.x) / 16), z(roundDownToNeg<int, 16>(p.z) / 16) {}
 
     constexpr ChunkCoordinates(const ChunkCoordinates &c)
     :x(c.x), z(c.z) {}
 
-    constexpr ChunkCoordinates(Point2D &&p)
-    :x(p.x / 16), z(p.z / 16) {}
+    ChunkCoordinates(Point2D &&p)
+//    :x(p.x / 16), z(p.z / 16) {
+    :x(roundDownToNeg<int, 16>(p.x) / 16), z(roundDownToNeg<int, 16>(p.z) / 16) {
+    }
 
     ChunkCoordinates(const std::initializer_list<int> &i)
     :ChunkCoordinates(*i.begin(), *(i.end() - 1)) {
@@ -54,8 +56,8 @@ struct ChunkCoordinates {
     }
 
     inline ChunkCoordinates operator=(const Point2D &p) {
-        x = roundDownToNeg<int, 16>(p.x);
-        z = roundDownToNeg<int, 16>(p.z);
+        x = roundDownToNeg<int, 16>(p.x) / 16;
+        z = roundDownToNeg<int, 16>(p.z) / 16;
         return *this;
     }
 

@@ -225,7 +225,7 @@ void ClientConnection::run() {
 void ClientConnection::shutdown() {
     cout << "ClientConnection::shutdown()\n";
     MinecraftServer::server().removePlayer(m->player);
-//    m->player->getWorld().removeEntity(m->player);
+    m->player->getWorld().removeEntity(m->player);
     m->shutdown = true;
     close(m->socketfd);
 }
@@ -263,7 +263,7 @@ void ClientConnection::finishLogin() {
     login << uint8_t(0) << uint8_t(m->server.getMaxPlayers());
     ss << login;
     m->player->loadData();
-//    m->player->getWorld().addEntity(m->player);
+    m->player->getWorld().addEntity(m->player);
     MinecraftServer::server().addPlayer(m->player);
 
     m->server.getLogger() << "About to send world!\n";
@@ -313,6 +313,7 @@ void ClientConnection::sendWorld() {
         DeflateOutputStream dout(out);
         dout.write(chunkData, sizeof(chunkData));
         dout.close();
+    nullptr;
         uint32_t size = out.size();
         pack << size;
         pack.add(out.data(), size);
@@ -432,7 +433,6 @@ void ClientConnection::sendChunk(const Chunk &ch) {
 void ClientConnection::handlePacket(PacketType type) {
     static bool meow = false;
     if (meow) return;
-    cout << "ClientConnection::handlePacket(0x" << std::hex << uint16_t(type) << std::dec << ")\n";
     switch (type) {
     case PACKET_KEEP_ALIVE: {
         int keepAliveId = m->ss.readInt();
@@ -469,7 +469,7 @@ void ClientConnection::handlePacket(PacketType type) {
         receivePlayerDigging();
         break;
     default:
-        cout << "default\n";
+        cout << "default: " << uint16_t(type) << '\n';
         meow = true;
 //        shutdown();
         return;
@@ -534,7 +534,6 @@ void ClientConnection::receiveChatMessage() {
 void ClientConnection::receiveAnimation() {
     int eid = m->ss.readInt();
     uint8_t animation = m->ss.readUByte();
-    cout << "receiveAnimation: eid = " << eid << ", animation = " << uint16_t(animation) << '\n';
     MinecraftServer::server().getEntityManager().sendAnimation(eid, animation);
 }
 
@@ -550,10 +549,10 @@ void ClientConnection::receivePlayerDigging() {
         m->player->setDigging(x, y, z, face);
         break;
     case 1:
-        m->player->setDigging(false);
+        m->player->cancelDigging();
         break;
     case 2:
-        m->player->setDigging(false);
+        m->player->finishDigging();
         break;
     case 3:
         break;

@@ -34,9 +34,9 @@ event = src/event/EventManager.cpp src/event/Event.cpp \
     src/event/entity/player/PlayerEvent.cpp src/event/entity/player/PlayerChatEvent.cpp
 
 entity = src/game/entity/Entity.cpp src/game/entity/Player.cpp
-block = src/game/block/Block.cpp
-game = $(entity) $(block) src/game/Chunk.cpp src/game/World.cpp \
-    src/game/EntityManager.cpp src/game/ChunkLoader.cpp src/game/PlayerInventory.cpp src/game/BlockAccess.cpp
+game = $(entity) src/game/Chunk.cpp src/game/World.cpp \
+    src/game/EntityManager.cpp src/game/ChunkLoader.cpp src/game/PlayerInventory.cpp src/game/BlockAccess.cpp \
+    src/game/Block.cpp
 
 mc___server_SOURCES= $(main) $(network) $(logging) $(util) $(game) $(plugin) $(command) $(ui) $(event)
 

@@ -1,6 +1,6 @@
 
 #include "BlockAccess.hpp"
-#include "block/Block.hpp"
+#include "Block.hpp"
 
 namespace MCServer {
 

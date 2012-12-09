@@ -32,12 +32,17 @@ public:
     Network::ClientConnection & getConnection();
 
     void setDigging(int x, uint8_t y, int z, uint8_t face);
-    void setDigging(bool);
+    void cancelDigging();
+    /**
+     * Attempt to finish digging the current target. Succeeds if digging was legally completed,
+     * i.e., was completed in the correct amount of time and the player didn't move in the interim.
+     */
+    void finishDigging();
 
     PlayerInventory & getInventory();
     const PlayerInventory & getInventory() const;
 
-    friend /* with benefits */ class MCServer::Network::ClientConnection;
+    friend class MCServer::Network::ClientConnection;
 };
 
 }

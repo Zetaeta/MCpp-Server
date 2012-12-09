@@ -501,7 +501,7 @@ string MinecraftServer::getLevelType() {
 }
 
 GameMode MinecraftServer::getDefaultGameMode() {
-    return CREATIVE;
+    return SURVIVAL;
 }
 
 WorldType MinecraftServer::getWorldType() {
@@ -514,6 +514,10 @@ Difficulty MinecraftServer::getDifficulty() {
 
 World & MinecraftServer::getWorld(int dimension) {
     return *m->worldsByDimension[dimension];
+}
+
+World & MinecraftServer::getMainWorld() {
+    return *m->worlds["world"];
 }
 
 vector<World *> MinecraftServer::getWorlds() {

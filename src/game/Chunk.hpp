@@ -2,7 +2,7 @@
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 
-#include "block/Block.hpp"
+#include "Block.hpp"
 #include "util/ArrayAccessor.hpp"
 #include "ChunkCoordinates.hpp"
 #include "BlockAccess.hpp"
