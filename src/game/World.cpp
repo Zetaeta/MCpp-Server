@@ -128,6 +128,17 @@ World & World::operator=(World &&other){
     return *this;
 }
 
+
+inline int World::chunkToRegion(int chunkCoord) {
+//    return roundDownToNeg<int, 32>(chunkCoord) / 32;
+    return floor(chunkCoord / 32);
+}
+
+inline size_t World::headerOffset(int x, int z) {
+    return 4 * (x & 31 + (z & 31) * 32);
+}
+
+
 shared_ptr<Chunk> World::chunkAt(int x, int y) const {
     return chunkAt(Point2D(x, y));
 }
@@ -164,7 +175,6 @@ const vector<std::shared_ptr<Entity>> & World::getEntities() const {
 void World::loadFrom(const std::string &directory) {
     AUTOLOCK(m->chunksLock);
     m->directory = directory;
-//    cout << "World::loadFrom()\n";
     string levelDatFile = directory + "/level.dat";
     if (!exists(levelDatFile)) {
         MinecraftServer::getServer().getLogger() << "Error: missing level.dat file in " << directory << '\n';
@@ -209,10 +219,7 @@ void World::loadFrom(const std::string &directory) {
     vector<string> regionFiles = getEntries(directory + "/region");
     for (auto it = regionFiles.begin(); it != regionFiles.end(); ++it) {
         cout << "Found region file " << *it << '\n';
-//        readRegionFile(*it);
     }
-//    readRegionFile("world/region/r.0.0.mca");
-//    loadChunk({0,0});
 }
 
 std::string World::getName() const {
@@ -328,7 +335,7 @@ shared_ptr<Chunk> World::loadChunk(const ChunkCoordinates &pos) {
         return locked;
     }
     ostringstream filenameSs;
-    filenameSs << m->directory << "/region/" << "r." << (roundDownToNeg<int, 32>(pos.x) / 32) << '.' << (roundDownToNeg<int, 32>(pos.z) / 32) << ".mca";
+    filenameSs << m->directory << "/region/" << "r." << chunkToRegion(pos.x) << '.' << chunkToRegion(pos.z) << ".mca";
     string filename = filenameSs.str();
 //    cout << filename << '\n';
     if (!exists(filename)) {
@@ -409,13 +416,38 @@ void World::saveChunk(const ChunkCoordinates &coords) {
 void World::saveChunk(const shared_ptr<Chunk> &chunk) {
     AUTOLOCK(m->chunksLock);
     ChunkCoordinates coords = chunk->getCoordinates();
-    ostringstream filenameSs;
-    filenameSs << m->directory << "/region/r." << (roundDownToNeg<int, 32>(coords.x) / 32)
-        << '.' << (roundDownToNeg<int, 32>(coords.z) / 32) << ".mca";
-    string filename = filenameSs.str();
-    if (!exists(filename)) {
+
+    TagCompound root;
+    std::ostringstream _oss;
+    oss << "Chunk [" << coords.x << ", " << coords.z << ']';
+    TagCompound chunk(oss.str());
+    TagCompound level("Level");
+    level.set("xPos", (int) coords.x);
+    level.set("zPos", (int) coords.z);
+    level.set("TerrainPopulated", (uint8_t) 1);
+    TagList list("Sections");
+    for (int y=0; y<16; ++y) {
         
     }
+    ArrayOutputStream aout;
+    DeflateOutputStream dout(aout);
+    
+
+    ostringstream filenameSs;
+    filenameSs << m->directory << "/region/r." << chunkToRegion(coords.x)
+        << '.' << chunkToRegion(coords.z) << ".mca";
+    string filename = filenameSs.str();
+    FileOutputStream out(filename);
+    stat st;
+    assert(fstat(out.fd(), &st));
+    if (st.st_size % 4096) { // File size must be a multiple of 4kB
+        ftruncate(out.fd(), roundUp<off_t, 4096>(st.st_size));
+    }
+    int offset = headerOffset(coords.x, coords.z);
+    out.seek(offset);
+    int headerInfo = in.readInt();
+    int usedSectors = headerInfo & 0xFF;
+//    int requiredSectors = 
 }
 
 void World::loadPlayer(PlayerData *data) {

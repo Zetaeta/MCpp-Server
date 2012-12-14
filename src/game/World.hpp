@@ -71,6 +71,9 @@ public:
     std::shared_ptr<Entities::EntityItem> dropItem(const ItemStack &, Point3D);
 
     void entityMoved(Entity &, Point3D from, Point3D to);
+
+    static int chunkToRegion(int chunkCoord);
+    static size_t headerOffset(int x, int z);
 private:
 
     WorldData *m;
