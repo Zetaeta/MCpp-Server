@@ -88,8 +88,8 @@ void Player::finishDigging() {
         return;
     }
     // TODO: Penalties for in air, water etc.
-    // TODO: Drop item
     getWorld().dropItem(ItemStack(block.getId(), 1), block.getPosition());
+    block.setId(0); // Set block to air.
     sendMessage("You broke the block!");
     std::ostringstream oss;
     oss << "Required time: " << shouldHaveTaken << ", you took: " << diggingLength;

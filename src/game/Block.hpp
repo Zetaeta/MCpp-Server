@@ -19,6 +19,9 @@ public:
     uint16_t getId() const;
     uint8_t getMetadata() const;
 
+    void setId(uint16_t);
+    void setMetadata(uint8_t);
+
     BlockCoordinates getPosition() const;
 
     operator bool() const;

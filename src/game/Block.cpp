@@ -28,6 +28,14 @@ uint8_t Block::getMetadata() const {
     return *metadata;
 }
 
+void Block::setId(uint16_t id_) {
+    *id = id_;
+}
+
+void Block::setMetadata(uint8_t metadata_) {
+    *metadata = metadata_;
+}
+
 BlockCoordinates Block::getPosition() const {
     ChunkCoordinates cc = chunk->getCoordinates();
     return BlockCoordinates(cc.x * 16 + x, y, cc.z * 16 + z);
