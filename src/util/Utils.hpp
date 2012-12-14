@@ -30,6 +30,14 @@ inline T min(T a, T b) {
     return a < b ? a : b;
 }
 
+inline int toAbsolute(double d) {
+    return int(d * 32);
+}
+
+inline double fromAbsolute(int a) {
+    return double(a) / 32;
+}
+
 void invalidOption(std::string message, int exitCode = 1);
 
 void errorExit(std::string message, int exitCode = 1);

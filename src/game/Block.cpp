@@ -12,7 +12,7 @@ Block::Block(Chunk &chunk, uint8_t x, uint8_t y, uint8_t z)
 }
 
 Block::Block()
-:chunk(nullptr), x(0), y(0), z(0), id(nullptr), metadata(nullptr) {}
+:chunk(nullptr), id(nullptr), metadata(nullptr) {}
 
 
 Block::~Block() {
@@ -26,6 +26,11 @@ uint16_t Block::getId() const {
 
 uint8_t Block::getMetadata() const {
     return *metadata;
+}
+
+BlockCoordinates Block::getPosition() const {
+    ChunkCoordinates cc = chunk->getCoordinates();
+    return BlockCoordinates(cc.x * 16 + x, y, cc.z * 16 + z);
 }
 
 Block::operator bool() const {

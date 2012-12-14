@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+#include "BlockCoordinates.hpp"
+
 namespace MCServer {
 
 class Chunk;
@@ -17,11 +19,13 @@ public:
     uint16_t getId() const;
     uint8_t getMetadata() const;
 
+    BlockCoordinates getPosition() const;
+
     operator bool() const;
 
 private:
     Chunk *chunk;
-    uint8_t x, y, z;
+    int x, y, z;
     uint8_t *id, *metadata;
 };
 

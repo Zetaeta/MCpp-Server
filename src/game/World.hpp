@@ -16,10 +16,12 @@ struct Point3D;
 struct WorldData;
 struct ChunkCoordinates;
 class ReentrantLock;
+class ItemStack;
 
 namespace Entities {
 class Entity;
 struct PlayerData;
+class EntityItem;
 }
 
 using Entities::Entity;
@@ -65,6 +67,8 @@ public:
     void removeEntity(const std::shared_ptr<Entity> &);
     std::vector<std::shared_ptr<Entity>> & getEntities();
     const std::vector<std::shared_ptr<Entity>> & getEntities() const;
+
+    std::shared_ptr<Entities::EntityItem> dropItem(const ItemStack &, Point3D);
 
     void entityMoved(Entity &, Point3D from, Point3D to);
 private:

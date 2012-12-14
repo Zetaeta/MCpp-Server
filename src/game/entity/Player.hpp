@@ -42,6 +42,8 @@ public:
     PlayerInventory & getInventory();
     const PlayerInventory & getInventory() const;
 
+    const static int ITEM_VIEW_DISTANCE = 10;
+
     friend class MCServer::Network::ClientConnection;
 };
 

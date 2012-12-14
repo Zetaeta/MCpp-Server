@@ -18,6 +18,7 @@ public:
     virtual ~Entity();
 
     int getId();
+    int getEntityId();
     Point3D getPosition() const;
     void setPosition(const Point3D &);
     double getYaw();
@@ -33,6 +34,9 @@ public:
 protected:
     Entity(EntityData *, int id);
     Entity(EntityData *);
+
+    Entity(EntityData *, Point3D, int id);
+    Entity(EntityData *, Point3D);
     EntityData *m;
 };
 

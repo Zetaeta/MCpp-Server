@@ -1,4 +1,6 @@
 
+#include <iostream>
+
 #include "Entity.hpp"
 #include "EntityData.hpp"
 #include "MinecraftServer.hpp"
@@ -18,6 +20,17 @@ Entity::Entity(EntityData *m, int id)
 Entity::Entity(EntityData *m)
 :m(m) {
     m->id = MinecraftServer::getServer().getEntityManager().getNewEntityId();
+}
+
+Entity::Entity(EntityData *m, Point3D location, int id)
+:m(m) {
+    m->id = id;
+    m->position = location;
+}
+Entity::Entity(EntityData *m, Point3D location)
+:m(m) {
+    m->id = MinecraftServer::getServer().getEntityManager().getNewEntityId();
+    m->position = location;
 }
 
 Point3D Entity::getPosition() const {
@@ -65,6 +78,10 @@ Entity::~Entity() {
 
 
 int Entity::getId() {
+    return m->id;
+}
+
+int Entity::getEntityId() {
     return m->id;
 }
 

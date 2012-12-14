@@ -11,6 +11,7 @@ class Chunk;
 
 namespace Entities {
 class Player;
+class EntityItem;
 }
 
 namespace Network {
@@ -23,6 +24,8 @@ struct ClientConnectionData;
 class ClientConnection {
 public:
     ClientConnection(int socketfd);
+    ~ClientConnection();
+
     void run();
 
     /**
@@ -51,7 +54,7 @@ public:
     Packet & readPacket(Packet &packet, size_t length);
     Packet readPacket(size_t length);
 
-    ~ClientConnection();
+    void sendItemSpawned(const std::shared_ptr<Entities::EntityItem> &);
 
     friend class Entities::Player;
 protected:

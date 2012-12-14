@@ -24,18 +24,21 @@
 #include <Util/Rounding.hpp>
 
 #include "World.hpp"
+#include "ReentrantLock.hpp"
+#include "AutoLock.hpp"
+#include "MinecraftServer.hpp"
 #include "Point3D.hpp"
 #include "ChunkCoordinates.hpp"
 #include "Chunk.hpp"
-#include "util/FSUtils.hpp"
 #include "GameMode.hpp"
-#include "MinecraftServer.hpp"
-#include "logging/Logger.hpp"
 #include "WorldLoadingFailure.hpp"
+#include "util/FSUtils.hpp"
+#include "logging/Logger.hpp"
 #include "util/Utils.hpp"
 #include "entity/PlayerData.hpp"
-#include "ReentrantLock.hpp"
-#include "AutoLock.hpp"
+#include "entity/EntityItem.hpp"
+#include "entity/Player.hpp"
+#include "network/ClientConnection.hpp"
 
 using std::string;
 using std::map;
@@ -47,6 +50,7 @@ using std::weak_ptr;
 using std::find;
 using std::make_shared;
 using std::pair;
+using std::dynamic_pointer_cast;
 
 using NBT::Tag;
 using NBT::TagCompound;
@@ -70,6 +74,8 @@ USING_LOGGING_LEVEL
 namespace MCServer {
 
 using Entities::Entity;
+using Entities::EntityItem;
+using Entities::Player;
 
 struct WorldData {
     string name;
@@ -455,12 +461,29 @@ void World::entityMoved(Entity &entity, Point3D from, Point3D to) {
 
 }
 
+shared_ptr<EntityItem> World::dropItem(const ItemStack &items, Point3D location) {
+    shared_ptr<EntityItem> item = make_shared<EntityItem>(items.getId(), items.size(), location);
+    addEntity(item);
+    for (const shared_ptr<Entity> &entity : m->entities) {
+        shared_ptr<Player> player = dynamic_pointer_cast<Player>(entity);
+        if (!player)
+            continue;
+        cout << "Found player in world!\n";
+        cout << player->getPosition() << " - " << location << " = " << player->getPosition().distanceTo3D(location) << '\n';
+        if (player->getPosition().distanceTo3D(location) < Player::ITEM_VIEW_DISTANCE) {
+            cout << "Found player in world near to item!\n";
+            player->getConnection().sendItemSpawned(item);
+        }
+    }
+    return item;
+}
+
 template <typename T, typename Stream>
 Stream & operator<<(Stream &strm, const vector<T> &vec) {
     strm << '{';
-    for_each(vec.begin(), vec.end(), [&] (const T &t) {
+    for (const T &t : vec) {
         strm << t << ", ";
-    });
+    }
     strm << '}';
     return strm;
 }

@@ -34,6 +34,9 @@
 #include "game/Chunk.hpp"
 #include "game/Point3D.hpp"
 #include "game/EntityManager.hpp"
+#include "game/entity/EntityItem.hpp"
+
+#include "util/Utils.hpp"
 
 using std::string;
 using std::vector;
@@ -55,6 +58,7 @@ namespace MCServer {
 using Logging::Logger;
 USING_LOGGING_LEVEL
 using Entities::Player;
+using Entities::EntityItem;
 
 namespace Network {
 
@@ -585,6 +589,27 @@ void ClientConnection::sendKeepAlive() {
 void ClientConnection::sendMessage(const std::string &message) {
     Packet pk;
     pk << PACKET_CHAT_MESSAGE << message;
+    m->ss << pk;
+}
+
+void ClientConnection::sendItemSpawned(const shared_ptr<EntityItem> &item) {
+    Packet pk;
+    pk << PACKET_SPAWN_DROPPED_ITEM;
+    pk << item->getEntityId();
+    // Begin Slot
+    // TODO: Proper slot implementation.
+    pk << uint16_t(item->getId());
+    pk << uint8_t(item->getCount());
+    pk << uint16_t(0); // Length of NBT metadata.
+    // End slot
+    Point3D pos = item->getPosition();
+    cout << "item's position: " << pos << '\n';
+    pk << toAbsolute(pos.x);
+    pk << toAbsolute(pos.y);
+    pk << toAbsolute(pos.z);
+    pk << uint8_t(0); // Rotation.
+    pk << uint8_t(0); // Roll.
+    pk << uint8_t(item->getPitch());
     m->ss << pk;
 }
 

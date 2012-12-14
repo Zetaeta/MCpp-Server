@@ -6,6 +6,8 @@
 
 namespace MCServer {
 
+struct BlockCoordinates;
+
 struct Point3D : public Point2D {
     Point3D()
     :y(0){}
@@ -18,6 +20,8 @@ struct Point3D : public Point2D {
 
     Point3D(const Point2D &p2d)
     :Point2D(p2d), y(0) {}
+
+    Point3D(const BlockCoordinates &p);
 
     template<class T>
     Point3D(const std::initializer_list<T> &i)
@@ -38,6 +42,10 @@ struct Point3D : public Point2D {
         z = p.z;
         return *this;
     }
+
+    const Point3D operator=(const BlockCoordinates &p);
+
+    double distanceTo3D(Point3D other);
 
     Coordinate y;
 };
