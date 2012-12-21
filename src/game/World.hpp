@@ -47,6 +47,8 @@ public:
     void saveChunk(const ChunkCoordinates &);
     void saveChunk(const std::shared_ptr<Chunk> &);
 
+    void saveAll();
+
     std::vector<std::shared_ptr<Chunk>> loadAll(const std::vector<ChunkCoordinates> &coords);
     std::vector<std::shared_ptr<Chunk>> getLoadedChunks() const;
     std::map<ChunkCoordinates, std::weak_ptr<Chunk>> & getUnloadingChunks();

@@ -13,6 +13,7 @@
 #include "Point3D.hpp"
 #include "World.hpp"
 #include "entity/Player.hpp"
+#include "logging/Logger.hpp"
 
 using std::dynamic_pointer_cast;
 using std::shared_ptr;
@@ -24,11 +25,12 @@ using Entities::Player;
 using Entities::Entity;
 
 void ChunkLoader::start() {
+    running = true;
     MinecraftServer::server().getScheduler().startImportantThread("Chunk Loader" ,&ChunkLoader::run, this);
 }
 
 void ChunkLoader::run() {
-    while (MinecraftServer::server().isRunning()) {
+    while (running) {
         auto worlds = MinecraftServer::server().getWorlds();
         for (World *world : worlds) {
             auto loadedChunks = world->getLoadedChunks();
@@ -40,7 +42,7 @@ void ChunkLoader::run() {
                 for (shared_ptr<Entity> &entity : entities) {
                     shared_ptr<Player> player;
                     if ((player = dynamic_pointer_cast<Player>(entity)) == nullptr) {
-                        return;
+                        continue;
                     }
                     ChunkCoordinates playerCoords = player->getPosition();
                     if (((coords.x - playerCoords.x) < 3 || (playerCoords.x - coords.x) < 3)
@@ -65,6 +67,10 @@ void ChunkLoader::run() {
         }
         sleep(1);
     }
+}
+
+void ChunkLoader::shutdown() {
+    running = false;
 }
 
 }

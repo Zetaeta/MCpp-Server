@@ -10,9 +10,9 @@ AM_CXXFLAGS=
 
 @compiler_specifics@
 
-mc___server_CXXFLAGS = -O0 -g -std=c++11  -I src/ -Wall -Wextra -Werror \
-    -Wno-error=unused-variable  \
-    -Wno-error=unused-parameter -Wno-error=unused-function $(compiler_specifics)
+mc___server_CXXFLAGS = -O0 -g -std=c++11 -pthread -I src/ -Wall -Wextra -Werror \
+    -Wno-error=unused-variable -fstack-protector-all -Wstack-protector \
+    -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=comment $(compiler_specifics)
 mc___server_LDFLAGS = -O0 -rdynamic
 mc___server_LDADD = -lreadline -lpthread -lssl -lcrypto -ldl -lNBT -lIOStream -lrt -lZUtil
 

@@ -7,21 +7,31 @@
 #include <algorithm>
 #include <stdexcept>
 #include <math.h>
+#include <sys/stat.h>
 
 #include <nbt/NBT.hpp>
 #include <nbt/TagCompound.hpp>
 #include <nbt/TagNotFound.hpp>
 #include <nbt/TagList.hpp>
 #include <nbt/TagDouble.hpp>
+#include <nbt/TagByteArray.hpp>
 
 #include <IOStream/FileInputStream.hpp>
+#include <IOStream/FileOutputStream.hpp>
 #include <IOStream/GZipInputStream.hpp>
 #include <IOStream/DeflateInputStream.hpp>
 #include <IOStream/InputStream.hpp>
+#include <IOStream/OutputStream.hpp>
+#include <IOStream/InputOutputStream.hpp>
 #include <IOStream/ArrayInputStream.hpp>
+#include <IOStream/ArrayOutputStream.hpp>
+#include <IOStream/DeflateOutputStream.hpp>
+#include <IOStream/FileIOStream.hpp>
 
 #include <Util/StringUtils.hpp>
 #include <Util/Rounding.hpp>
+#include <Util/Endian.h>
+#include <Util/ErrorHandler.hpp>
 
 #include "World.hpp"
 #include "ReentrantLock.hpp"
@@ -56,16 +66,24 @@ using NBT::Tag;
 using NBT::TagCompound;
 using NBT::TagList;
 using NBT::TagDouble;
+using NBT::TagByteArray;
 
 using IOStream::GZipInputStream;
 using IOStream::DeflateInputStream;
+using IOStream::DeflateOutputStream;
 using IOStream::BIG;
 using IOStream::InputStream;
+using IOStream::OutputStream;
+using IOStream::InputOutputStream;
 using IOStream::FileInputStream;
+using IOStream::FileOutputStream;
+using IOStream::FileIOStream;
 using IOStream::ArrayInputStream;
+using IOStream::ArrayOutputStream;
 
 using Util::demangle;
 using Util::roundDownToNeg;
+using Util::roundUp;
 
 using MCServer::Entities::PlayerData;
 
@@ -135,7 +153,7 @@ inline int World::chunkToRegion(int chunkCoord) {
 }
 
 inline size_t World::headerOffset(int x, int z) {
-    return 4 * (x & 31 + (z & 31) * 32);
+    return static_cast<size_t>(x & 31) + static_cast<size_t>(z & 31) * 32;
 }
 
 
@@ -181,8 +199,8 @@ void World::loadFrom(const std::string &directory) {
         return;
     }
     cout << "Loading level.dat...\n";
-    Tag *tag = NBT::readFromFile(levelDatFile);
-    TagCompound *root = dynamic_cast<TagCompound *>(tag);
+    shared_ptr<Tag> tag = NBT::readFromFile(levelDatFile);
+    shared_ptr<TagCompound> root = dynamic_pointer_cast<TagCompound>(tag);
     if (!root) {
         MinecraftServer::getServer().getLogger() << SEVERE << "Failed loading world in " << directory << ": Root of level.dat is not a TagCompound\n";
         return;
@@ -190,26 +208,26 @@ void World::loadFrom(const std::string &directory) {
     cout << "Loaded root! Loading contents...\n";
 
     try {
-        TagCompound &data = root->getCompound("Data");
-        m->hardcore           = data.getByte("hardcore");
-        m->structures        = data.getByte("MapFeatures");
-        m->raining            = data.getByte("raining");
-        m->thundering         = data.getByte("thundering");
-        m->gameMode            = GameMode(data.getInt("GameType"));
-        m->generatorVersion    = data.getInt("generatorVersion");
-        m->rainTime            = data.getInt("rainTime");
-        int spawnX              = data.getInt("SpawnX");
-        int spawnY              = data.getInt("SpawnY");
-        int spawnZ              = data.getInt("SpawnZ");
+        shared_ptr<TagCompound> data = root->getCompound("Data");
+        m->hardcore           = data->getByte("hardcore");
+        m->structures        = data->getByte("MapFeatures");
+        m->raining            = data->getByte("raining");
+        m->thundering         = data->getByte("thundering");
+        m->gameMode            = GameMode(data->getInt("GameType"));
+        m->generatorVersion    = data->getInt("generatorVersion");
+        m->rainTime            = data->getInt("rainTime");
+        int spawnX              = data->getInt("SpawnX");
+        int spawnY              = data->getInt("SpawnY");
+        int spawnZ              = data->getInt("SpawnZ");
         m->spawnPoint = Point3D(spawnX, spawnY, spawnZ);
-        m->thunderTime         = data.getInt("thunderTime");
-        m->version             = data.getInt("version");
-        m->lastPlayed         = data.getLong("LastPlayed");
-        m->randomSeed         = data.getLong("RandomSeed");
-        m->sizeOnDisk         = data.getLong("SizeOnDisk");
-        m->time               = data.getLong("Time");
-        m->generatorName    = data.getString("generatorName");
-        m->name        = data.getString("LevelName");
+        m->thunderTime         = data->getInt("thunderTime");
+        m->version             = data->getInt("version");
+        m->lastPlayed         = data->getLong("LastPlayed");
+        m->randomSeed         = data->getLong("RandomSeed");
+        m->sizeOnDisk         = data->getLong("SizeOnDisk");
+        m->time               = data->getLong("Time");
+        m->generatorName    = data->getString("generatorName");
+        m->name        = data->getString("LevelName");
         cout << "Loaded contents!\n";
     } catch (const NBT::TagNotFound &ex) {
         cout << "Failed loading!\n";
@@ -230,6 +248,7 @@ int World::getDimension() const {
     return 0;
 }
 
+/*
 vector<string> printTag(Tag *tag) {
     vector<string> strings;
     std::ostringstream ss;
@@ -246,7 +265,7 @@ vector<string> printTag(Tag *tag) {
     if ((compound = dynamic_cast<TagCompound *>(tag)) != 0) {
         ss << " {\n";
         strings.push_back(ss.str());
-        map<string, Tag *> &m = compound->getData();
+        map<string, shared_ptr<Tag>> &m = compound->getData();
         for (auto it = m.begin(); it != m.end(); ++it) {
             vector<string> child = printTag(it->second);
             for (auto it2 = child.begin(); it2 != child.end(); ++it2) {
@@ -277,6 +296,7 @@ vector<string> printTag(Tag *tag) {
     }
     return strings;
 }
+*/
 
 void World::readRegionFile(const std::string &fileName) {
     FileInputStream fin(fileName);
@@ -288,9 +308,9 @@ void World::readRegionFile(const std::string &fileName) {
     int length = in.readInt();
     uint8_t compression = in.readUByte();
     InputStream chunk(new DeflateInputStream(fin), BIG);
-    Tag *chunkRoot = NBT::readTag(chunk);
+    shared_ptr<Tag> chunkRoot = NBT::readTag(chunk);
     cout << "Loaded chunkRoot: " << chunkRoot << "\n";
-    TagCompound *compound = dynamic_cast<TagCompound *>(chunkRoot);
+    shared_ptr<TagCompound> compound = dynamic_pointer_cast<TagCompound>(chunkRoot);
     cout << "Compound's type: \n";
     cout << "    " << demangle(typeid(*compound).name()) << '\n';
     cout << "Compound's name: \n";
@@ -298,17 +318,12 @@ void World::readRegionFile(const std::string &fileName) {
 
     cout << "compound's members: \n";
     cout << "    compound: " << compound << '\n';
-    vector<string> tree = printTag(compound);
-//    for (size_t i=0; i < tree.size(); ++i) {
-//        cout << tree[i];
-//    }
 
-
-    TagCompound &level = compound->getCompound("Level");
-    TagList &sections = level.getList("Sections");
-    vector<Tag *> &sectionsV = sections.getData();
-    for (Tag *section : sectionsV) {
-        TagCompound *sectionC = dynamic_cast<TagCompound *>(section);
+    shared_ptr<TagCompound> level = compound->getCompound("Level");
+    shared_ptr<TagList> sections = level->getList("Sections");
+    vector<shared_ptr<Tag>> &sectionsV = sections->getData();
+    for (const auto &section : sectionsV) {
+        shared_ptr<TagCompound> sectionC = dynamic_pointer_cast<TagCompound>(section);
         uint8_t y = sectionC->getUByte("Y");
         cout << "Y: " << uint16_t(y) << '\n';
     }
@@ -344,10 +359,7 @@ shared_ptr<Chunk> World::loadChunk(const ChunkCoordinates &pos) {
     }
     FileInputStream fin(filenameSs.str());
     InputStream in(fin, BIG);
-    size_t xOffset = pos.x & 31;
-    size_t zOffset = pos.z & 31;
-    size_t headerOffset = 4 * (xOffset + zOffset * 32); // Offset of chunk information from start of file.
-    in.seek(headerOffset, SEEK_SET);
+    in.seek(headerOffset(pos.x, pos.z) * 4, SEEK_SET);
     uint32_t chunkInfo = in.readInt();
     if (chunkInfo == 0) {
         cout << "Creating new chunk at {" << pos.x << ", " << pos.z << "}\n";
@@ -365,7 +377,8 @@ shared_ptr<Chunk> World::loadChunk(const ChunkCoordinates &pos) {
 /*    cout << "in.read(): " << */ in.read(compressedData, length - 1);// << '\n';
     DeflateInputStream din(new ArrayInputStream(compressedData, length - 1));
     InputStream compIn(din, BIG);
-    TagCompound *chunkRoot = dynamic_cast<TagCompound *>(NBT::readTag(compIn));
+    shared_ptr<TagCompound> chunkRoot = dynamic_pointer_cast<TagCompound>(NBT::readTag(compIn));
+//    cout << "chunkRoot.getName() = " << chunkRoot->getName() << '\n';
     din.close();
     fin.close();
     off_t endPos = fin.seek(0, SEEK_CUR);
@@ -392,6 +405,7 @@ void World::unloadChunk(const ChunkCoordinates &pos) {
 
 void World::unloadChunk(const shared_ptr<Chunk> &chunk) {
     AUTOLOCK(m->chunksLock);
+    saveChunk(chunk);
     weak_ptr<Chunk> weak(chunk);
     auto coords = chunk->getCoordinates();
     auto it = m->chunks.find(coords);
@@ -416,38 +430,170 @@ void World::saveChunk(const ChunkCoordinates &coords) {
 void World::saveChunk(const shared_ptr<Chunk> &chunk) {
     AUTOLOCK(m->chunksLock);
     ChunkCoordinates coords = chunk->getCoordinates();
+    cout << "saving " << coords << '\n';
 
     TagCompound root;
-    std::ostringstream _oss;
-    oss << "Chunk [" << coords.x << ", " << coords.z << ']';
-    TagCompound chunk(oss.str());
     TagCompound level("Level");
     level.set("xPos", (int) coords.x);
     level.set("zPos", (int) coords.z);
     level.set("TerrainPopulated", (uint8_t) 1);
-    TagList list("Sections");
+    auto sections = make_shared<TagList>("Sections");
     for (int y=0; y<16; ++y) {
-        
+        auto section = make_shared<TagCompound>();
+        section->set("Y", uint8_t(y));
+        auto blocks = make_shared<TagByteArray>(&chunk->blockIds[4096 * y], 4096, "Blocks");
+        section->set(blocks);
+        auto data = make_shared<TagByteArray>(&chunk->blockMetadata[2048 * y], 2048, "Data");
+        section->set(data);
+        sections->add(section);
     }
-    ArrayOutputStream aout;
-    DeflateOutputStream dout(aout);
-    
+    level.set(sections);
+    root.set(level);
+
+    ArrayOutputStream aout(4096);
+    DeflateOutputStream dout(aout); 
+    OutputStream out(dout, BIG);
+    NBT::writeTag(root, out);
+    dout.close();
+
+/*    {
+        ArrayOutputStream testAout(8192);
+        OutputStream testOut(testAout, BIG);
+        root.write(testOut);
+        ArrayInputStream testAin(testAout.data(), testAout.size());
+        InputStream testIn(testAin, BIG);
+        NBT::readTag(testIn);
+    } */
+
+
+    ArrayInputStream ain(aout.data(), aout.size());
+    DeflateInputStream din(ain);
+    InputStream in(din);
+    NBT::readTag(in);
+    din.close();
+    ain.close();
+
 
     ostringstream filenameSs;
     filenameSs << m->directory << "/region/r." << chunkToRegion(coords.x)
         << '.' << chunkToRegion(coords.z) << ".mca";
     string filename = filenameSs.str();
-    FileOutputStream out(filename);
-    stat st;
-    assert(fstat(out.fd(), &st));
-    if (st.st_size % 4096) { // File size must be a multiple of 4kB
-        ftruncate(out.fd(), roundUp<off_t, 4096>(st.st_size));
+    cout << "saving to " << filename << '\n';
+    FileIOStream fs(filename);
+    InputOutputStream file(fs);
+    struct stat st;
+    if (fstat(fs.fd(), &st) != 0) {
+        throwException(errno);
     }
-    int offset = headerOffset(coords.x, coords.z);
-    out.seek(offset);
-    int headerInfo = in.readInt();
+    cout << "file size = " << st.st_size << '\n';
+    if (st.st_size == 0) {
+        ftruncate(fs.fd(), 4096);
+    }
+    if (st.st_size % 4096) { // File size must be a multiple of 4kB
+        ftruncate(fs.fd(), roundUp<off_t, 4096>(st.st_size));
+    }
+    unsigned int offsetTable[1024]; // Header of chunk offsets
+/*
+    file.read(&offsetTable, sizeof(offsetTable)); // Read into offset table. Table now contains big endian integers.
+    if (!bigEndian) {
+        for (int i=0; i<1024; ++i) {
+            swapEndian(offsetTable[i]);
+        }
+    }
+*/
+//    cout << "current position in file: " << file.seek(0, SEEK_CUR) << '\n';
+    for (int i=0; i<1024; ++i) {
+        offsetTable[i] = file.readUInt();
+//        std::cout << "offsetTable[" << i << "] = " << offsetTable[i] << '\n';
+//        std::cout << "offset = " << (offsetTable[i] >> 8) << '\n';
+//        std::cout << "sectors used = " << (offsetTable[i] & 0xFF) << '\n';
+    }
+
+    unsigned &offset = offsetTable[headerOffset(coords.x, coords.z)];
+    int headerInfo = file.readInt();
     int usedSectors = headerInfo & 0xFF;
-//    int requiredSectors = 
+    int requiredSectors = aout.size() + 5 / 4096 + 1; // 5 = length of chunk header.
+                                                      // division rounds down, so add 1.
+    if (requiredSectors <= usedSectors) { // We have the enough sectors already :D
+        file.writeInt(aout.size());        
+        file.writeByte(2);
+        file.write(aout.data(), aout.size());
+    }
+    else {
+        offset = 0; // Set the offset for this chunk to 0, as we no longer need its space.
+
+        assert(fstat(fs.fd(), &st) == 0);
+        int sectorCount = st.st_size / 4096 - 1; // Number of sectors in file, minus the header.
+        vector<bool> sectors(sectorCount);
+
+        // For all the chunks saved, mark their sectors as used.
+        // Henceforth, sectors are indexed from the first sector after the offset table header.
+        for (int i=0; i<1024; ++i) {
+            unsigned data = offsetTable[i];
+            int offset = (data >> 8) - 1; // The offset includes the header, so subtract 1.
+            int usedSectors = data & 0xFF;
+            if (offset + usedSectors - 1 == sectorCount) {
+                cout << "offset + usedSectors - 1 == sectorCount:" << '\n';
+                cout << "[" << i << "]: offset = " << offset << ", usedSectors = " << usedSectors << ", sectorCount = " << sectorCount << '\n';
+            }
+            // This shouldn't happen, but I've seen it in a file that was created by a Notchian server.
+            if (offset + usedSectors - 1 > sectorCount) {
+                cout << "offset + usedSectors > sectorCount:" << '\n';
+                cout << "[" << i << "]: offset = " << offset << ", usedSectors = " << usedSectors << ", sectorCount = " << sectorCount << '\n';
+                continue;
+            }
+            for (int j=offset; j < offset + usedSectors; ++j) {
+                sectors[j] = true;
+            }
+        }
+
+        /* For all the sectors, if there is a row of them free greater than the number required, check them against the current
+        lowest. We want the smallest free space that is large enough for our needs, in order to save space. */
+        int currentIndex = -1;
+        int currentLength = -1;
+        for (int i=0; i < sectorCount; ++i) {
+            int freeCount = 0; // Current no. of consecutive free sectors.
+            int startIndex = i;
+            while (i < sectorCount && !sectors[i]) {
+                ++freeCount;
+                ++i;
+            }
+            if (freeCount >= requiredSectors) { // If the free area is at least the size we need.
+                if (currentLength == -1 || freeCount < currentLength) {
+                    currentIndex = startIndex;
+                    currentLength = freeCount;
+                }
+            }
+        }
+        if (currentIndex >= 0) { // There is enough space in the file.
+            file.seek(headerOffset(coords.x, coords.z) * 4, SEEK_SET);
+            file.writeInt(((currentIndex + 1) << 8) | (requiredSectors & 0xFF));
+            file.seek(currentIndex * 4096 + 4096, SEEK_SET);
+            file.writeInt(aout.size());
+            file.writeByte(2);
+            file.write(aout.data(), aout.size());
+        }
+        else { // We need to make the file bigger!
+            file.seek(headerOffset(coords.x, coords.z) * 4, SEEK_SET);
+            file.writeInt((((roundUp<int, 4096>(st.st_size) / 4096) << 8) | (requiredSectors & 0xFF)));
+            file.seek(0, SEEK_END);
+            file.writeInt(aout.size());
+            file.writeByte(2);
+            file.write(aout.data(), aout.size());
+        }
+        // Hopefully-maybe-done?
+    }
+
+}
+
+void World::saveAll() {
+    for (const auto &pair : m->chunks) {
+        saveChunk(pair.second);
+    }
+}
+
+shared_ptr<Tag> makeTag() {
+    return make_shared<TagDouble>();
 }
 
 void World::loadPlayer(PlayerData *data) {
@@ -458,12 +604,9 @@ void World::loadPlayer(PlayerData *data) {
         return;
     }
     InputStream in(new GZipInputStream(filename));
-    Tag *tag = NBT::readTag(in);
+    shared_ptr<Tag> tag = NBT::readTag(in);
 
-    cout << "Player data: \n";
-    vector<string> stuff = printTag(tag);
-
-    TagCompound *root = dynamic_cast<TagCompound *>(tag);
+    shared_ptr<TagCompound> root = dynamic_pointer_cast<TagCompound>(tag);
     data->onGround = root->getByte("onGround");
     data->sleeping = root->getByte("Sleeping");
     data->air = root->getShort("Air");
@@ -483,10 +626,20 @@ void World::loadPlayer(PlayerData *data) {
     data->foodExhaustionLevel = root->getFloat("foodExhaustionLevel");
     data->foodSaturationLevel = root->getFloat("foodSaturationLevel");
     data->xpP = root->getFloat("XpP");
-    TagList position = root->getList("Pos");
-    data->position = Point3D{ dynamic_cast<TagDouble *>(position[0])->getData(),
-                      dynamic_cast<TagDouble *>(position[1])->getData(),
-                      dynamic_cast<TagDouble *>(position[2])->getData()};
+    shared_ptr<TagList> position = root->getList("Pos");
+    auto m1 = (*position)[0];
+//    cout << "m1.use_count(): " << m1.use_count() << '\n';
+    auto tagDouble = NBT::createTag(6);
+//    cout << "tagDouble.use_count(): " << tagDouble.use_count() << '\n';
+    auto madeShared = make_shared<TagDouble>();
+    cout << "madeShared.use_count(): " << madeShared.use_count() << '\n';
+    shared_ptr<Tag> cast = make_shared<TagDouble>();
+    cout << "cast.use_count(): " << cast.use_count() << '\n';
+    auto returned = makeTag();
+    cout << "returned.use_count(): " << returned.use_count() << '\n';
+    data->position = Point3D{ dynamic_pointer_cast<TagDouble>((*position)[0])->getData(),
+                      dynamic_pointer_cast<TagDouble>((*position)[1])->getData(),
+                      dynamic_pointer_cast<TagDouble>((*position)[2])->getData()};
 }
 
 void World::entityMoved(Entity &entity, Point3D from, Point3D to) {

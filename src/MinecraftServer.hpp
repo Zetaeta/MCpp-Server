@@ -60,10 +60,10 @@ public:
     MinecraftServer(const std::map<std::string, std::string *> &, int &argc, char **argv);
     ~MinecraftServer();
     void run();
-    void shutdown();
+    void shutdown(); // Stops the server running and ends the process.
+    void stop(); // Stops the server running.
 
     bool isRunning();
-    bool isShutdown();
 
     int & argc();
     char **argv();

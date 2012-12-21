@@ -3,6 +3,7 @@
 #include <vector>
 #include <unistd.h>
 #include <string.h>
+#include <memory>
 
 #include <nbt/TagCompound.hpp>
 #include <nbt/TagList.hpp>
@@ -13,6 +14,8 @@
 
 using std::cout;
 using std::vector;
+using std::shared_ptr;
+using std::dynamic_pointer_cast;
 
 using NBT::TagCompound;
 using NBT::TagList;
@@ -35,12 +38,12 @@ Chunk::Chunk(const Chunk &other)
 }
 
 void Chunk::loadFrom(const TagCompound &compound) {
-    const TagCompound &level = compound.getCompound("Level");
-    const TagList &sections = level.getList("Sections");
-    const vector<Tag *> sectionsV = sections.getData();
+    shared_ptr<TagCompound> level = compound.getCompound("Level");
+    shared_ptr<TagList> sections = level->getList("Sections");
+    const vector<shared_ptr<Tag>> sectionsV = sections->getData();
 //    cout << "Chunk::loadFrom: sectionsV.size() = " << sectionsV.size() << '\n';
-    for (Tag *section : sectionsV) {
-        const TagCompound *sectionC = dynamic_cast<const TagCompound *>(section);
+    for (const shared_ptr<Tag> section : sectionsV) {
+        shared_ptr<TagCompound> sectionC = dynamic_pointer_cast<TagCompound>(section);
         loadSection(*sectionC);
     }
 }

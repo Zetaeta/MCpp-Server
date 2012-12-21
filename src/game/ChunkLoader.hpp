@@ -8,6 +8,9 @@ class ChunkLoader {
 public:
     void start();
     void run();
+    void shutdown();
+private:
+    bool running;
 };
 
 }

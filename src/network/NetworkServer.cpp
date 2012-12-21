@@ -67,7 +67,7 @@ NetworkServer::NetworkServer(MinecraftServer *server)
 
 //    pthread_create(&m->thread, NULL, &startNetworkServer, this);
     std::function<void (NetworkServer *)> f = &NetworkServer::run;
-    server->getScheduler().startImportantThread(&NetworkServer::run, this);
+    server->getScheduler().startImportantThread(f, static_cast<NetworkServer *>(this));
 }
 
 NetworkServer::~NetworkServer() {

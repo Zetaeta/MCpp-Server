@@ -135,9 +135,9 @@ struct MinecraftServerData {
 };
 
 namespace {
-void shutdownServer() {
-    if (&MinecraftServer::getServer() && !MinecraftServer::getServer().isShutdown()) {
-        MinecraftServer::getServer().shutdown();
+void stopServer() {
+    if (&MinecraftServer::getServer() && MinecraftServer::getServer().isRunning()) {
+        MinecraftServer::getServer().stop();
     }
 }
 }
@@ -147,7 +147,7 @@ MinecraftServer::MinecraftServer(const map<string, string *> &options, int &argc
 
     instance = this;
     m->argv = argv;
-    atexit(&shutdownServer);
+    atexit(&stopServer);
     m->options = options;
     m->realStdout = cout.rdbuf();
     m->realStderr = cerr.rdbuf();
@@ -350,14 +350,16 @@ void MinecraftServer::tick() {
     // TODO: Entity updating, physics handling etc.
 }
 
-void MinecraftServer::shutdown() {
+void MinecraftServer::stop() {
     m->shutdown = true;
     m->networkServer->shutdown();
-    exit(0);
+    m->chunkLoader->shutdown();
+    getMainWorld().saveAll();
 }
 
-bool MinecraftServer::isShutdown() {
-    return m->shutdown;
+void MinecraftServer::shutdown() {
+    stop();
+    exit(0);
 }
 
 bool MinecraftServer::isRunning() {

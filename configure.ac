@@ -37,7 +37,7 @@ AC_CONFIG_FILES([Makefile])
 
 compiler_specifics='
 ifneq ($(CXX), clang++)
-    compiler_specifics=-Wno-error=unused-but-set-variable
+    compiler_specifics=-Wno-error=unused-but-set-variable -Wno-error=missing-field-initializers
 else
     compiler_specifics=-Wno-error=lambda-extensions
 endif'

@@ -17,6 +17,8 @@ namespace Network {
 class ClientConnection;
 }
 
+class World;
+
 
 class Chunk {
 public:
@@ -45,6 +47,7 @@ public:
 
     friend class Network::ClientConnection;
     friend class Block;
+    friend class World;
 private:
     Chunk(const Chunk &);
 //    ChunkBlocks data;

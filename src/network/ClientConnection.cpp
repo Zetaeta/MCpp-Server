@@ -87,6 +87,7 @@ struct ClientConnectionData {
     EVP_CIPHER_CTX encryptor, decryptor;
 
     SocketStream ss;
+    Lock socketLock;
 
     ClientConnectionData(int sfd)
     :server(MinecraftServer::getServer()), socketfd(sfd), shutdown(false), encrypted(false), ss(sfd) {}
@@ -118,6 +119,7 @@ ClientConnection::~ClientConnection() {
 }
 
 void ClientConnection::init() {
+    m->socketLock.lock();
     Logger &log = m->server.getLogger();
     log << "ClientConnection::init\n";
 
@@ -266,6 +268,7 @@ void ClientConnection::finishLogin() {
     login << uint8_t(m->server.getWorldType()) << uint8_t(m->server.getDifficulty());
     login << uint8_t(0) << uint8_t(m->server.getMaxPlayers());
     ss << login;
+    m->socketLock.unLock();
     m->player->loadData();
     m->player->getWorld().addEntity(m->player);
     MinecraftServer::server().addPlayer(m->player);
@@ -337,6 +340,7 @@ void ClientConnection::sendWorld() {
 }
 
 void ClientConnection::sendSpawnPosition() {
+    m->socketLock.lock();
     Packet sp;
     sp << PACKET_SPAWN_POSITION;
     Point3D pos = m->player->getPosition();
@@ -348,6 +352,7 @@ void ClientConnection::sendSpawnPosition() {
     pl << pos.x << pos.y << pos.y << pos.z;
     pl << float(0) << float(0) << uint8_t(1);
     m->ss << pl;
+    m->socketLock.unLock();
 
     cout << "Sent spawn position!\n";
     cout << "pos = " << pos << '\n';
@@ -431,7 +436,9 @@ void ClientConnection::sendChunk(const Chunk &ch) {
     pack << size;
     pack.add(out.data(), size);
     
+    m->socketLock.lock();
     m->ss << pack;
+    m->socketLock.unLock();
 }
 
 void ClientConnection::handlePacket(PacketType type) {

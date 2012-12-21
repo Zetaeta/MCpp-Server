@@ -10,7 +10,7 @@ namespace MCServer {
 namespace Entities {
 
 EntityItem::EntityItem(uint16_t id, uint8_t count, Point3D location)
-:Entity(new EntityData, location) {
+:Entity(new EntityItemData, location) {
     D(EntityItem);
     m->id = id;
     m->count = count;
